@@ -25,7 +25,7 @@ class SettingsService {
     final repeatModeIndex = _prefs.getInt(_keyRepeatMode) ?? 1; // everyXDays
     final intervalDays = _prefs.getInt(_keyIntervalDays) ?? 3;
     final weekDaysStr = _prefs.getStringList(_keySelectedWeekDays) ?? ['1', '4'];
-    final isEnabled = _prefs.getBool(_keyIsEnabled) ?? true;
+    final isEnabled = _prefs.getBool(_keyIsEnabled) ?? false;
     final reciterId = _prefs.getString(_keySelectedReciterId) ?? 'husr';
     final lastPlayedStr = _prefs.getString(_keyLastPlayedAt);
 

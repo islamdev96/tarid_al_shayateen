@@ -32,6 +32,7 @@ class AppProvider extends ChangeNotifier {
   StreamSubscription? _positionSub;
   StreamSubscription? _stateSub;
   StreamSubscription? _alarmSub;
+  Timer? _foregroundTimer;
 
   // Getters
   ScheduleSettings get settings => _settings;
@@ -115,7 +116,7 @@ class AppProvider extends ChangeNotifier {
 
   /// Play Surah Al-Baqarah now with the selected reciter.
   Future<void> playNow() async {
-    if (_isLoading) return; // Prevent double-tap
+    if (_isLoading || _isPlaying) return; // Prevent double-tap or restarting if already playing
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -230,6 +231,18 @@ class AppProvider extends ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  /// Schedule an alarm in exactly 10 seconds for testing.
+  Future<void> testAlarmIn10Seconds() async {
+    final nextTime = DateTime.now().add(const Duration(seconds: 10));
+    await SchedulerService.scheduleNext(nextTime);
+    
+    _foregroundTimer?.cancel();
+    _foregroundTimer = Timer(const Duration(seconds: 10), () {
+      debugPrint('Foreground Timer triggered test playback!');
+      playNow();
+    });
   }
 
   /// Select a different reciter.
@@ -353,6 +366,16 @@ class AppProvider extends ChangeNotifier {
     final nextTime = _settings.getNextPlaybackTime();
     if (nextTime != null) {
       SchedulerService.scheduleNext(nextTime);
+      
+      // Also schedule a Dart Timer as a reliable fallback if the app remains open in the foreground
+      _foregroundTimer?.cancel();
+      final duration = nextTime.difference(DateTime.now());
+      if (duration.inSeconds > 0) {
+        _foregroundTimer = Timer(duration, () {
+          debugPrint('Foreground Timer triggered playback!');
+          playNow();
+        });
+      }
     }
   }
 
@@ -361,6 +384,7 @@ class AppProvider extends ChangeNotifier {
     _positionSub?.cancel();
     _stateSub?.cancel();
     _alarmSub?.cancel();
+    _foregroundTimer?.cancel();
     super.dispose();
   }
 }

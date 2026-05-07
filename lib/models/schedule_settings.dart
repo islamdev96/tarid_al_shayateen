@@ -22,7 +22,7 @@ class ScheduleSettings {
     this.repeatMode = RepeatMode.everyXDays,
     this.intervalDays = 3,
     this.selectedWeekDays = const {1, 4}, // Monday & Thursday by default
-    this.isEnabled = true,
+    this.isEnabled = false,
     this.selectedReciterId = 'husr',
     this.lastPlayedAt,
   });

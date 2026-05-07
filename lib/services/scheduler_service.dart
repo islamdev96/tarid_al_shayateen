@@ -4,24 +4,87 @@ import 'dart:ui';
 import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/reciter.dart';
 import 'audio_handler.dart';
 
+const String _portName = 'tarid_alarm_port';
+
+/// The callback that fires when the alarm triggers.
+/// This MUST be a top-level function to avoid DartVM errors in the background isolate.
+@pragma('vm:entry-point')
+Future<void> alarmCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Mark the time of triggering
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('last_alarm_trigger', DateTime.now().toIso8601String());
+  await prefs.setBool('alarm_triggered', true);
+  await prefs.remove('next_scheduled_time');
+
+  // Send message to main isolate to start playback
+  final SendPort? sendPort = IsolateNameServer.lookupPortByName(_portName);
+  if (sendPort != null) {
+    sendPort.send('play');
+  } else {
+    // Main app is dead, initialize AudioService and play directly
+    try {
+      final audioHandler = await AudioService.init(
+        builder: () => QuranAudioHandler(),
+        config: const AudioServiceConfig(
+          androidNotificationChannelId: 'com.islamglab.tarid_al_shayateen.audio',
+          androidNotificationChannelName: 'سورة البقرة',
+          androidNotificationChannelDescription: 'تشغيل سورة البقرة',
+          androidNotificationOngoing: true,
+          androidStopForegroundOnPause: true,
+        ),
+      );
+
+      final reciterId = prefs.getString('selected_reciter_id') ?? 'husr';
+      final reciter = Reciter.findById(reciterId);
+
+      final dir = await getApplicationDocumentsDirectory();
+      final path = '${dir.path}/surah_baqarah_$reciterId.mp3';
+
+      if (await File(path).exists()) {
+        await audioHandler.playFromFile(path, reciter.nameAr);
+      } else if (reciter.isOffline) {
+        bool found = false;
+        for (final r in Reciter.defaultReciters) {
+          final fallbackPath = '${dir.path}/surah_baqarah_${r.id}.mp3';
+          if (await File(fallbackPath).exists()) {
+            await audioHandler.playFromFile(fallbackPath, 'سورة البقرة - نسخة محفوظة');
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          await audioHandler.playFromUrl(reciter.surahBaqarahUrl, reciter.nameAr);
+        }
+      } else {
+        await audioHandler.playFromUrl(reciter.surahBaqarahUrl, reciter.nameAr);
+      }
+    } catch (e) {
+      debugPrint('Background playback error: $e');
+    }
+  }
+}
+
 /// Manages scheduling periodic alarms to trigger Surah Al-Baqarah playback.
 class SchedulerService {
-  static const int _alarmId = 0;
-  static const String _portName = 'tarid_alarm_port';
-
-  /// Initialize the alarm manager.
+  static const int _alarmId = 111; // Non-zero ID to prevent OEM ignorance
   static Future<void> init() async {
     await AndroidAlarmManager.initialize();
   }
 
   /// Schedule the next playback at the given [dateTime].
   static Future<void> scheduleNext(DateTime dateTime) async {
+    if (Platform.isAndroid) {
+      await Permission.scheduleExactAlarm.request();
+    }
     // Cancel any existing alarm
     await AndroidAlarmManager.cancel(_alarmId);
 
@@ -32,7 +95,7 @@ class SchedulerService {
     await AndroidAlarmManager.oneShotAt(
       dateTime,
       _alarmId,
-      _alarmCallback,
+      alarmCallback,
       exact: true,
       wakeup: true,
       rescheduleOnReboot: true,
@@ -45,68 +108,6 @@ class SchedulerService {
     await AndroidAlarmManager.cancel(_alarmId);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('next_scheduled_time');
-  }
-
-  /// The callback that fires when the alarm triggers.
-  /// This runs in a separate isolate, so it communicates via IsolateNameServer.
-  @pragma('vm:entry-point')
-  static Future<void> _alarmCallback() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    
-    // Mark the time of triggering
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('last_alarm_trigger', DateTime.now().toIso8601String());
-    await prefs.setBool('alarm_triggered', true);
-    await prefs.remove('next_scheduled_time');
-
-    // Send message to main isolate to start playback
-    final SendPort? sendPort = IsolateNameServer.lookupPortByName(_portName);
-    if (sendPort != null) {
-      sendPort.send('play');
-    } else {
-      // Main app is dead, initialize AudioService and play directly
-      try {
-        final audioHandler = await AudioService.init(
-          builder: () => QuranAudioHandler(),
-          config: const AudioServiceConfig(
-            androidNotificationChannelId: 'com.islamglab.tarid_al_shayateen.audio',
-            androidNotificationChannelName: 'سورة البقرة',
-            androidNotificationChannelDescription: 'تشغيل سورة البقرة',
-            androidNotificationOngoing: true,
-            androidStopForegroundOnPause: true,
-          ),
-        );
-
-        final reciterId = prefs.getString('selected_reciter_id') ?? 'husr';
-        final reciter = Reciter.findById(reciterId);
-
-        final dir = await getApplicationDocumentsDirectory();
-        final path = '${dir.path}/surah_baqarah_$reciterId.mp3';
-
-        if (await File(path).exists()) {
-          await audioHandler.playFromFile(path, reciter.nameAr);
-        } else if (reciter.isOffline) {
-          // Try to find any cached file if the selected offline is missing
-          bool found = false;
-          for (final r in Reciter.defaultReciters) {
-            final fallbackPath = '${dir.path}/surah_baqarah_${r.id}.mp3';
-            if (await File(fallbackPath).exists()) {
-              await audioHandler.playFromFile(fallbackPath, 'سورة البقرة - نسخة محفوظة');
-              found = true;
-              break;
-            }
-          }
-          if (!found) {
-            await audioHandler.playFromUrl(reciter.surahBaqarahUrl, reciter.nameAr);
-          }
-        } else {
-          // Play online
-          await audioHandler.playFromUrl(reciter.surahBaqarahUrl, reciter.nameAr);
-        }
-      } catch (e) {
-        debugPrint('Background playback error: $e');
-      }
-    }
   }
 
   /// Register a port to listen for alarm callbacks from the background isolate.
