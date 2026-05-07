@@ -80,8 +80,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     if (_draft.repeatMode == RepeatMode.weekDays) _buildWeekDaySelector(),
                     const SizedBox(height: 24),
                     _buildPreview(),
-                    const SizedBox(height: 24),
-                    _buildTestButton(),
                     const SizedBox(height: 32),
                   ]),
                 ),
@@ -319,36 +317,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildTestButton() {
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.accentTeal,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      onPressed: () async {
-        final now = DateTime.now();
-        final testTime = now.add(const Duration(seconds: 10));
-        
-        // Save the real settings first
-        await context.read<AppProvider>().updateSettings(_draft);
-        
-        // Force the alarm to 10 seconds from now
-        await context.read<AppProvider>().testAlarmIn10Seconds();
-        
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم ضبط تنبيه تجريبي بعد 10 ثواني! انتظر...', style: TextStyle(fontFamily: 'Cairo')),
-              backgroundColor: AppTheme.gold,
-            ),
-          );
-        }
-      },
-      child: const Text('اختبار التنبيه (بعد 10 ثواني)', style: TextStyle(color: AppTheme.deepBackground, fontSize: 16, fontWeight: FontWeight.bold)),
     );
   }
 }

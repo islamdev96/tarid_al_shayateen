@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
@@ -31,43 +32,64 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (mounted) setState(() {});
     });
 
-    _checkBatteryOptimization();
+    _requestPermissions();
   }
 
-  Future<void> _checkBatteryOptimization() async {
+  Future<void> _requestPermissions() async {
     final prefs = await SharedPreferences.getInstance();
-    final alreadyShown = prefs.getBool('battery_dialog_shown') ?? false;
+    final alreadyShown = prefs.getBool('permissions_requested') ?? false;
     if (alreadyShown || !mounted) return;
 
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 1));
     if (!mounted) return;
 
-    await prefs.setBool('battery_dialog_shown', true);
-    if (!mounted) return;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardBackground,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.battery_alert_rounded, color: AppTheme.gold),
-            SizedBox(width: 8),
-            Text('تحسين البطارية', style: TextStyle(color: AppTheme.gold, fontSize: 18)),
+    await prefs.setBool('permissions_requested', true);
+    
+    // Request notification permission (Android 13+)
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+
+    // Check if battery optimization is enabled (meaning we need to request it to be ignored)
+    if (!await Permission.ignoreBatteryOptimizations.isGranted && mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppTheme.cardBackground,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.battery_alert_rounded, color: AppTheme.gold),
+              SizedBox(width: 8),
+              Text('صلاحية هامة للتنبيه', style: TextStyle(color: AppTheme.gold, fontSize: 18)),
+            ],
+          ),
+          content: const Text(
+            'لضمان عمل التنبيه في وقته بالثانية وإنت قافل التطبيق، نحتاج إعطاء التطبيق صلاحية (العمل في الخلفية / استثناء من توفير البطارية).\n\nاضغط "تفعيل" ثم "سماح" (Allow).',
+            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14, height: 1.6),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('تخطي', style: TextStyle(color: AppTheme.textMuted)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentTeal,
+                foregroundColor: AppTheme.deepBackground,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await Permission.ignoreBatteryOptimizations.request();
+              },
+              child: const Text('تفعيل الصلاحية', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
           ],
         ),
-        content: const Text(
-          'لضمان تشغيل سورة البقرة في الوقت المحدد، يرجى إيقاف تحسين البطارية لهذا التطبيق من إعدادات الموبايل.',
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('تم', style: TextStyle(color: AppTheme.gold)),
-          ),
-        ],
-      ),
-    );
+      );
+    }
   }
 
   @override

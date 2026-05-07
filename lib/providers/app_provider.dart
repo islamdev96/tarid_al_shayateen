@@ -233,18 +233,6 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Schedule an alarm in exactly 10 seconds for testing.
-  Future<void> testAlarmIn10Seconds() async {
-    final nextTime = DateTime.now().add(const Duration(seconds: 10));
-    await SchedulerService.scheduleNext(nextTime);
-    
-    _foregroundTimer?.cancel();
-    _foregroundTimer = Timer(const Duration(seconds: 10), () {
-      debugPrint('Foreground Timer triggered test playback!');
-      playNow();
-    });
-  }
-
   /// Select a different reciter.
   Future<void> selectReciter(String reciterId) async {
     _settings = _settings.copyWith(selectedReciterId: reciterId);
