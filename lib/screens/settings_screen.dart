@@ -21,7 +21,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _save() {
-    context.read<AppProvider>().updateSettings(_draft);
+    final provider = context.read<AppProvider>();
+    provider.updateSettings(_draft);
+    
+    final nextTime = _draft.getNextPlaybackTime();
+    if (nextTime != null) {
+      final timeStr = '${nextTime.hour.toString().padLeft(2, '0')}:${nextTime.minute.toString().padLeft(2, '0')}';
+      final dateStr = '${nextTime.year}-${nextTime.month.toString().padLeft(2, '0')}-${nextTime.day.toString().padLeft(2, '0')}';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم الجدولة بنجاح: سيتم التشغيل يوم $dateStr الساعة $timeStr', style: const TextStyle(fontFamily: 'Cairo')),
+          backgroundColor: AppTheme.accentTeal,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم إيقاف الجدولة التلقائية', style: TextStyle(fontFamily: 'Cairo')),
+          backgroundColor: AppTheme.textMuted,
+        ),
+      );
+    }
+
     Navigator.pop(context);
   }
 

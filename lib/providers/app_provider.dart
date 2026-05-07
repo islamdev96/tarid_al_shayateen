@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -198,6 +199,27 @@ class AppProvider extends ChangeNotifier {
 
   /// Update schedule settings and reschedule.
   Future<void> updateSettings(ScheduleSettings newSettings) async {
+    bool timeChanged = _settings.playbackTime != newSettings.playbackTime || 
+                       _settings.repeatMode != newSettings.repeatMode || 
+                       _settings.intervalDays != newSettings.intervalDays;
+    
+    if (timeChanged) {
+      // If the user changed the time, reset lastPlayedAt so it can trigger today for testing
+      newSettings = newSettings.copyWith(
+        lastPlayedAt: null, // this doesn't clear it in copyWith, we must create a new object
+      );
+      // Wait, copyWith doesn't support nulling out values. We create a new ScheduleSettings
+      newSettings = ScheduleSettings(
+        playbackTime: newSettings.playbackTime,
+        repeatMode: newSettings.repeatMode,
+        intervalDays: newSettings.intervalDays,
+        selectedWeekDays: newSettings.selectedWeekDays,
+        isEnabled: newSettings.isEnabled,
+        selectedReciterId: newSettings.selectedReciterId,
+        lastPlayedAt: null, // Reset history to allow triggering today
+      );
+    }
+
     _settings = newSettings;
     await _settingsService.saveSettings(_settings);
 

@@ -116,14 +116,55 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                   if (provider.isDownloading)
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: LinearProgressIndicator(
-                            value: provider.downloadProgress,
-                            backgroundColor: AppTheme.cardBorder,
-                            valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentTeal),
-                            minHeight: 4,
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: AppTheme.glassCard,
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  const SizedBox(
+                                    width: 20, height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentTeal),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'جاري تحميل القارئ (${provider.downloadingReciterName})',
+                                      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                                    ),
+                                  ),
+                                  // Cancel button
+                                  GestureDetector(
+                                    onTap: () => provider.cancelDownload(),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: AppTheme.errorRed.withValues(alpha: 0.15),
+                                      ),
+                                      child: const Text('إلغاء', style: TextStyle(color: AppTheme.errorRed, fontSize: 12, fontWeight: FontWeight.w600)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: LinearProgressIndicator(
+                                  value: provider.downloadProgress,
+                                  backgroundColor: AppTheme.cardBorder,
+                                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentTeal),
+                                  minHeight: 6,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '${(provider.downloadProgress * 100).toInt()}%',
+                                style: const TextStyle(color: AppTheme.accentTeal, fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -150,7 +191,8 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
             final isSelected = r.id == selectedId;
             final isPreviewing = _previewingId == r.id;
             final isCached = _cachedMap[r.id] ?? r.isOffline;
-            final isDownloading = _downloadingId == r.id;
+            final isDownloadingThis = _downloadingId == r.id;
+            final isAnyDownloading = provider.isDownloading;
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -248,19 +290,38 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                       // Download button (if not cached)
                       if (!isCached)
                         GestureDetector(
-                          onTap: isDownloading ? null : () => _downloadReciter(r, provider),
+                          onTap: () {
+                            if (isDownloadingThis) {
+                              provider.cancelDownload();
+                            } else if (!isAnyDownloading) {
+                              _downloadReciter(r, provider);
+                            }
+                          },
                           child: Container(
                             width: 34, height: 34,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppTheme.gold.withValues(alpha: 0.15),
+                              color: isDownloadingThis
+                                  ? AppTheme.errorRed.withValues(alpha: 0.15)
+                                  : (isAnyDownloading
+                                      ? AppTheme.textMuted.withValues(alpha: 0.15)
+                                      : AppTheme.gold.withValues(alpha: 0.15)),
                             ),
-                            child: isDownloading
-                                ? const Padding(
-                                    padding: EdgeInsets.all(8),
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.gold),
+                            child: isDownloadingThis
+                                ? Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      CircularProgressIndicator(
+                                        value: provider.downloadProgress,
+                                        strokeWidth: 2,
+                                        color: AppTheme.errorRed.withValues(alpha: 0.5),
+                                      ),
+                                      const Icon(Icons.close_rounded, color: AppTheme.errorRed, size: 16),
+                                    ],
                                   )
-                                : const Icon(Icons.download_rounded, color: AppTheme.gold, size: 18),
+                                : Icon(Icons.download_rounded, 
+                                    color: isAnyDownloading ? AppTheme.textMuted : AppTheme.gold, 
+                                    size: 18),
                           ),
                         ),
                       if (!isCached) const SizedBox(width: 6),
