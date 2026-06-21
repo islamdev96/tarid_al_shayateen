@@ -4,12 +4,12 @@ import 'glass_theme.dart';
 
 class GlassContainer extends StatelessWidget {
   final Widget child;
-  final double blur;
-  final double opacity;
+  final double? blur;
+  final double? opacity;
   final BorderRadius borderRadius;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
-  final Color tint;       // لون الزجاج (أبيض للوضع الفاتح / غامق للداكن)
+  final Color? tint;       // لون الزجاج (أبيض للوضع الفاتح / غامق للداكن)
   final bool showBorder;
   final VoidCallback? onTap;
 
@@ -25,12 +25,12 @@ class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
     required this.child,
-    this.blur = GlassTokens.softBlur,
-    this.opacity = GlassTokens.cardOpacity,
+    this.blur,
+    this.opacity,
     this.borderRadius = const BorderRadius.all(Radius.circular(22)),
     this.padding,
     this.margin,
-    this.tint = const Color(0xFFEBEBF5),
+    this.tint,
     this.showBorder = true,
     this.onTap,
     this.width,
@@ -44,15 +44,17 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Resolve tint/overlay color
-    final double resolvedOpacity = opacity;
-    final Color tintColor = color ?? tint;
+    // Resolve tint/overlay color and opacity dynamically based on current theme if not overridden
+    final resolvedBlur = blur ?? GlassTokens.getSoftBlur(context);
+    final resolvedOpacity = opacity ?? GlassTokens.getCardOpacity(context);
+    final Color tintColor = color ?? tint ?? GlassTokens.getTint(context);
+    final borderAlpha = GlassTokens.getBorderOpacity(context);
 
     final content = ClipRRect(
       borderRadius: borderRadius,
       clipBehavior: clipBehavior,
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+        filter: ImageFilter.blur(sigmaX: resolvedBlur, sigmaY: resolvedBlur),
         child: Container(
           width: width,
           height: height,
@@ -70,7 +72,7 @@ class GlassContainer extends StatelessWidget {
             ),
             border: customBorder ?? (showBorder
                 ? Border.all(
-                    color: tintColor.withValues(alpha: GlassTokens.borderOpacity),
+                    color: tintColor.withValues(alpha: borderAlpha),
                     width: 0.5,
                   )
                 : null),

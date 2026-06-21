@@ -13,8 +13,8 @@ Future<T?> showGlassBottomSheet<T>(
     builder: (_) => Padding(
       padding: const EdgeInsets.all(12),
       child: GlassContainer(
-        blur: GlassTokens.strongBlur,
-        opacity: GlassTokens.sheetOpacity,
+        blur: GlassTokens.getStrongBlur(context),
+        opacity: GlassTokens.getSheetOpacity(context),
         borderRadius: BorderRadius.circular(GlassTokens.radiusLarge),
         padding: const EdgeInsets.all(22),
         child: child,
@@ -32,8 +32,8 @@ Future<T?> showGlassDialog<T>(BuildContext context, {required Widget child}) {
       elevation: 0,
       insetPadding: const EdgeInsets.symmetric(horizontal: 28),
       child: GlassContainer(
-        blur: GlassTokens.strongBlur,
-        opacity: GlassTokens.sheetOpacity,
+        blur: GlassTokens.getStrongBlur(context),
+        opacity: GlassTokens.getSheetOpacity(context),
         borderRadius: BorderRadius.circular(GlassTokens.radius),
         padding: const EdgeInsets.all(24),
         child: child,

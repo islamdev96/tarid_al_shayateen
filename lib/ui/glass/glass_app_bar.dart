@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'glass_theme.dart';
 
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -12,9 +13,15 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tintColor = GlassTokens.getTint(context);
+
     return ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(
+          sigmaX: GlassTokens.getStrongBlur(context),
+          sigmaY: GlassTokens.getStrongBlur(context),
+        ),
         child: AppBar(
           title: Text(
             title,
@@ -25,9 +32,9 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ),
           centerTitle: true,
-          backgroundColor: Colors.white.withValues(alpha: 0.10),
+          backgroundColor: tintColor.withValues(alpha: GlassTokens.getBarOpacity(context)),
           elevation: 0,
-          foregroundColor: Colors.white,
+          foregroundColor: isDark ? Colors.white : Colors.black87,
           actions: actions,
         ),
       ),

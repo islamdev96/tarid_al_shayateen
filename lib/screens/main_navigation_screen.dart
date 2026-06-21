@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import '../widgets/mini_player_widget.dart';
 import '../ui/glass/glass_bottom_bar.dart';
+import '../ui/app_icons.dart';
 import 'home_screen.dart';
 import 'quran_screen.dart';
 import 'prayer_times_screen.dart';
@@ -53,11 +54,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           });
         },
         icons: const [
-          CupertinoIcons.house_fill,
-          CupertinoIcons.book_fill,
-          CupertinoIcons.clock_fill,
-          CupertinoIcons.shield_fill,
-          CupertinoIcons.settings_solid,
+          AppIcons.home,
+          AppIcons.quran,
+          AppIcons.prayerTimes,
+          AppIcons.azkar,
+          AppIcons.settings,
         ],
       ),
     );

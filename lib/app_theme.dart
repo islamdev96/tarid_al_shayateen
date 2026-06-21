@@ -3,23 +3,23 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Islamic-inspired theme manager supporting both light and dark modes.
 class AppTheme {
-  // --- Dark Mode Color Palette ---
-  static const Color primaryGreen = Color(0xFF0D4A2B);
+  // --- Dark Mode Color Palette (iOS Human Interface Guidelines) ---
+  static const Color primaryGreen = Color(0xFF0D4A2B);   // kept for Islamic identity
   static const Color darkGreen = Color(0xFF072A18);
-  static const Color deepBackground = Color(0xFF060F14); // Ultra-dark slate blue/black
-  static const Color cardBackground = Color(0xFF0D1B24); // Dark slate card
-  static const Color cardBorder = Color(0xFF1B313F);     // Slate border
-  static const Color gold = Color(0xFFFF7F32);           // Vibrant orange accent (play buttons, active tabs)
-  static const Color goldLight = Color(0xFFFF9E63);      // Light orange
-  static const Color goldDark = Color(0xFFD65C12);       // Dark orange
-  static const Color textPrimary = Color(0xFFF0F4F8);    // Crisp white-slate text
-  static const Color textSecondary = Color(0xFF8EA1A8);  // Muted slate text
-  static const Color textMuted = Color(0xFF556972);      // Dark muted text
-  static const Color accentTeal = Color(0xFF00BCD4);     // ✅ REAL cyan/teal (titles, icons, nav, glowing borders)
-  static const Color accentTealLight = Color(0xFF4DD0E1); // Light cyan
-  static const Color accentTealDark = Color(0xFF0097A7);  // Dark cyan
-  static const Color errorRed = Color(0xFFE85454);
-  static const Color successGreen = Color(0xFF4CAF50);
+  static const Color deepBackground = Color(0xFF000000); // iOS System Background
+  static const Color cardBackground = Color(0xFF1C1C1E); // iOS Secondary Background
+  static const Color cardBorder = Color(0xFF3A3A3C);     // iOS Gray4
+  static const Color gold = Color(0xFFFF9F0A);           // iOS Orange (Dark)
+  static const Color goldLight = Color(0xFFFFD60A);      // iOS Yellow (Dark)
+  static const Color goldDark = Color(0xFFFF9500);       // iOS Orange (Light)
+  static const Color textPrimary = Color(0xFFFFFFFF);    // iOS Label
+  static const Color textSecondary = Color(0x99EBEBF5);  // iOS Secondary Label 60%
+  static const Color textMuted = Color(0x4DEBEBF5);      // iOS Tertiary Label 30%
+  static const Color accentTeal = Color(0xFF40CBE0);     // iOS Teal (Dark)
+  static const Color accentTealLight = Color(0xFF5E5CE6); // iOS Indigo (Dark)
+  static const Color accentTealDark = Color(0xFF0A84FF);  // iOS Blue (Dark)
+  static const Color errorRed = Color(0xFFFF453A);       // iOS Red (Dark)
+  static const Color successGreen = Color(0xFF30D158);   // iOS Green (Dark)
 
   // --- Light Mode Color Palette ---
   static const Color lightBg = Color(0xFFFAF8F5); // Warm Pearl/Cream
@@ -38,13 +38,13 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: Colors.transparent,
       colorScheme: const ColorScheme.dark(
-        primary: accentTeal,       // Cyan for titles, icons, nav highlights
+        primary: accentTeal,        // iOS Teal — titles, icons, nav highlights
         onPrimary: deepBackground,
-        secondary: gold,           // Orange for play buttons, active tabs
+        secondary: gold,            // iOS Orange — play buttons, active tabs
         onSecondary: deepBackground,
-        surface: cardBackground,
-        onSurface: textPrimary,
-        error: errorRed,
+        surface: cardBackground,    // iOS Secondary Background
+        onSurface: textPrimary,     // iOS Label (pure white)
+        error: errorRed,            // iOS Red
         onError: textPrimary,
       ),
       textTheme: GoogleFonts.cairoTextTheme(
@@ -249,9 +249,9 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF1B1035), // بنفسجي غامق
-          Color(0xFF24305E), // أزرق
-          Color(0xFF3A1C4D), // بنفسجي
+          Color(0xFF000000), // iOS System Background
+          Color(0xFF0A0A1A), // أزرق-أسود خفيف
+          Color(0xFF1C1C1E), // iOS Secondary Background
         ],
       );
     } else {
@@ -259,9 +259,9 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF2D1B54), // بنفسجي متوسط
-          Color(0xFF1A386D), // أزرق متوسط
-          Color(0xFF532468), // بنفسجي
+          Color(0xFFEAF0FF), // أزرق فاتح جدًا
+          Color(0xFFF3E9FF), // بنفسجي فاتح
+          Color(0xFFFFF0F5), // وردي فاتح
         ],
       );
     }

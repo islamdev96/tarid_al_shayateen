@@ -66,8 +66,10 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
         // Stronger vibration on completion of current dhikr
         HapticFeedback.mediumImpact();
         
-        // Play transition chime sound
-        _playTransitionSound();
+        // Play transition chime sound only for the last dhikr (otherwise page transition will play it)
+        if (_currentIndex == _azkar.length - 1) {
+          _playTransitionSound();
+        }
         
         _goToNextDhikr();
       }
@@ -202,6 +204,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                     setState(() {
                       _currentIndex = index;
                     });
+                    _playTransitionSound();
                   },
                   itemCount: _azkar.length,
                   itemBuilder: (context, index) {

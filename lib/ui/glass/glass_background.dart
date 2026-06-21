@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../app_theme.dart';
 
 class GlassScaffold extends StatelessWidget {
   final Widget body;
@@ -15,6 +16,8 @@ class GlassScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       extendBody: true,            // مهم: عشان البار يطفو فوق المحتوى
       extendBodyBehindAppBar: true,
@@ -25,19 +28,11 @@ class GlassScaffold extends StatelessWidget {
         children: [
           // Base gradient background
           Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF1B1035), // بنفسجي غامق
-                  Color(0xFF24305E), // أزرق
-                  Color(0xFF3A1C4D), // بنفسجي
-                ],
-              ),
+            decoration: BoxDecoration(
+              gradient: AppTheme.backgroundGradient(context),
             ),
           ),
-          // Ambient glowing blobs
+          // Ambient glowing blobs (iOS-style Indigo + Orange)
           Positioned(
             top: -120,
             left: -80,
@@ -46,7 +41,9 @@ class GlassScaffold extends StatelessWidget {
               height: 320,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C8CFF).withValues(alpha: 0.12),
+                color: isDark
+                    ? const Color(0xFF5E5CE6).withValues(alpha: 0.15) // iOS Indigo
+                    : const Color(0xFF5856D6).withValues(alpha: 0.10),
               ),
             ),
           ),
@@ -58,7 +55,37 @@ class GlassScaffold extends StatelessWidget {
               height: 380,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFFF7F32).withValues(alpha: 0.08),
+                color: isDark
+                    ? const Color(0xFFFF9F0A).withValues(alpha: 0.10) // iOS Orange
+                    : const Color(0xFFFF9500).withValues(alpha: 0.07),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 300,
+            right: 80,
+            child: Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark
+                    ? const Color(0xFF0A84FF).withValues(alpha: 0.10) // iOS Blue
+                    : const Color(0xFF007AFF).withValues(alpha: 0.06),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -80,
+            left: -80,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isDark
+                    ? const Color(0xFFBF5AF2).withValues(alpha: 0.10) // iOS Purple
+                    : const Color(0xFFAF52DE).withValues(alpha: 0.07),
               ),
             ),
           ),

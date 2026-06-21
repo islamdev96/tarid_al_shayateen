@@ -16,11 +16,18 @@ class GlassBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final activeColor = isDark ? Colors.white : Colors.black87;
+    final inactiveColor = isDark ? Colors.white.withValues(alpha: 0.55) : Colors.black54;
+    final selectedBgColor = isDark 
+        ? Colors.white.withValues(alpha: 0.20) 
+        : Colors.black.withValues(alpha: 0.08);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
       child: GlassContainer(
-        blur: GlassTokens.strongBlur,
-        opacity: GlassTokens.barOpacity,
+        blur: GlassTokens.getStrongBlur(context),
+        opacity: GlassTokens.getBarOpacity(context),
         borderRadius: BorderRadius.circular(GlassTokens.radiusLarge),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         child: Row(
@@ -34,16 +41,12 @@ class GlassBottomBar extends StatelessWidget {
                 duration: const Duration(milliseconds: 220),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? Colors.white.withValues(alpha: 0.22)
-                      : Colors.transparent,
+                  color: selected ? selectedBgColor : Colors.transparent,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   icons[i],
-                  color: selected
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.6),
+                  color: selected ? activeColor : inactiveColor,
                   size: 26,
                 ),
               ),

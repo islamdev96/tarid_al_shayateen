@@ -35,6 +35,7 @@ class AppProvider extends ChangeNotifier {
   StreamSubscription? _positionSub;
   StreamSubscription? _stateSub;
   StreamSubscription? _alarmSub;
+  StreamSubscription? _prayerAlarmSub;
   Timer? _foregroundTimer;
 
   // Azkar reminder variables
@@ -161,10 +162,22 @@ class AppProvider extends ChangeNotifier {
       }
     });
 
-    // Schedule next if enabled
+    // Register prayer alarm port and listen for foreground Adhan playback
+    final prayerPort = SchedulerService.registerPrayerPort();
+    _prayerAlarmSub = prayerPort.listen((message) {
+      if (message.toString().startsWith('play_adhan_')) {
+        final prayerId = message.toString().split('_').last;
+        _playAdhanForeground(prayerId);
+      }
+    });
+
+    // Schedule next Baqarah playback if enabled
     if (_settings.isEnabled) {
       _scheduleNext();
     }
+
+    // Schedule next prayer alarm
+    _schedulePrayerAlarms();
 
     // Schedule Azkar reminders if enabled
     if (_isAzkarReminderEnabled) {
@@ -496,6 +509,7 @@ class AppProvider extends ChangeNotifier {
   Future<void> updateSelectedCity(String cityId) async {
     _selectedCity = CityConfig.findById(cityId);
     await _settingsService.setSelectedCityId(cityId);
+    _schedulePrayerAlarms();
     notifyListeners();
   }
 
@@ -503,6 +517,7 @@ class AppProvider extends ChangeNotifier {
     final currentVal = _prayerNotifications[prayerId] ?? true;
     _prayerNotifications[prayerId] = !currentVal;
     await _settingsService.setPrayerNotification(prayerId, !currentVal);
+    _schedulePrayerAlarms();
     notifyListeners();
   }
 
@@ -581,11 +596,47 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _schedulePrayerAlarms() {
+    SchedulerService.scheduleNextPrayer(_selectedCity);
+  }
+
+  Future<void> _playAdhanForeground(String prayerId) async {
+    final prayerName = _getPrayerNameAr(prayerId);
+    try {
+      await stopPlayback();
+      _isLoading = true;
+      _customTitle = 'أذان صلاة $prayerName';
+      _customSubtitle = 'المسجد النبوي';
+      notifyListeners();
+
+      const adhanUrl = 'https://www.islamcan.com/audio/adhan/azan1.mp3';
+      await _audioHandler.playFromUrl(adhanUrl, 'المسجد النبوي', surahName: 'أذان صلاة $prayerName');
+      _isPlaying = true;
+    } catch (e) {
+      debugPrint('Error playing Adhan in foreground: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  String _getPrayerNameAr(String id) {
+    switch (id) {
+      case 'fajr': return 'الفجر';
+      case 'dhuhr': return 'الظهر';
+      case 'asr': return 'العصر';
+      case 'maghrib': return 'المغرب';
+      case 'isha': return 'العشاء';
+      default: return '';
+    }
+  }
+
   @override
   void dispose() {
     _positionSub?.cancel();
     _stateSub?.cancel();
     _alarmSub?.cancel();
+    _prayerAlarmSub?.cancel();
     _mediaItemSub?.cancel();
     _foregroundTimer?.cancel();
     super.dispose();

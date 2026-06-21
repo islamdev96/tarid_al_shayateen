@@ -9,8 +9,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/reciter.dart';
+import '../models/prayer_time_settings.dart';
 import 'audio_handler.dart';
 import 'notification_service.dart';
+import 'prayer_times_service.dart';
 
 const String _portName = 'tarid_alarm_port';
 
@@ -132,8 +134,83 @@ Future<void> eveningAlarmCallback() async {
     exact: true,
     wakeup: true,
     rescheduleOnReboot: true,
-    allowWhileIdle: true,
-  );
+    );
+}
+
+/// Callback that fires when any prayer time alarm triggers.
+@pragma('vm:entry-point')
+Future<void> prayerAlarmCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
+
+  final cityId = prefs.getString('selected_city_id') ?? 'cairo';
+  final city = CityConfig.findById(cityId);
+
+  final now = DateTime.now();
+  final todayTimes = PrayerTimesService.calculate(city, now);
+  final tomorrowTimes = PrayerTimesService.calculate(city, now.add(const Duration(days: 1)));
+
+  final allTimes = [
+    ...todayTimes.toList(),
+    ...tomorrowTimes.toList(),
+  ];
+
+  Map<String, dynamic>? triggeredPrayer;
+  double minDiffSeconds = 1e9;
+  for (final item in allTimes) {
+    final time = item['time'] as DateTime;
+    final diff = (time.difference(now).inSeconds).abs();
+    if (diff < minDiffSeconds && diff < 900) { // within 15 mins
+      minDiffSeconds = diff.toDouble();
+      triggeredPrayer = item;
+    }
+  }
+
+  if (triggeredPrayer != null) {
+    final prayerId = triggeredPrayer['id'] as String;
+    final prayerName = triggeredPrayer['name'] as String;
+
+    // Check notification setting (default to true for non-sunrise)
+    final defaultValue = prayerId != 'sunrise';
+    final isNotified = prefs.getBool('prayer_notif_$prayerId') ?? defaultValue;
+
+    if (isNotified) {
+      await NotificationService.init();
+      await NotificationService.showNotification(
+        id: 444,
+        title: 'حان وقت صلاة $prayerName 🕌',
+        body: 'حان الآن موعد أذان صلاة $prayerName حسب التوقيت المحلي لمدينة ${city.nameAr}.',
+        payload: 'prayer_$prayerId',
+      );
+
+      final SendPort? sendPort = IsolateNameServer.lookupPortByName('tarid_prayer_port');
+      if (sendPort != null) {
+        sendPort.send('play_adhan_$prayerId');
+      } else {
+        try {
+          final audioHandler = await AudioService.init(
+            builder: () => QuranAudioHandler(),
+            config: const AudioServiceConfig(
+              androidNotificationChannelId: 'com.islamglab.tarid_al_shayateen.audio',
+              androidNotificationChannelName: 'الأذان',
+              androidNotificationChannelDescription: 'تشغيل صوت الأذان في وقت الصلاة',
+              androidNotificationOngoing: false,
+              androidStopForegroundOnPause: true,
+            ),
+          );
+
+          // Beautiful Medina Adhan URL
+          const adhanUrl = 'https://www.islamcan.com/audio/adhan/azan1.mp3';
+          await audioHandler.playFromUrl(adhanUrl, 'المسجد النبوي', surahName: 'أذان صلاة $prayerName');
+        } catch (e) {
+          debugPrint('Background playback error: $e');
+        }
+      }
+    }
+  }
+
+  // Reschedule next prayer alarm
+  await SchedulerService.scheduleNextPrayer(city);
 }
 
 /// Manages scheduling periodic alarms to trigger Surah Al-Baqarah playback.
@@ -265,5 +342,46 @@ class SchedulerService {
       rescheduleOnReboot: true,
       allowWhileIdle: true,
     );
+  }
+
+  static const int _prayerAlarmId = 444;
+  static const String _prayerPortName = 'tarid_prayer_port';
+
+  /// Schedule the next upcoming prayer time alarm.
+  static Future<void> scheduleNextPrayer(CityConfig city) async {
+    if (Platform.isAndroid) {
+      await Permission.scheduleExactAlarm.request();
+    }
+    // Cancel any existing prayer alarms
+    await AndroidAlarmManager.cancel(_prayerAlarmId);
+
+    final nextPrayer = PrayerTimesService.getNextPrayer(city);
+    if (nextPrayer != null) {
+      final nextTime = nextPrayer['time'] as DateTime;
+      debugPrint('Scheduling next prayer alarm for: ${nextPrayer['name']} at $nextTime');
+
+      await AndroidAlarmManager.oneShotAt(
+        nextTime,
+        _prayerAlarmId,
+        prayerAlarmCallback,
+        exact: true,
+        wakeup: true,
+        rescheduleOnReboot: true,
+        allowWhileIdle: true,
+      );
+    }
+  }
+
+  /// Cancel prayer alarms.
+  static Future<void> cancelPrayerAlarms() async {
+    await AndroidAlarmManager.cancel(_prayerAlarmId);
+  }
+
+  /// Register a port to listen for prayer alarm callbacks from the background isolate.
+  static ReceivePort registerPrayerPort() {
+    IsolateNameServer.removePortNameMapping(_prayerPortName);
+    final receivePort = ReceivePort();
+    IsolateNameServer.registerPortWithName(receivePort.sendPort, _prayerPortName);
+    return receivePort;
   }
 }

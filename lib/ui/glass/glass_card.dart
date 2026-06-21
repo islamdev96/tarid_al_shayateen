@@ -32,12 +32,7 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return GlassContainer(
-      blur: GlassTokens.softBlur,
-      opacity: GlassTokens.cardOpacity,
       borderRadius: borderRadius ?? BorderRadius.circular(GlassTokens.radius),
       padding: padding ?? const EdgeInsets.all(18),
       margin: margin,
@@ -48,7 +43,6 @@ class GlassCard extends StatelessWidget {
       customBoxShadow: boxShadow,
       color: color,
       clipBehavior: clipBehavior,
-      tint: isDark ? GlassTokens.darkTint : GlassTokens.lightTint,
       child: child,
     );
   }

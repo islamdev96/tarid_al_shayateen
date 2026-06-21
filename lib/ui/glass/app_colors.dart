@@ -42,4 +42,14 @@ class AppColors {
   static const Color gray4 = Color(0xFF3A3A3C);
   static const Color gray5 = Color(0xFF2C2C2E);
   static const Color gray6 = Color(0xFF1C1C1E);
+
+  // ألوان وتسميات الوضع الفاتح (Light Mode iOS System Colors)
+  static const Color lightBg = Color(0xFFFFFFFF);
+  static const Color lightBgSecondary = Color(0xFFF2F2F7);
+  static const Color lightBgTertiary = Color(0xFFFFFFFF);
+
+  static const Color lightLabel = Color(0xFF000000);
+  static const Color lightLabelSecondary = Color(0x993C3C43); // 60%
+  static const Color lightLabelTertiary = Color(0x4D3C3C43);  // 30%
+  static const Color lightSeparator = Color(0x4A3C3C43);      // 29%
 }
