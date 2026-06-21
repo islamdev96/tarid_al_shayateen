@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../models/dhikr.dart';
 import 'dhikr_session_screen.dart';
+import 'tasbeeh_screen.dart';
 
 class AzkarScreen extends StatelessWidget {
   const AzkarScreen({super.key});
@@ -111,6 +112,8 @@ class AzkarScreen extends StatelessWidget {
                       count: Dhikr.getByCategory(DhikrCategory.travel).length,
                       theme: theme,
                     ),
+                    const SizedBox(height: 16),
+                    _buildTasbeehCard(context, theme),
                   ]),
                 ),
               ),
@@ -253,6 +256,100 @@ class AzkarScreen extends StatelessWidget {
               child: Icon(
                 icon,
                 color: Colors.white, // White icon inside
+                size: 24,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTasbeehCard(BuildContext context, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final iconColor = const Color(0xFFA855F7); // Premium purple
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const TasbeehScreen(),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: AppTheme.glassCard(context).copyWith(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 14,
+              color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.check_rounded,
+                color: Color(0xFFA855F7),
+                size: 14,
+              ),
+            ),
+            const Spacer(),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'المسبحة الإلكترونية',
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Cairo',
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'عداد ذكي للتسبيح والاستغفار وحفظ أذكارك اليومية',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                        fontSize: 11,
+                        fontFamily: 'Cairo',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconColor,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: iconColor.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.all_inclusive_rounded,
+                color: Colors.white,
                 size: 24,
               ),
             ),
