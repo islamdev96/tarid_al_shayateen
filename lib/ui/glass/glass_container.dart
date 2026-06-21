@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'glass_theme.dart';
 
 class GlassContainer extends StatelessWidget {
   final Widget child;
@@ -24,12 +25,12 @@ class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
     required this.child,
-    this.blur = 22,
-    this.opacity = 0.18,
-    this.borderRadius = const BorderRadius.all(Radius.circular(26)),
+    this.blur = GlassTokens.softBlur,
+    this.opacity = GlassTokens.cardOpacity,
+    this.borderRadius = const BorderRadius.all(Radius.circular(22)),
     this.padding,
     this.margin,
-    this.tint = Colors.white,
+    this.tint = const Color(0xFFEBEBF5),
     this.showBorder = true,
     this.onTap,
     this.width,
@@ -63,14 +64,14 @@ class GlassContainer extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                tintColor.withValues(alpha: (resolvedOpacity + 0.10).clamp(0.0, 1.0)),
-                tintColor.withValues(alpha: (resolvedOpacity * 0.6).clamp(0.0, 1.0)),
+                tintColor.withValues(alpha: (resolvedOpacity + 0.06).clamp(0.0, 1.0)),
+                tintColor.withValues(alpha: (resolvedOpacity * 0.5).clamp(0.0, 1.0)),
               ],
             ),
             border: customBorder ?? (showBorder
                 ? Border.all(
-                    color: tintColor.withValues(alpha: 0.30),
-                    width: 1.2,
+                    color: tintColor.withValues(alpha: GlassTokens.borderOpacity),
+                    width: 0.5,
                   )
                 : null),
             boxShadow: customBoxShadow ?? [
