@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../models/schedule_settings.dart';
 import '../providers/app_provider.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -65,8 +68,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
+      body: GlassyBackground(
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -77,7 +79,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 actions: [
                   TextButton(
                     onPressed: _save,
-                    child: Text('حفظ', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
+                    child: Text('حفظ', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700, fontFamily: 'Cairo')),
                   ),
                 ],
               ),
@@ -110,7 +112,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 16),
                       _buildAzkarEveningTimePicker(theme),
                     ],
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 120), // Padding to avoid overlap with mini player
                   ]),
                 ),
               ),
@@ -122,21 +124,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildEnableToggle(ThemeData theme) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
+      borderRadius: BorderRadius.circular(20),
       child: Row(
         children: [
-          Icon(Icons.power_settings_new_rounded, color: theme.colorScheme.primary),
+          Icon(CupertinoIcons.power, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'تفعيل الجدولة التلقائية', 
-              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
             ),
           ),
-          Switch(
+          CupertinoSwitch(
             value: _draft.isEnabled,
+            activeTrackColor: theme.colorScheme.primary,
             onChanged: (v) => setState(() => _draft = _draft.copyWith(isEnabled: v)),
           ),
         ],
@@ -173,17 +176,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           setState(() => _draft = _draft.copyWith(playbackTime: picked));
         }
       },
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(16),
-        decoration: AppTheme.glassCard(context),
+        borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            Icon(Icons.access_time_rounded, color: theme.colorScheme.secondary),
+            Icon(CupertinoIcons.clock, color: theme.colorScheme.secondary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'وقت التشغيل', 
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
               ),
             ),
             Container(
@@ -191,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 0.5),
               ),
               child: Text(
                 '${_draft.playbackTime.hour.toString().padLeft(2, '0')}:${_draft.playbackTime.minute.toString().padLeft(2, '0')}',
@@ -205,28 +208,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildRepeatModeSelector(ThemeData theme) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.repeat_rounded, color: theme.colorScheme.primary),
+              Icon(CupertinoIcons.repeat, color: theme.colorScheme.primary),
               const SizedBox(width: 12),
               Text(
                 'نمط التكرار', 
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildModeOption(RepeatMode.daily, 'كل يوم', Icons.calendar_today_rounded, theme),
+          _buildModeOption(RepeatMode.daily, 'كل يوم', CupertinoIcons.calendar, theme),
           const SizedBox(height: 8),
-          _buildModeOption(RepeatMode.everyXDays, 'كل عدد أيام معين', Icons.date_range_rounded, theme),
+          _buildModeOption(RepeatMode.everyXDays, 'كل عدد أيام معين', CupertinoIcons.calendar_today, theme),
           const SizedBox(height: 8),
-          _buildModeOption(RepeatMode.weekDays, 'أيام معينة في الأسبوع', Icons.view_week_rounded, theme),
+          _buildModeOption(RepeatMode.weekDays, 'أيام معينة في الأسبوع', CupertinoIcons.square_grid_2x2, theme),
         ],
       ),
     );
@@ -246,7 +249,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           border: Border.all(
             color: isSelected 
                 ? theme.colorScheme.primary 
-                : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+                : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+            width: 0.5,
           ),
         ),
         child: Row(
@@ -262,10 +266,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(
                 color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface, 
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                fontFamily: 'Cairo',
               ),
             ),
             const Spacer(),
-            if (isSelected) Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 22),
+            if (isSelected) Icon(CupertinoIcons.checkmark_circle_fill, color: theme.colorScheme.primary, size: 22),
           ],
         ),
       ),
@@ -273,18 +278,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildIntervalSelector(ThemeData theme) {
-    return Container(
+    final isDark = theme.brightness == Brightness.dark;
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         children: [
           Row(
             children: [
-              Icon(Icons.looks_3_rounded, color: theme.colorScheme.secondary),
+              Icon(CupertinoIcons.number, color: theme.colorScheme.secondary),
               const SizedBox(width: 12),
               Text(
                 'كل ${_draft.intervalDays} أيام', 
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
               ),
             ],
           ),
@@ -293,14 +299,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             value: _draft.intervalDays.toDouble(),
             min: 1, max: 14, divisions: 13,
             label: '${_draft.intervalDays} أيام',
+            activeColor: theme.colorScheme.primary,
+            inactiveColor: isDark 
+                ? Colors.white.withValues(alpha: 0.1) 
+                : Colors.black.withValues(alpha: 0.08),
             onChanged: (v) => setState(() => _draft = _draft.copyWith(intervalDays: v.toInt())),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('يوم', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12)),
-              Text('${_draft.intervalDays}', style: TextStyle(color: theme.colorScheme.primary, fontSize: 16, fontWeight: FontWeight.bold)),
-              Text('١٤ يوم', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12)),
+              Text('يوم', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12, fontFamily: 'Cairo')),
+              Text('${_draft.intervalDays}', style: TextStyle(color: theme.colorScheme.primary, fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
+              Text('١٤ يوم', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12, fontFamily: 'Cairo')),
             ],
           ),
         ],
@@ -313,19 +323,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final shortNames = {1: 'اث', 2: 'ثل', 3: 'أر', 4: 'خم', 5: 'جم', 6: 'سب', 7: 'أح'};
     final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.calendar_view_week_rounded, color: theme.colorScheme.secondary),
+              Icon(CupertinoIcons.calendar_today, color: theme.colorScheme.secondary),
               const SizedBox(width: 12),
               Text(
                 'اختر الأيام', 
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
               ),
             ],
           ),
@@ -349,7 +359,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     border: Border.all(
                       color: isSelected 
                           ? theme.colorScheme.primary 
-                          : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+                          : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+                      width: 0.5,
                     ),
                   ),
                   child: Text(
@@ -358,6 +369,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodySmall?.color, 
                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal, 
                       fontSize: 13,
+                      fontFamily: 'Cairo',
                     ),
                   ),
                 ),
@@ -373,18 +385,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.05),
+        color: theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.25), width: 0.5),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline_rounded, color: theme.colorScheme.primary),
+          Icon(CupertinoIcons.info_circle, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _draft.getScheduleDescription(),
-              style: TextStyle(color: theme.colorScheme.primary, fontSize: 14, fontWeight: FontWeight.w500),
+              style: TextStyle(color: theme.colorScheme.primary, fontSize: 14, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
             ),
           ),
         ],
@@ -408,21 +420,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildAzkarReminderToggle(ThemeData theme) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
+      borderRadius: BorderRadius.circular(20),
       child: Row(
         children: [
-          Icon(Icons.notifications_active_rounded, color: theme.colorScheme.primary),
+          Icon(CupertinoIcons.bell_fill, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'تفعيل تنبيهات الأذكار',
-              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
             ),
           ),
-          Switch(
+          CupertinoSwitch(
             value: _azkarReminderEnabled,
+            activeTrackColor: theme.colorScheme.primary,
             onChanged: (v) => setState(() => _azkarReminderEnabled = v),
           ),
         ],
@@ -459,17 +472,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           setState(() => _azkarMorningTime = picked);
         }
       },
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(16),
-        decoration: AppTheme.glassCard(context),
+        borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            Icon(Icons.wb_sunny_rounded, color: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.lightGold),
+            Icon(CupertinoIcons.sun_max_fill, color: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.lightGold),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'وقت تنبيه أذكار الصباح',
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
               ),
             ),
             Container(
@@ -477,7 +490,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 0.5),
               ),
               child: Text(
                 '${_azkarMorningTime.hour.toString().padLeft(2, '0')}:${_azkarMorningTime.minute.toString().padLeft(2, '0')}',
@@ -519,17 +532,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           setState(() => _azkarEveningTime = picked);
         }
       },
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(16),
-        decoration: AppTheme.glassCard(context),
+        borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            Icon(Icons.mode_night_rounded, color: AppTheme.accentTeal),
+            Icon(CupertinoIcons.moon_fill, color: AppTheme.accentTeal),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 'وقت تنبيه أذكار المساء',
-                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500, fontFamily: 'Cairo'),
               ),
             ),
             Container(
@@ -537,7 +550,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               decoration: BoxDecoration(
                 color: theme.colorScheme.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 0.5),
               ),
               child: Text(
                 '${_azkarEveningTime.hour.toString().padLeft(2, '0')}:${_azkarEveningTime.minute.toString().padLeft(2, '0')}',

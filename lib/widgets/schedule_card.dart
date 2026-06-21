@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
+import 'glass_card.dart';
 
 class ScheduleCard extends StatelessWidget {
   const ScheduleCard({super.key});
@@ -10,10 +12,10 @@ class ScheduleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
       child: Row(
         children: [
           Container(
@@ -23,7 +25,7 @@ class ScheduleCard extends StatelessWidget {
               shape: BoxShape.circle,
               color: theme.colorScheme.secondary.withValues(alpha: 0.15),
             ),
-            child: Icon(Icons.schedule_rounded, color: theme.colorScheme.secondary, size: 24),
+            child: Icon(CupertinoIcons.calendar_today, color: theme.colorScheme.secondary, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -32,7 +34,11 @@ class ScheduleCard extends StatelessWidget {
               children: [
                 Text(
                   'جدولة التشغيل', 
-                  style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+                  style: TextStyle(
+                    color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted, 
+                    fontSize: 12,
+                    fontFamily: 'Cairo',
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
@@ -41,13 +47,15 @@ class ScheduleCard extends StatelessWidget {
                     color: theme.colorScheme.onSurface, 
                     fontSize: 14, 
                     fontWeight: FontWeight.w500,
+                    fontFamily: 'Cairo',
                   ),
                 ),
               ],
             ),
           ),
-          Switch(
+          CupertinoSwitch(
             value: provider.settings.isEnabled,
+            activeTrackColor: theme.colorScheme.primary,
             onChanged: (val) {
               provider.updateSettings(provider.settings.copyWith(isEnabled: val));
             },

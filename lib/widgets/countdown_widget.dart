@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
+import 'glass_card.dart';
 
 class CountdownWidget extends StatefulWidget {
   const CountdownWidget({super.key});
@@ -33,6 +35,7 @@ class _CountdownWidgetState extends State<CountdownWidget> {
     final provider = context.watch<AppProvider>();
     final nextTime = provider.nextPlayback;
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (nextTime == null || !provider.settings.isEnabled) {
       return const SizedBox.shrink();
@@ -48,26 +51,37 @@ class _CountdownWidgetState extends State<CountdownWidget> {
     final minutes = diff.inMinutes % 60;
     final seconds = diff.inSeconds % 60;
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassCard(context),
       child: Column(
         children: [
-          Text(
-            'التشغيل القادم بعد', 
-            style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 14),
-          ),
-          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (days > 0) _buildTimeUnit(days.toString(), 'يوم', theme),
+              Icon(CupertinoIcons.hourglass, color: theme.colorScheme.primary, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                'التشغيل القادم بعد', 
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface, 
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (days > 0) _buildTimeUnit(days.toString(), 'يوم', theme, isDark),
               if (days > 0) const SizedBox(width: 16),
-              _buildTimeUnit(hours.toString().padLeft(2, '0'), 'ساعة', theme),
+              _buildTimeUnit(hours.toString().padLeft(2, '0'), 'ساعة', theme, isDark),
               const SizedBox(width: 16),
-              _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'دقيقة', theme),
+              _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'دقيقة', theme, isDark),
               const SizedBox(width: 16),
-              _buildTimeUnit(seconds.toString().padLeft(2, '0'), 'ثانية', theme),
+              _buildTimeUnit(seconds.toString().padLeft(2, '0'), 'ثانية', theme, isDark),
             ],
           ),
         ],
@@ -75,20 +89,34 @@ class _CountdownWidgetState extends State<CountdownWidget> {
     );
   }
 
-  Widget _buildTimeUnit(String value, String label, ThemeData theme) {
+  Widget _buildTimeUnit(String value, String label, ThemeData theme, bool isDark) {
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
             color: theme.colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 0.5),
           ),
-          child: Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
+          child: Text(
+            value, 
+            style: TextStyle(
+              fontSize: 22, 
+              fontWeight: FontWeight.bold, 
+              color: theme.colorScheme.primary,
+            ),
+          ),
         ),
-        const SizedBox(height: 4),
-        Text(label, style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color)),
+        const SizedBox(height: 6),
+        Text(
+          label, 
+          style: TextStyle(
+            fontSize: 11, 
+            color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
+            fontFamily: 'Cairo',
+          ),
+        ),
       ],
     );
   }

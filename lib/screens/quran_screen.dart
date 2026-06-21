@@ -1,9 +1,13 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../models/surah.dart';
 import '../models/reciter.dart';
 import '../providers/app_provider.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 
 /// Screen allowing browsing, searching, and playing the 114 Surahs of the Holy Quran.
 class QuranScreen extends StatefulWidget {
@@ -39,8 +43,7 @@ class _QuranScreenState extends State<QuranScreen> {
     }).toList();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
+      body: GlassyBackground(
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -69,7 +72,7 @@ class _QuranScreenState extends State<QuranScreen> {
 
               // Surahs List
               SliverPadding(
-                padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 96), // extra bottom padding for floating mini player
+                padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 120), // extra bottom padding for floating mini player
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -92,19 +95,18 @@ class _QuranScreenState extends State<QuranScreen> {
     final reciter = provider.currentReciter;
     final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: theme.colorScheme.primary.withValues(alpha: 0.15),
             ),
-            child: Icon(Icons.person_rounded, color: theme.colorScheme.primary, size: 24),
+            child: Icon(CupertinoIcons.person_fill, color: theme.colorScheme.primary, size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -147,8 +149,8 @@ class _QuranScreenState extends State<QuranScreen> {
 
   Widget _buildSearchBar(ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
-    return Container(
-      decoration: AppTheme.glassCard(context),
+    return GlassCard(
+      borderRadius: BorderRadius.circular(16),
       child: TextField(
         controller: _searchController,
         onChanged: (val) {
@@ -164,10 +166,10 @@ class _QuranScreenState extends State<QuranScreen> {
             fontSize: 14,
             fontFamily: 'Cairo',
           ),
-          prefixIcon: Icon(Icons.search_rounded, color: theme.colorScheme.primary),
+          prefixIcon: Icon(CupertinoIcons.search, color: theme.colorScheme.primary, size: 20),
           suffixIcon: _searchQuery.isNotEmpty
               ? IconButton(
-                  icon: Icon(Icons.clear_rounded, color: theme.colorScheme.primary),
+                  icon: Icon(CupertinoIcons.xmark_circle_fill, color: theme.colorScheme.primary, size: 18),
                   onPressed: () {
                     _searchController.clear();
                     setState(() {
@@ -185,15 +187,13 @@ class _QuranScreenState extends State<QuranScreen> {
 
   Widget _buildSurahItem(Surah surah, bool isPlaying, AppProvider provider, ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
-    return Container(
+    return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: AppTheme.glassCard(context).copyWith(
-        border: Border.all(
-          color: isPlaying
-              ? theme.colorScheme.primary
-              : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.5),
-          width: isPlaying ? 1.5 : 1,
-        ),
+      border: Border.all(
+        color: isPlaying
+            ? theme.colorScheme.primary.withValues(alpha: 0.6)
+            : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.25)),
+        width: isPlaying ? 1.5 : 0.5,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -201,13 +201,19 @@ class _QuranScreenState extends State<QuranScreen> {
           provider.playSurah(surah, provider.currentReciter);
         },
         leading: Container(
-          width: 40,
-          height: 40,
+          width: 36,
+          height: 36,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isPlaying
                 ? theme.colorScheme.primary.withValues(alpha: 0.2)
-                : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.3),
+                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
+            border: Border.all(
+              color: isPlaying
+                  ? theme.colorScheme.primary.withValues(alpha: 0.3)
+                  : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+              width: 0.5,
+            ),
           ),
           child: Center(
             child: Text(
@@ -215,7 +221,7 @@ class _QuranScreenState extends State<QuranScreen> {
               style: TextStyle(
                 color: isPlaying ? theme.colorScheme.primary : theme.colorScheme.onSurface,
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 13,
               ),
             ),
           ),
@@ -247,9 +253,9 @@ class _QuranScreenState extends State<QuranScreen> {
                 : theme.colorScheme.primary.withValues(alpha: 0.1),
           ),
           child: Icon(
-            isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+            isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
             color: isPlaying ? Colors.red : theme.colorScheme.primary,
-            size: 20,
+            size: 16,
           ),
         ),
       ),
@@ -262,65 +268,81 @@ class _QuranScreenState extends State<QuranScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return Container(
-          decoration: BoxDecoration(
-            gradient: AppTheme.backgroundGradient(context),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 12),
-                Container(
-                  width: 48,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+        return ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark 
+                    ? const Color(0xFF0C1921).withValues(alpha: 0.75) 
+                    : Colors.white.withValues(alpha: 0.75),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border.all(
+                  color: isDark 
+                      ? Colors.white.withValues(alpha: 0.08) 
+                      : AppTheme.lightCardBorder.withValues(alpha: 0.25),
+                  width: 0.5,
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'اختر القارئ المفضل',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Cairo',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: Reciter.defaultReciters.length,
-                    itemBuilder: (context, index) {
-                      final r = Reciter.defaultReciters[index];
-                      final isSelected = provider.currentReciter.id == r.id;
-                      return ListTile(
-                        onTap: () {
-                          provider.selectReciter(r.id);
-                          Navigator.pop(ctx);
+              ),
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: isDark 
+                            ? Colors.white.withValues(alpha: 0.15) 
+                            : Colors.black.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'اختر القارئ المفضل',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Cairo',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: Reciter.defaultReciters.length,
+                        itemBuilder: (context, index) {
+                          final r = Reciter.defaultReciters[index];
+                          final isSelected = provider.currentReciter.id == r.id;
+                          return ListTile(
+                            onTap: () {
+                              provider.selectReciter(r.id);
+                              Navigator.pop(ctx);
+                            },
+                            leading: Icon(
+                              CupertinoIcons.music_mic,
+                              color: isSelected ? theme.colorScheme.primary : theme.disabledColor,
+                            ),
+                            title: Text(
+                              r.nameAr,
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            trailing: isSelected
+                                ? Icon(CupertinoIcons.checkmark_circle_fill, color: theme.colorScheme.primary)
+                                : null,
+                          );
                         },
-                        leading: Icon(
-                          Icons.mic_external_on_rounded,
-                          color: isSelected ? theme.colorScheme.primary : theme.disabledColor,
-                        ),
-                        title: Text(
-                          r.nameAr,
-                          style: TextStyle(
-                            fontFamily: 'Cairo',
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        trailing: isSelected
-                            ? Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary)
-                            : null,
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         );

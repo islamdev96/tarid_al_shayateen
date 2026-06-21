@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../app_theme.dart';
 import 'main_navigation_screen.dart';
 
@@ -149,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
                               ],
                             ),
                             child: Icon(
-                              Icons.shield_rounded,
+                              CupertinoIcons.shield_fill,
                               size: 56,
                               color: isDark ? AppTheme.deepBackground : Colors.white,
                             ),

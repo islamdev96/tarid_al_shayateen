@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
@@ -7,6 +8,8 @@ import '../widgets/countdown_widget.dart';
 import '../widgets/reciter_card.dart';
 import '../widgets/download_progress_card.dart';
 import '../widgets/schedule_card.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 
 class BaqarahFortificationScreen extends StatelessWidget {
   const BaqarahFortificationScreen({super.key});
@@ -15,10 +18,10 @@ class BaqarahFortificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final provider = context.watch<AppProvider>();
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
+      body: GlassyBackground(
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -27,7 +30,7 @@ class BaqarahFortificationScreen extends StatelessWidget {
                 floating: true,
                 backgroundColor: Colors.transparent,
                 leading: IconButton(
-                  icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
+                  icon: Icon(CupertinoIcons.back, color: theme.colorScheme.primary),
                   onPressed: () => Navigator.pop(context),
                 ),
                 title: const Text(
@@ -42,7 +45,7 @@ class BaqarahFortificationScreen extends StatelessWidget {
               ),
 
               SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 120),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // Bismillah Header
@@ -50,7 +53,7 @@ class BaqarahFortificationScreen extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Intro Card about Fortification
-                    _buildIntroCard(theme),
+                    _buildIntroCard(theme, isDark),
                     const SizedBox(height: 20),
 
                     // Download Progress if downloading
@@ -61,7 +64,7 @@ class BaqarahFortificationScreen extends StatelessWidget {
 
                     // Error Card if any
                     if (provider.errorMessage != null) ...[
-                      _buildErrorCard(provider),
+                      _buildErrorCard(provider, theme),
                       const SizedBox(height: 16),
                     ],
 
@@ -107,18 +110,13 @@ class BaqarahFortificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildIntroCard(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.15)),
-      ),
+  Widget _buildIntroCard(ThemeData theme, bool isDark) {
+    return GlassCard(
+      padding: const EdgeInsets.all(18),
       child: Column(
         children: [
-          Icon(Icons.shield_rounded, color: theme.colorScheme.primary, size: 28),
-          const SizedBox(height: 8),
+          Icon(CupertinoIcons.shield_fill, color: theme.colorScheme.primary, size: 28),
+          const SizedBox(height: 12),
           const Text(
             'قال رسول الله ﷺ: "إن الشيطان ينفر من البيت الذي تقرأ فيه سورة البقرة".',
             textAlign: TextAlign.center,
@@ -129,13 +127,13 @@ class BaqarahFortificationScreen extends StatelessWidget {
               fontFamily: 'Cairo',
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             'قم بتفعيل جدولة التشغيل التلقائي ليشتغل صوت التحصين في بيتك بانتظام وبالتوقيت الذي تحدده.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 12,
-              color: theme.textTheme.bodyMedium?.color,
+              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
               height: 1.5,
               fontFamily: 'Cairo',
             ),
@@ -145,22 +143,23 @@ class BaqarahFortificationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorCard(AppProvider provider) {
-    return Container(
+  Widget _buildErrorCard(AppProvider provider, ThemeData theme) {
+    return GlassCard(
       padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-      ),
+      color: Colors.red.withValues(alpha: 0.12),
+      border: Border.all(color: Colors.red.withValues(alpha: 0.4), width: 0.5),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: Colors.red, size: 20),
+          const Icon(CupertinoIcons.exclamationmark_circle, color: Colors.red, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               provider.errorMessage!,
-              style: const TextStyle(color: Colors.red, fontSize: 13),
+              style: const TextStyle(
+                color: Colors.red, 
+                fontSize: 13,
+                fontFamily: 'Cairo',
+              ),
             ),
           ),
         ],

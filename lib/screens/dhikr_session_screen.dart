@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:share_plus/share_plus.dart';
 import '../app_theme.dart';
 import '../models/dhikr.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 
 class DhikrSessionScreen extends StatefulWidget {
   final DhikrCategory category;
@@ -117,11 +120,11 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
         title: Center(
           child: Column(
             children: [
-              Icon(Icons.stars_rounded, color: theme.colorScheme.primary, size: 56),
+              Icon(CupertinoIcons.star_fill, color: theme.colorScheme.primary, size: 56),
               const SizedBox(height: 12),
               Text(
                 'تقبل الله طاعتكم',
-                style: TextStyle(color: theme.colorScheme.primary, fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(color: theme.colorScheme.primary, fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
               ),
             ],
           ),
@@ -129,28 +132,34 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
         content: Text(
           'لقد تممت قراءة أذكار التحصين بنجاح. حفظك الله ورعاك.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 15, height: 1.5),
+          style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 15, height: 1.5, fontFamily: 'Cairo'),
         ),
         actions: [
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
                   onPressed: () {
                     Navigator.pop(ctx);
                     _resetSession();
                   },
-                  child: const Text('إعادة قراءة'),
+                  child: const Text('إعادة قراءة', style: TextStyle(fontFamily: 'Cairo')),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
                   onPressed: () {
                     Navigator.pop(ctx); // Close dialog
                     Navigator.pop(context); // Go back to Azkar category screen
                   },
-                  child: const Text('رجوع'),
+                  child: const Text('رجوع', style: TextStyle(fontFamily: 'Cairo')),
                 ),
               ),
             ],
@@ -167,7 +176,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
     if (_azkar.isEmpty) {
       return Scaffold(
         body: Center(
-          child: Text('لا توجد أذكار مضافة حالياً.', style: TextStyle(color: theme.colorScheme.onSurface)),
+          child: Text('لا توجد أذكار مضافة حالياً.', style: TextStyle(color: theme.colorScheme.onSurface, fontFamily: 'Cairo')),
         ),
       );
     }
@@ -178,8 +187,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
     final completedPercent = totalCount > 0 ? (totalCount - remaining) / totalCount : 0.0;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
+      body: GlassyBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -223,12 +231,12 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
+                icon: Icon(CupertinoIcons.back, color: theme.colorScheme.primary),
                 onPressed: () => Navigator.pop(context),
               ),
               Text(
                 Dhikr.getCategoryNameAr(widget.category),
-                style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
               ),
               Text(
                 '${_currentIndex + 1} / ${_azkar.length}',
@@ -255,14 +263,14 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
   }
 
   Widget _buildDhikrCard(Dhikr dhikr, int index, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     return GestureDetector(
       onTap: _onTapCircle,
       behavior: HitTestBehavior.opaque,
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Container(
+        child: GlassCard(
           padding: const EdgeInsets.all(24),
-          decoration: AppTheme.glassCard(context),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -276,6 +284,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                     fontSize: 20,
                     height: 1.8,
                     fontWeight: FontWeight.w500,
+                    fontFamily: 'Cairo',
                   ),
                 ),
               ),
@@ -295,7 +304,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                         ),
                       );
                     },
-                    icon: Icon(Icons.copy_rounded, color: theme.colorScheme.primary, size: 18),
+                    icon: Icon(CupertinoIcons.doc_on_doc, color: theme.colorScheme.primary, size: 18),
                     label: Text(
                       'نسخ الذكر',
                       style: TextStyle(color: theme.colorScheme.primary, fontFamily: 'Cairo', fontSize: 13),
@@ -308,7 +317,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                         subject: 'أذكار اليوم',
                       );
                     },
-                    icon: Icon(Icons.share_rounded, color: theme.colorScheme.primary, size: 18),
+                    icon: Icon(CupertinoIcons.share, color: theme.colorScheme.primary, size: 18),
                     label: Text(
                       'مشاركة',
                       style: TextStyle(color: theme.colorScheme.primary, fontFamily: 'Cairo', fontSize: 13),
@@ -324,15 +333,15 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
               if (dhikr.virtue.isNotEmpty) ...[
                 Row(
                   children: [
-                    Icon(Icons.info_outline_rounded, color: theme.colorScheme.primary, size: 18),
+                    Icon(CupertinoIcons.info, color: theme.colorScheme.primary, size: 18),
                     const SizedBox(width: 6),
-                    Text('فضل الذكر', style: TextStyle(color: theme.colorScheme.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                    Text('فضل الذكر', style: TextStyle(color: theme.colorScheme.primary, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
                   dhikr.virtue,
-                  style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 13, height: 1.5),
+                  style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 13, height: 1.5, fontFamily: 'Cairo'),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -340,15 +349,15 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
               // Source / Reference
               Row(
                 children: [
-                  Icon(Icons.history_edu_rounded, color: theme.textTheme.bodySmall?.color, size: 18),
+                  Icon(CupertinoIcons.book, color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted, size: 18),
                   const SizedBox(width: 6),
-                  Text('تخريج الحديث والإسناد', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Text('تخريج الحديث والإسناد', style: TextStyle(color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted, fontSize: 13, fontWeight: FontWeight.bold, fontFamily: 'Cairo')),
                 ],
               ),
               const SizedBox(height: 6),
               Text(
                 dhikr.source,
-                style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12, height: 1.5, fontStyle: FontStyle.italic),
+                style: TextStyle(color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted, fontSize: 12, height: 1.5, fontStyle: FontStyle.italic, fontFamily: 'Cairo'),
               ),
             ],
           ),
@@ -407,11 +416,12 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                     'تكرار',
                     style: TextStyle(
                       fontSize: 12,
-                      color: theme.textTheme.bodyMedium?.color,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                      fontFamily: 'Cairo',
                     ),
                   ),
                 ] else ...[
-                  const Icon(Icons.check_circle_rounded, color: AppTheme.successGreen, size: 48),
+                  const Icon(CupertinoIcons.checkmark_circle_fill, color: AppTheme.successGreen, size: 48),
                 ],
               ],
             ),

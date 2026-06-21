@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -9,6 +10,7 @@ import '../providers/app_provider.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 import '../widgets/mosque_header_widget.dart';
 import 'azkar_screen.dart';
 import 'quran_screen.dart';
@@ -147,77 +149,74 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = context.watch<AppProvider>();
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background gradient
-          Container(
-            decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
-          ),
+      body: GlassyBackground(
+        child: Stack(
+          children: [
+            // Mosque silhouette header (behind content)
+            const MosqueHeaderWidget(height: 220),
 
-          // Mosque silhouette header (behind content)
-          const MosqueHeaderWidget(height: 220),
-
-          // Scrollable content
-          SafeArea(
-            child: CustomScrollView(
-              slivers: [
-                // Beautiful Custom Header
-                SliverAppBar(
-                  floating: true,
-                  backgroundColor: Colors.transparent,
-                  title: Row(
-                    children: [
-                      Text(
-                        'سَكينة',
-                        style: TextStyle(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22,
-                          fontFamily: 'Cairo',
+            // Scrollable content
+            SafeArea(
+              child: CustomScrollView(
+                slivers: [
+                  // Beautiful Custom Header
+                  SliverAppBar(
+                    floating: true,
+                    backgroundColor: Colors.transparent,
+                    title: Row(
+                      children: [
+                        Text(
+                          'سَكينة',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 22,
+                            fontFamily: 'Cairo',
+                          ),
                         ),
-                      ),
-                      const Spacer(),
-                      IconButton(
-                        icon: Icon(
-                          provider.isDarkMode
-                              ? Icons.wb_sunny_rounded
-                              : Icons.mode_night_rounded,
+                        const Spacer(),
+                        IconButton(
+                          icon: Icon(
+                            provider.isDarkMode
+                                ? CupertinoIcons.sun_max_fill
+                                : CupertinoIcons.moon_fill,
+                          ),
+                          color: provider.isDarkMode ? AppTheme.accentTeal : AppTheme.lightGold,
+                          onPressed: () => provider.toggleThemeMode(),
                         ),
-                        color: provider.isDarkMode ? AppTheme.accentTeal : AppTheme.lightGold,
-                        onPressed: () => provider.toggleThemeMode(),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      const SizedBox(height: 12),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        const SizedBox(height: 12),
 
-                      // Bismillah Header
-                      _buildBismillahHeader(theme),
-                      const SizedBox(height: 16),
+                        // Bismillah Header
+                        _buildBismillahHeader(theme),
+                        const SizedBox(height: 16),
 
-                      // Next Prayer Card (Quick Summary)
-                      _buildNextPrayerCard(theme, provider),
-                      const SizedBox(height: 20),
+                        // Next Prayer Card (Quick Summary)
+                        _buildNextPrayerCard(theme, provider),
+                        const SizedBox(height: 20),
 
-                      // Quick Actions Grid (2x2)
-                      _buildQuickActionsGrid(context, theme),
-                      const SizedBox(height: 20),
+                        // Quick Actions Grid (2x2)
+                        _buildQuickActionsGrid(context, theme),
+                        const SizedBox(height: 20),
 
-                      // Hadith Card
-                      const HadithCard(),
-                      const SizedBox(height: 32),
-                    ]),
+                        // Hadith Card
+                        const HadithCard(),
+                        const SizedBox(height: 110), // Bottom padding to prevent collision with extendBody mini player
+                      ]),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -288,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
               shape: BoxShape.circle,
               color: theme.colorScheme.primary.withValues(alpha: 0.15),
             ),
-            child: Icon(Icons.access_time_filled_rounded, color: theme.colorScheme.primary, size: 24),
+            child: Icon(CupertinoIcons.clock_fill, color: theme.colorScheme.primary, size: 24),
           ),
         ],
       ),
@@ -296,17 +295,16 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickActionsGrid(BuildContext context, ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: isDark ? 12 : 16,
-      mainAxisSpacing: isDark ? 12 : 8,
-      childAspectRatio: isDark ? 1.25 : 0.95,
+      crossAxisSpacing: 14,
+      mainAxisSpacing: 14,
+      childAspectRatio: 1.25,
       children: [
         _buildActionItem(
-          icon: Icons.menu_book_rounded,
+          icon: CupertinoIcons.book,
           label: 'القرآن الكريم',
           darkColor: AppTheme.accentTeal,
           lightColor: AppTheme.primaryGreen,
@@ -316,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.shield_rounded,
+          icon: CupertinoIcons.shield,
           label: 'أذكار المسلم',
           darkColor: AppTheme.accentTeal,
           lightColor: AppTheme.primaryGreen,
@@ -326,7 +324,7 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.explore_rounded,
+          icon: CupertinoIcons.compass,
           label: 'اتجاه القبلة',
           darkColor: AppTheme.accentTeal,
           lightColor: AppTheme.primaryGreen,
@@ -336,7 +334,7 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.security_rounded,
+          icon: CupertinoIcons.shield_fill,
           label: 'حصن البيت',
           darkColor: AppTheme.gold,
           lightColor: AppTheme.lightGold,
@@ -346,7 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.access_time_filled_rounded,
+          icon: CupertinoIcons.alarm,
           label: 'مواقيت الصلاة',
           darkColor: AppTheme.accentTeal,
           lightColor: AppTheme.primaryGreen,
@@ -356,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.all_inclusive_rounded,
+          icon: CupertinoIcons.infinite,
           label: 'المسبحة',
           darkColor: AppTheme.accentTeal,
           lightColor: AppTheme.primaryGreen,
@@ -366,7 +364,7 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.radio_rounded,
+          icon: CupertinoIcons.antenna_radiowaves_left_right,
           label: 'إذاعة القرآن',
           darkColor: AppTheme.gold,
           lightColor: AppTheme.lightGold,
@@ -376,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.settings_rounded,
+          icon: CupertinoIcons.settings,
           label: 'الإعدادات',
           darkColor: AppTheme.accentTealDark,
           lightColor: Colors.blueGrey,
@@ -400,82 +398,41 @@ class _HomeScreenState extends State<HomeScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final color = isDark ? darkColor : lightColor;
 
-    if (isDark) {
-      // ===== DARK MODE: Glowing card style (Siratic) =====
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          decoration: AppTheme.glowingCyanCard(context, glowColor: color),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withValues(alpha: 0.15),
-                  border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Cairo',
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    } else {
-      // ===== LIGHT MODE: Large golden circle style (unnamed.webp) =====
-      final borderColor = lightColor == AppTheme.lightGold
-          ? AppTheme.lightGold
-          : AppTheme.lightGold;
-      return GestureDetector(
-        onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 80,
-              height: 80,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(color: borderColor.withValues(alpha: 0.6), width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: borderColor.withValues(alpha: 0.1),
-                    blurRadius: 12,
-                    spreadRadius: 1,
-                  ),
-                ],
+                color: color.withValues(alpha: isDark ? 0.15 : 0.12),
+                border: Border.all(
+                  color: color.withValues(alpha: isDark ? 0.25 : 0.18),
+                  width: 0.5,
+                ),
               ),
-              child: Icon(icon, color: color, size: 32),
+              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: AppTheme.lightTextPrimary,
+                color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
                 fontSize: 13,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.bold,
                 fontFamily: 'Cairo',
               ),
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
   }
 }

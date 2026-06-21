@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../app_theme.dart';
 import '../models/dhikr.dart';
 import 'dhikr_session_screen.dart';
 import 'tasbeeh_screen.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 
 class AzkarScreen extends StatelessWidget {
   const AzkarScreen({super.key});
@@ -12,8 +15,7 @@ class AzkarScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
+      body: GlassyBackground(
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -23,7 +25,7 @@ class AzkarScreen extends StatelessWidget {
                 title: const Text('أذكار التحصين اليومية'),
               ),
               SliverPadding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 120), // bottom padding for floating mini player
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 12),
@@ -35,7 +37,7 @@ class AzkarScreen extends StatelessWidget {
                       category: DhikrCategory.morning,
                       title: 'أذكار الصباح',
                       subtitle: 'تحصين يومك من شروق الشمس حتى زوالها',
-                      icon: Icons.wb_sunny_rounded,
+                      icon: CupertinoIcons.sun_max_fill,
                       iconColor: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.lightGold,
                       count: Dhikr.getByCategory(DhikrCategory.morning).length,
                       theme: theme,
@@ -47,7 +49,7 @@ class AzkarScreen extends StatelessWidget {
                       category: DhikrCategory.evening,
                       title: 'أذكار المساء',
                       subtitle: 'تحصين ليلك من زوال الشمس حتى غروبها',
-                      icon: Icons.mode_night_rounded,
+                      icon: CupertinoIcons.moon_fill,
                       iconColor: AppTheme.accentTeal,
                       count: Dhikr.getByCategory(DhikrCategory.evening).length,
                       theme: theme,
@@ -59,13 +61,13 @@ class AzkarScreen extends StatelessWidget {
                       category: DhikrCategory.sleep,
                       title: 'أذكار النوم',
                       subtitle: 'حرزك وحفظك من الشياطين حتى تصبح',
-                      icon: Icons.hotel_rounded,
+                      icon: CupertinoIcons.bed_double_fill,
                       iconColor: theme.brightness == Brightness.dark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
                       count: Dhikr.getByCategory(DhikrCategory.sleep).length,
                       theme: theme,
                     ),
                     const SizedBox(height: 16),
-
+ 
                     _buildCategoryCard(
                       context,
                       category: DhikrCategory.afterPrayer,
@@ -77,37 +79,37 @@ class AzkarScreen extends StatelessWidget {
                       theme: theme,
                     ),
                     const SizedBox(height: 16),
-
+ 
                     _buildCategoryCard(
                       context,
                       category: DhikrCategory.mosque,
                       title: 'أذكار المسجد',
                       subtitle: 'أدعية دخول وخروج المسجد لبركة العبادة',
-                      icon: Icons.meeting_room_rounded,
+                      icon: CupertinoIcons.square_arrow_right_fill,
                       iconColor: Colors.amber,
                       count: Dhikr.getByCategory(DhikrCategory.mosque).length,
                       theme: theme,
                     ),
                     const SizedBox(height: 16),
-
+ 
                     _buildCategoryCard(
                       context,
                       category: DhikrCategory.wakingUp,
                       title: 'أذكار الاستيقاظ',
                       subtitle: 'أول ما تبدأ به يومك بعد اليقظة بالحمد والذكر',
-                      icon: Icons.wb_twilight_rounded,
+                      icon: CupertinoIcons.sunrise_fill,
                       iconColor: Colors.orangeAccent,
                       count: Dhikr.getByCategory(DhikrCategory.wakingUp).length,
                       theme: theme,
                     ),
                     const SizedBox(height: 16),
-
+ 
                     _buildCategoryCard(
                       context,
                       category: DhikrCategory.travel,
                       title: 'أدعية وأذكار السفر',
                       subtitle: 'دعاء السفر المأثور للحفظ والأمان في الطريق',
-                      icon: Icons.explore_rounded,
+                      icon: CupertinoIcons.compass_fill,
                       iconColor: Colors.cyan,
                       count: Dhikr.getByCategory(DhikrCategory.travel).length,
                       theme: theme,
@@ -128,13 +130,13 @@ class AzkarScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.05),
+        color: theme.colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.25), width: 0.5),
       ),
       child: Column(
         children: [
-          Icon(Icons.check_circle_outline_rounded, color: theme.colorScheme.primary, size: 24),
+          Icon(CupertinoIcons.checkmark_seal, color: theme.colorScheme.primary, size: 24),
           const SizedBox(height: 8),
           Text(
             'أذكار مأثورة بأحاديث صحيحة مسندة من كتب السنة النبوية المطهرة لتحصين النفس والبيت.',
@@ -144,6 +146,7 @@ class AzkarScreen extends StatelessWidget {
               fontSize: 14,
               fontWeight: FontWeight.w500,
               height: 1.5,
+              fontFamily: 'Cairo',
             ),
           ),
         ],
@@ -171,26 +174,24 @@ class AzkarScreen extends StatelessWidget {
           ),
         );
       },
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: AppTheme.glassCard(context).copyWith(
-          borderRadius: BorderRadius.circular(20), // Smooth iOS-style rounded corners
-        ),
+        borderRadius: BorderRadius.circular(20), // Smooth iOS-style rounded corners
         child: Row(
           children: [
             // iOS Chevron on the far left (leading in RTL)
             Icon(
-              Icons.arrow_back_ios_new_rounded,
+              CupertinoIcons.chevron_left,
               size: 14,
               color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
             ),
             const SizedBox(width: 8),
-
+ 
             // iOS-style count badge
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.15),
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
@@ -205,7 +206,7 @@ class AzkarScreen extends StatelessWidget {
             ),
             
             const Spacer(),
-
+ 
             // Texts in the middle (aligned to the right next to the trailing icon)
             Expanded(
               child: Padding(
@@ -237,13 +238,13 @@ class AzkarScreen extends StatelessWidget {
                 ),
               ),
             ),
-
+ 
             // iOS-style Trailing Icon Squircle on the far right (trailing in RTL)
             Container(
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: iconColor, // Solid background color matching screenshot
+                color: iconColor, // Solid background color
                 borderRadius: BorderRadius.circular(14), // Rounded square/squircle
                 boxShadow: [
                   BoxShadow(
@@ -277,15 +278,13 @@ class AzkarScreen extends StatelessWidget {
           ),
         );
       },
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: AppTheme.glassCard(context).copyWith(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
             Icon(
-              Icons.arrow_back_ios_new_rounded,
+              CupertinoIcons.chevron_left,
               size: 14,
               color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
             ),
@@ -293,11 +292,11 @@ class AzkarScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.15),
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
-                Icons.check_rounded,
+                CupertinoIcons.checkmark,
                 color: Color(0xFFA855F7),
                 size: 14,
               ),
@@ -348,7 +347,7 @@ class AzkarScreen extends StatelessWidget {
                 ],
               ),
               child: const Icon(
-                Icons.all_inclusive_rounded,
+                CupertinoIcons.infinite,
                 color: Colors.white,
                 size: 24,
               ),

@@ -1,7 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
+import 'glass_card.dart';
 
 class PlayerWidget extends StatefulWidget {
   const PlayerWidget({super.key});
@@ -35,30 +38,21 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
     return Consumer<AppProvider>(
       builder: (context, provider, _) {
-        return Container(
+        return GlassCard(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.75),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: provider.isPlaying 
-                  ? theme.colorScheme.primary
-                  : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
-              width: provider.isPlaying ? 2.0 : 1.5, // Solid highlight border matching screenshot
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: (provider.isPlaying ? theme.colorScheme.primary : Colors.black).withValues(
-                  alpha: provider.isPlaying ? (isDark ? 0.2 : 0.08) : (isDark ? 0.3 : 0.04),
-                ),
-                blurRadius: provider.isPlaying ? 24 : 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+          borderRadius: BorderRadius.circular(24),
+          color: provider.isPlaying 
+              ? (isDark ? theme.colorScheme.primary.withValues(alpha: 0.08) : theme.colorScheme.primary.withValues(alpha: 0.05))
+              : null,
+          border: Border.all(
+            color: provider.isPlaying 
+                ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.25)),
+            width: provider.isPlaying ? 1.5 : 0.5,
           ),
           child: Column(
             children: [
-              // Top Row: Reciter info, Title, and small play toggle matching screenshot layout
+              // Top Row: Reciter info, Title, and small play toggle
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -68,14 +62,14 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                     height: 38,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.15),
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
                       icon: Icon(
-                        provider.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        provider.isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
                         color: theme.colorScheme.primary,
-                        size: 20,
+                        size: 16,
                       ),
                       onPressed: () {
                         if (provider.isLoading) return;
@@ -120,19 +114,19 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
                   // Right side: Circular icon container
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 40,
+                    height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                        width: 1,
+                        color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                        width: 0.5,
                       ),
                     ),
                     child: Icon(
-                      Icons.music_note_rounded,
+                      CupertinoIcons.music_note_2,
                       color: theme.colorScheme.primary,
-                      size: 20,
+                      size: 18,
                     ),
                   ),
                 ],
@@ -142,9 +136,9 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
               // Progress bar
               SliderTheme(
                 data: SliderTheme.of(context).copyWith(
-                  trackHeight: 5,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+                  trackHeight: 3.5, // Sleeker track
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                  overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
                 ),
                 child: Slider(
                   value: _clampPosition(provider),
@@ -153,7 +147,9 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                       ? (v) => provider.seekTo(Duration(seconds: v.toInt()))
                       : null,
                   activeColor: theme.colorScheme.primary,
-                  inactiveColor: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
+                  inactiveColor: isDark 
+                      ? Colors.white.withValues(alpha: 0.1) 
+                      : Colors.black.withValues(alpha: 0.08),
                 ),
               ),
 
@@ -182,8 +178,8 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                 children: [
                   // Stop button
                   _controlButton(
-                    icon: Icons.stop_rounded,
-                    size: 28,
+                    icon: CupertinoIcons.stop_fill,
+                    size: 20,
                     color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? AppTheme.errorRed : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                     onTap: (provider.isPlaying || provider.currentPosition > Duration.zero) ? () => provider.stopPlayback() : null,
                     context: context,
@@ -191,8 +187,8 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
                   // Rewind 10s
                   _controlButton(
-                    icon: Icons.replay_10_rounded,
-                    size: 32,
+                    icon: CupertinoIcons.gobackward_10,
+                    size: 24,
                     color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? theme.colorScheme.onSurface : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                     onTap: (provider.isPlaying || provider.currentPosition > Duration.zero)
                         ? () => provider.seekTo(
@@ -226,33 +222,19 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                           child: Container(
                             width: 72,
                             height: 72,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              gradient: AppTheme.goldGradient,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: theme.colorScheme.primary.withValues(
-                                    alpha: provider.isPlaying ? 0.5 : 0.3,
-                                  ),
-                                  blurRadius: provider.isPlaying ? 20 : 12,
-                                ),
-                              ],
-                            ),
+                            decoration: AppTheme.glowingPlayButton,
                             child: provider.isLoading
                                 ? const Center(
-                                    child: SizedBox(
-                                      width: 28, height: 28,
-                                      child: CircularProgressIndicator(
-                                        color: AppTheme.deepBackground,
-                                        strokeWidth: 3,
-                                      ),
+                                    child: CupertinoActivityIndicator(
+                                      color: AppTheme.deepBackground,
+                                      radius: 12,
                                     ),
                                   )
                                 : Icon(
                                     provider.isPlaying
-                                        ? Icons.pause_rounded
-                                        : Icons.play_arrow_rounded,
-                                    size: 36,
+                                        ? CupertinoIcons.pause_fill
+                                        : CupertinoIcons.play_fill,
+                                    size: 32,
                                     color: AppTheme.deepBackground,
                                   ),
                           ),
@@ -263,8 +245,8 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
                   // Forward 10s
                   _controlButton(
-                    icon: Icons.forward_10_rounded,
-                    size: 32,
+                    icon: CupertinoIcons.goforward_10,
+                    size: 24,
                     color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? theme.colorScheme.onSurface : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                     onTap: (provider.isPlaying || provider.currentPosition > Duration.zero)
                         ? () => provider.seekTo(
@@ -276,8 +258,8 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
                   // Volume
                   _controlButton(
-                    icon: provider.volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                    size: 28,
+                    icon: provider.volume == 0 ? CupertinoIcons.volume_off : CupertinoIcons.volume_up,
+                    size: 22,
                     color: theme.textTheme.bodyMedium?.color ?? Colors.grey,
                     onTap: () => _showVolumeSlider(context, provider),
                     context: context,
@@ -307,7 +289,7 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.history_rounded, color: theme.textTheme.bodySmall?.color, size: 16),
+                    Icon(CupertinoIcons.clock_solid, color: theme.textTheme.bodySmall?.color, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       'آخر تشغيل: ${_getAgoText(provider.settings.lastPlayedAt!)}',
@@ -334,11 +316,19 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 48,
-        height: 48,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.3),
+          color: isDark 
+              ? Colors.white.withValues(alpha: 0.05) 
+              : Colors.black.withValues(alpha: 0.03),
+          border: Border.all(
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.08) 
+                : Colors.black.withValues(alpha: 0.05),
+            width: 0.5,
+          ),
         ),
         child: Icon(icon, size: size, color: color),
       ),
@@ -347,38 +337,46 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
   void _showVolumeSlider(BuildContext context, AppProvider provider) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('مستوى الصوت', style: TextStyle(color: theme.colorScheme.primary, fontSize: 16, fontWeight: FontWeight.w600)),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Icon(Icons.volume_down_rounded, color: theme.textTheme.bodySmall?.color),
-                  Expanded(
-                    child: Slider(
-                      value: provider.volume,
-                      onChanged: (v) {
-                        provider.setVolume(v);
-                        setSheetState(() {});
-                      },
+      backgroundColor: Colors.transparent,
+      builder: (_) => ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            color: isDark 
+                ? const Color(0xFF0C1921).withValues(alpha: 0.75) 
+                : Colors.white.withValues(alpha: 0.75),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('مستوى الصوت', style: TextStyle(color: theme.colorScheme.primary, fontSize: 16, fontWeight: FontWeight.w600, fontFamily: 'Cairo')),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Icon(CupertinoIcons.volume_down, color: theme.textTheme.bodySmall?.color),
+                    Expanded(
+                      child: Slider(
+                        value: provider.volume,
+                        activeColor: theme.colorScheme.primary,
+                        inactiveColor: isDark 
+                            ? Colors.white.withValues(alpha: 0.1) 
+                            : Colors.black.withValues(alpha: 0.08),
+                        onChanged: (v) {
+                          provider.setVolume(v);
+                        },
+                      ),
                     ),
-                  ),
-                  Icon(Icons.volume_up_rounded, color: theme.textTheme.bodySmall?.color),
-                ],
-              ),
-              Text('${(provider.volume * 100).toInt()}%', style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.w700)),
-              const SizedBox(height: 12),
-            ],
+                    Icon(CupertinoIcons.volume_up, color: theme.textTheme.bodySmall?.color),
+                  ],
+                ),
+                Text('${(provider.volume * 100).toInt()}%', style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.w700, fontFamily: 'Cairo')),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
       ),

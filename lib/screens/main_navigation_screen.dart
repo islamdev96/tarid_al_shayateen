@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import '../app_theme.dart';
 import '../widgets/mini_player_widget.dart';
 import 'home_screen.dart';
@@ -33,6 +34,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
+      extendBody: true, // Allows the screens to scroll behind the navigation bar and mini player
       body: Stack(
         children: [
           // Current active screen
@@ -53,57 +55,62 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           child: Container(
             decoration: BoxDecoration(
               color: isDark 
-                  ? AppTheme.cardBackground.withValues(alpha: 0.7) 
-                  : Colors.white.withValues(alpha: 0.75),
+                  ? const Color(0xFF0C1921).withValues(alpha: 0.5) 
+                  : Colors.white.withValues(alpha: 0.5),
               border: Border(
                 top: BorderSide(
                   color: isDark 
-                      ? AppTheme.cardBorder.withValues(alpha: 0.3) 
-                      : AppTheme.lightCardBorder.withValues(alpha: 0.4),
+                      ? Colors.white.withValues(alpha: 0.08) 
+                      : AppTheme.lightCardBorder.withValues(alpha: 0.25),
                   width: 0.5, // Thin iOS border line
                 ),
               ),
             ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: theme.colorScheme.primary,
-          unselectedItemColor: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'Cairo'),
-          unselectedLabelStyle: const TextStyle(fontSize: 10, fontFamily: 'Cairo'),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_rounded),
-              label: 'الرئيسية',
+            child: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+              },
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              selectedItemColor: theme.colorScheme.primary,
+              unselectedItemColor: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'Cairo'),
+              unselectedLabelStyle: const TextStyle(fontSize: 10, fontFamily: 'Cairo'),
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(CupertinoIcons.house),
+                  activeIcon: Icon(CupertinoIcons.house_fill),
+                  label: 'الرئيسية',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(CupertinoIcons.book),
+                  activeIcon: Icon(CupertinoIcons.book_fill),
+                  label: 'القرآن',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(CupertinoIcons.clock),
+                  activeIcon: Icon(CupertinoIcons.clock_fill),
+                  label: 'المواقيت',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(CupertinoIcons.shield),
+                  activeIcon: Icon(CupertinoIcons.shield_fill),
+                  label: 'الأذكار',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(CupertinoIcons.settings),
+                  activeIcon: Icon(CupertinoIcons.settings_solid),
+                  label: 'الإعدادات',
+                ),
+              ],
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book_rounded),
-              label: 'القرآن',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.access_time_filled_rounded),
-              label: 'المواقيت',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.shield_rounded),
-              label: 'الأذكار',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.settings_rounded),
-              label: 'الإعدادات',
-            ),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 }

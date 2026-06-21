@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import '../screens/reciter_selection_screen.dart';
+import 'glass_card.dart';
 
 class ReciterCard extends StatelessWidget {
   const ReciterCard({super.key});
@@ -12,15 +14,15 @@ class ReciterCard extends StatelessWidget {
     final provider = context.watch<AppProvider>();
     final reciter = provider.currentReciter;
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => const ReciterSelectionScreen()),
       ),
-      child: Container(
+      child: GlassCard(
         padding: const EdgeInsets.all(16),
-        decoration: AppTheme.glassCard(context),
         child: Row(
           children: [
             Container(
@@ -30,7 +32,7 @@ class ReciterCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: theme.colorScheme.primary.withValues(alpha: 0.15),
               ),
-              child: Icon(Icons.mic_rounded, color: theme.colorScheme.primary, size: 24),
+              child: Icon(CupertinoIcons.music_mic, color: theme.colorScheme.primary, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -39,7 +41,11 @@ class ReciterCard extends StatelessWidget {
                 children: [
                   Text(
                     'القارئ', 
-                    style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+                    style: TextStyle(
+                      color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted, 
+                      fontSize: 12,
+                      fontFamily: 'Cairo',
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -48,12 +54,14 @@ class ReciterCard extends StatelessWidget {
                       color: theme.colorScheme.onSurface, 
                       fontSize: 16, 
                       fontWeight: FontWeight.w600,
+                      fontFamily: 'Cairo',
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
                       Icon(
-                        reciter.isOffline ? Icons.phone_android_rounded : Icons.wifi_rounded,
+                        reciter.isOffline ? CupertinoIcons.phone : CupertinoIcons.wifi,
                         size: 14,
                         color: reciter.isOffline ? AppTheme.successGreen : theme.colorScheme.secondary,
                       ),
@@ -63,6 +71,7 @@ class ReciterCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           color: reciter.isOffline ? AppTheme.successGreen : theme.colorScheme.secondary,
+                          fontFamily: 'Cairo',
                         ),
                       ),
                     ],
@@ -70,7 +79,7 @@ class ReciterCard extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_left_rounded, color: theme.textTheme.bodySmall?.color),
+            Icon(CupertinoIcons.chevron_left, color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted, size: 16),
           ],
         ),
       ),

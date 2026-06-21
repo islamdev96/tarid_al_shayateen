@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import '../widgets/mosque_header_widget.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 
 class RadioStation {
   final String nameAr;
@@ -35,7 +37,7 @@ class _RadioScreenState extends State<RadioScreen> {
   double _preMuteVolume = 1.0;
 
   Color get cyanAccent => AppTheme.accentTeal;
-  Color get orangeAccent => Theme.of(context).colorScheme.secondary; // Gold/orange for play buttons
+  Color get orangeAccent => Theme.of(context).colorScheme.secondary;
 
   void _toggleMute(AppProvider provider) {
     if (_isMuted) {
@@ -62,113 +64,110 @@ class _RadioScreenState extends State<RadioScreen> {
     final isPlaying = isCurrent && provider.isPlaying;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background Gradient
-          Container(
-            decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
-          ),
+      body: GlassyBackground(
+        child: Stack(
+          children: [
+            // Mosque silhouette header
+            const MosqueHeaderWidget(height: 220),
 
-          // Mosque silhouette header
-          const MosqueHeaderWidget(height: 220),
+            SafeArea(
+              child: Column(
+                children: [
+                  // Top Custom Header
+                  _buildTopBar(theme),
 
-          SafeArea(
-            child: Column(
-              children: [
-                // Top Custom Header
-                _buildTopBar(theme),
+                  const Spacer(flex: 1),
 
-                const Spacer(flex: 1),
-
-                // Beautiful Center Radio Display Card
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: GlassCard(
-                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-                    border: Border.all(
-                      color: isCurrent && isPlaying
-                          ? (isDark ? cyanAccent : AppTheme.primaryGreen)
-                          : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      if (isCurrent && isPlaying)
-                        BoxShadow(
-                          color: (isDark ? cyanAccent : AppTheme.primaryGreen).withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
+                  // Beautiful Center Radio Display Card
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: GlassCard(
+                      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+                      border: Border.all(
+                        color: isCurrent && isPlaying
+                            ? (isDark ? cyanAccent : AppTheme.primaryGreen)
+                            : (isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.35)),
+                        width: isCurrent && isPlaying ? 1.5 : 0.5,
                       ),
-                    ],
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Radio Wave / Calligraphy Circular Display
-                        _buildRadioArt(isCurrent && isPlaying, isDark),
-                        const SizedBox(height: 24),
+                      boxShadow: [
+                        if (isCurrent && isPlaying)
+                          BoxShadow(
+                            color: (isDark ? cyanAccent : AppTheme.primaryGreen).withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                          ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Radio Wave / Calligraphy Circular Display
+                          _buildRadioArt(isCurrent && isPlaying, isDark),
+                          const SizedBox(height: 24),
 
-                        // Active badge
-                        if (isCurrent && isPlaying) ...[
-                          _buildLiveBadge(),
-                          const SizedBox(height: 12),
+                          // Active badge
+                          if (isCurrent && isPlaying) ...[
+                            _buildLiveBadge(),
+                            const SizedBox(height: 12),
+                          ],
+
+                          // Title
+                          Text(
+                            egyptRadio.nameAr,
+                            textAlign: TextAlign.center,
+                            textDirection: TextDirection.rtl,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // Subtitle
+                          Text(
+                            'جمهورية مصر العربية • بث مباشر 24 ساعة',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
                         ],
+                      ),
+                    ),
+                  ),
 
-                        // Title
-                        Text(
-                          egyptRadio.nameAr,
-                          textAlign: TextAlign.center,
-                          textDirection: TextDirection.rtl,
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 18,
-                            fontFamily: 'Cairo',
-                          ),
-                        ),
-                        const SizedBox(height: 6),
+                  const Spacer(flex: 1),
 
-                        // Subtitle
-                        Text(
-                          'جمهورية مصر العربية • بث مباشر 24 ساعة',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Cairo',
-                          ),
-                        ),
+                  // Controls and Volume Panel
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Column(
+                      children: [
+                        // Player Controls
+                        _buildPlayerControls(provider, isCurrent, isPlaying, theme),
+                        const SizedBox(height: 32),
+
+                        // Volume Slider
+                        _buildVolumeControl(provider, theme),
                       ],
                     ),
                   ),
-                ),
 
-                const Spacer(flex: 1),
-
-                // Controls and Volume Panel
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      // Player Controls
-                      _buildPlayerControls(provider, isCurrent, isPlaying, theme),
-                      const SizedBox(height: 32),
-
-                      // Volume Slider
-                      _buildVolumeControl(provider, theme),
-                    ],
-                  ),
-                ),
-
-                const Spacer(flex: 2),
-              ],
+                  const Spacer(flex: 2),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -180,7 +179,7 @@ class _RadioScreenState extends State<RadioScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back_ios_rounded, color: theme.brightness == Brightness.dark ? cyanAccent : AppTheme.primaryGreen),
+            icon: Icon(CupertinoIcons.back, color: theme.brightness == Brightness.dark ? cyanAccent : AppTheme.primaryGreen),
             onPressed: () => Navigator.pop(context),
           ),
           Text(
@@ -199,7 +198,6 @@ class _RadioScreenState extends State<RadioScreen> {
   }
 
   Widget _buildRadioArt(bool isPlaying, bool isDark) {
-    // Elegant pulsing radio icon art
     final activeColor = isDark ? cyanAccent : AppTheme.primaryGreen;
     return Container(
       width: 140,
@@ -222,7 +220,7 @@ class _RadioScreenState extends State<RadioScreen> {
       ),
       child: Center(
         child: Icon(
-          Icons.radio_rounded,
+          CupertinoIcons.waveform,
           color: isPlaying ? activeColor : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
           size: 64,
         ),
@@ -279,8 +277,8 @@ class _RadioScreenState extends State<RadioScreen> {
           child: IconButton(
             icon: Icon(
               _isMuted || provider.volume == 0.0
-                  ? Icons.volume_off_rounded
-                  : Icons.volume_up_rounded,
+                  ? CupertinoIcons.volume_off
+                  : CupertinoIcons.volume_up,
               color: isDark ? cyanAccent : AppTheme.primaryGreen,
             ),
             iconSize: 24,
@@ -314,10 +312,10 @@ class _RadioScreenState extends State<RadioScreen> {
             ),
             child: Icon(
               provider.isLoading
-                  ? Icons.hourglass_empty_rounded
+                  ? CupertinoIcons.hourglass
                   : isPlaying
-                      ? Icons.pause_rounded
-                      : Icons.play_arrow_rounded,
+                      ? CupertinoIcons.pause_fill
+                      : CupertinoIcons.play_fill,
               size: 40,
               color: Colors.white,
             ),
@@ -333,7 +331,7 @@ class _RadioScreenState extends State<RadioScreen> {
             border: Border.all(color: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
           ),
           child: IconButton(
-            icon: const Icon(Icons.stop_rounded, color: Colors.red),
+            icon: const Icon(CupertinoIcons.stop_fill, color: Colors.red),
             iconSize: 24,
             onPressed: isCurrent ? () => provider.stopRadio() : null,
           ),
@@ -350,7 +348,7 @@ class _RadioScreenState extends State<RadioScreen> {
       child: Row(
         children: [
           Icon(
-            Icons.volume_down_rounded,
+            CupertinoIcons.volume_down,
             color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
             size: 20,
           ),
@@ -377,7 +375,7 @@ class _RadioScreenState extends State<RadioScreen> {
             ),
           ),
           Icon(
-            Icons.volume_up_rounded,
+            CupertinoIcons.volume_up,
             color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
             size: 20,
           ),

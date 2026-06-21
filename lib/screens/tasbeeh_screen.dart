@@ -1,8 +1,12 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../app_theme.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
 
 class TasbeehScreen extends StatefulWidget {
   const TasbeehScreen({super.key});
@@ -121,8 +125,7 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
     final progress = _target > 0 ? (_counter / _target).clamp(0.0, 1.0) : 0.0;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
+      body: GlassyBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -153,7 +156,7 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
 
                       // Reset and Target controls
                       _buildControlButtons(theme, isDark),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 120), // Padding to avoid overlap with mini player
                     ],
                   ),
                 ),
@@ -172,7 +175,7 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
+            icon: Icon(CupertinoIcons.back, color: theme.colorScheme.primary),
             onPressed: () => Navigator.pop(context),
           ),
           const Text(
@@ -180,7 +183,7 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
           ),
           IconButton(
-            icon: Icon(Icons.refresh_rounded, color: theme.colorScheme.primary),
+            icon: Icon(CupertinoIcons.refresh, color: theme.colorScheme.primary),
             onPressed: _resetCounter,
             tooltip: 'تصفير العداد',
           ),
@@ -190,10 +193,10 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
   }
 
   Widget _buildDhikrSelectorCard(ThemeData theme, bool isDark) {
-    return Container(
+    return GlassCard(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: AppTheme.glassCard(context),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
@@ -211,8 +214,8 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
             child: DropdownButton<int>(
               value: _selectedDhikrIndex,
               isExpanded: true,
-              icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.colorScheme.primary),
-              dropdownColor: isDark ? AppTheme.cardBackground : AppTheme.lightCardBackground,
+              icon: Icon(CupertinoIcons.chevron_down, color: theme.colorScheme.primary, size: 16),
+              dropdownColor: isDark ? const Color(0xFF0C1921) : Colors.white,
               borderRadius: BorderRadius.circular(16),
               alignment: AlignmentDirectional.centerEnd,
               items: List.generate(_defaultDhikrs.length, (index) {
@@ -251,9 +254,9 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
     return Row(
       children: [
         Expanded(
-          child: Container(
+          child: GlassCard(
             padding: const EdgeInsets.all(16),
-            decoration: AppTheme.glassCard(context),
+            borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
                 Text(
@@ -279,9 +282,9 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: Container(
+          child: GlassCard(
             padding: const EdgeInsets.all(16),
-            decoration: AppTheme.glassCard(context),
+            borderRadius: BorderRadius.circular(20),
             child: Column(
               children: [
                 Text(
@@ -312,74 +315,83 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
   Widget _buildCircularCounter(double progress, ThemeData theme, bool isDark) {
     return GestureDetector(
       onTap: _incrementCounter,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        width: 240,
-        height: 240,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.75),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withValues(alpha: _counter > 0 ? 0.15 : 0.05),
-              blurRadius: 30,
-              spreadRadius: 2,
-            )
-          ],
-          border: Border.all(
-            color: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.4),
-            width: 1,
-          ),
-        ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Circular progress bar track
-            SizedBox(
-              width: 220,
-              height: 220,
-              child: CircularProgressIndicator(
-                value: progress,
-                strokeWidth: 8,
-                backgroundColor: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.2),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  _counter >= _target ? AppTheme.successGreen : theme.colorScheme.primary,
-                ),
+      child: ClipOval(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 240,
+            height: 240,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isDark 
+                  ? const Color(0xFF0C1921).withValues(alpha: 0.45) 
+                  : Colors.white.withValues(alpha: 0.45),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: _counter > 0 ? 0.15 : 0.05),
+                  blurRadius: 30,
+                  spreadRadius: 2,
+                )
+              ],
+              border: Border.all(
+                color: isDark 
+                    ? Colors.white.withValues(alpha: 0.12) 
+                    : Colors.white.withValues(alpha: 0.35),
+                width: 0.5,
               ),
             ),
-
-            // Tap prompt & Counter value
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                Text(
-                  '$_counter',
-                  style: TextStyle(
-                    fontSize: 54,
-                    color: _counter >= _target ? AppTheme.successGreen : theme.colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+                // Circular progress bar track
+                SizedBox(
+                  width: 220,
+                  height: 220,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 7,
+                    backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _counter >= _target ? AppTheme.successGreen : theme.colorScheme.primary,
+                    ),
                   ),
                 ),
-                Text(
-                  'انقر للتسبيح',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
-                    fontFamily: 'Cairo',
-                  ),
+
+                // Tap prompt & Counter value
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '$_counter',
+                      style: TextStyle(
+                        fontSize: 54,
+                        color: _counter >= _target ? AppTheme.successGreen : theme.colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'انقر للتسبيح',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
+                        fontFamily: 'Cairo',
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildControlButtons(ThemeData theme, bool isDark) {
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(12),
-      decoration: AppTheme.glassCard(context),
+      borderRadius: BorderRadius.circular(20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
