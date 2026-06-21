@@ -146,4 +146,23 @@ class SettingsService {
   Future<void> setAzkarEveningMinute(int val) async {
     await _prefs.setInt(_keyAzkarEveningMinute, val);
   }
+
+  /// Get selected city ID (defaults to 'cairo')
+  String get selectedCityId => _prefs.getString('selected_city_id') ?? 'cairo';
+
+  /// Save selected city ID
+  Future<void> setSelectedCityId(String cityId) async {
+    await _prefs.setString('selected_city_id', cityId);
+  }
+
+  /// Get whether notification is enabled for a specific prayer
+  bool getPrayerNotification(String prayerId) {
+    final defaultValue = prayerId != 'sunrise';
+    return _prefs.getBool('prayer_notif_$prayerId') ?? defaultValue;
+  }
+
+  /// Save whether notification is enabled for a specific prayer
+  Future<void> setPrayerNotification(String prayerId, bool val) async {
+    await _prefs.setBool('prayer_notif_$prayerId', val);
+  }
 }

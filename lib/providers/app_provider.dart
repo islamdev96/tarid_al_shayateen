@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 
 import '../models/reciter.dart';
 import '../models/schedule_settings.dart';
+import '../models/surah.dart';
+import '../models/prayer_time_settings.dart';
 import '../services/audio_handler.dart';
 import '../services/scheduler_service.dart';
 import '../services/settings_service.dart';
@@ -40,6 +42,13 @@ class AppProvider extends ChangeNotifier {
   TimeOfDay _azkarMorningTime = const TimeOfDay(hour: 6, minute: 30);
   TimeOfDay _azkarEveningTime = const TimeOfDay(hour: 17, minute: 0);
 
+  // Prayer times & Quran playback variables
+  CityConfig _selectedCity = CityConfig.defaultCities.first;
+  final Map<String, bool> _prayerNotifications = {};
+  Surah? _currentPlayingSurah;
+  Reciter? _currentPlayingReciter;
+  StreamSubscription? _mediaItemSub;
+
   // Getters
   ScheduleSettings get settings => _settings;
   bool get isPlaying => _isPlaying;
@@ -60,6 +69,11 @@ class AppProvider extends ChangeNotifier {
   TimeOfDay get azkarMorningTime => _azkarMorningTime;
   TimeOfDay get azkarEveningTime => _azkarEveningTime;
 
+  CityConfig get selectedCity => _selectedCity;
+  Map<String, bool> get prayerNotifications => _prayerNotifications;
+  Surah? get currentPlayingSurah => _currentPlayingSurah;
+  Reciter? get currentPlayingReciter => _currentPlayingReciter;
+
   /// Initialize all services.
   Future<void> init(QuranAudioHandler audioHandler) async {
     _audioHandler = audioHandler;
@@ -77,6 +91,33 @@ class AppProvider extends ChangeNotifier {
       hour: _settingsService.azkarEveningHour,
       minute: _settingsService.azkarEveningMinute,
     );
+
+    // Load Selected City and Prayer notifications
+    final cityId = _settingsService.selectedCityId;
+    _selectedCity = CityConfig.findById(cityId);
+    for (final prayerId in ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']) {
+      _prayerNotifications[prayerId] = _settingsService.getPrayerNotification(prayerId);
+    }
+
+    // Listen to current media item to show in mini player
+    _mediaItemSub = _audioHandler.mediaItem.listen((item) {
+      if (item != null) {
+        _currentPlayingSurah = Surah.allSurahs.firstWhere(
+          (s) => s.nameAr == item.title,
+          orElse: () => Surah.findByNumber(2), // default to Baqarah
+        );
+        _currentPlayingReciter = Reciter.defaultReciters.firstWhere(
+          (r) => r.nameAr == item.artist,
+          orElse: () => currentReciter,
+        );
+        _isPlaying = _audioHandler.isPlaying;
+        notifyListeners();
+      } else {
+        _currentPlayingSurah = null;
+        _currentPlayingReciter = null;
+        notifyListeners();
+      }
+    });
 
     // Listen to audio position updates
     _positionSub = _audioHandler.positionStream.listen((pos) {
@@ -368,6 +409,7 @@ class AppProvider extends ChangeNotifier {
   void _onPlaybackCompleted() {
     _isPlaying = false;
     _currentPosition = Duration.zero;
+    _currentPlayingSurah = null;
 
     // Schedule the next playback
     if (_settings.isEnabled) {
@@ -431,11 +473,63 @@ class AppProvider extends ChangeNotifier {
     );
   }
 
+  // --- Prayer Times Settings methods ---
+  Future<void> updateSelectedCity(String cityId) async {
+    _selectedCity = CityConfig.findById(cityId);
+    await _settingsService.setSelectedCityId(cityId);
+    notifyListeners();
+  }
+
+  Future<void> togglePrayerNotification(String prayerId) async {
+    final currentVal = _prayerNotifications[prayerId] ?? true;
+    _prayerNotifications[prayerId] = !currentVal;
+    await _settingsService.setPrayerNotification(prayerId, !currentVal);
+    notifyListeners();
+  }
+
+  // --- Dynamic Quran Playback methods ---
+  Future<void> playSurah(Surah surah, Reciter reciter) async {
+    if (_isLoading) return;
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final surahUrl = '${reciter.serverUrl}${surah.formattedNumber}.mp3';
+      final isBaqarah = surah.number == 2;
+      final cachedPath = await _getCachedFilePath(reciter.id);
+      
+      if (isBaqarah && await File(cachedPath).exists()) {
+        await _audioHandler.playFromFile(cachedPath, reciter.nameAr, surahName: surah.nameAr);
+      } else {
+        await _audioHandler.playFromUrl(surahUrl, reciter.nameAr, surahName: surah.nameAr);
+      }
+
+      _currentPlayingSurah = surah;
+      _currentPlayingReciter = reciter;
+      _isPlaying = true;
+      _totalDuration = _audioHandler.duration ?? const Duration(hours: 2);
+    } catch (e) {
+      _errorMessage = 'فشل تشغيل الصوت: تحقق من اتصال الإنترنت';
+      debugPrint('Error playing Surah: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> stopQuranPlayback() async {
+    await stopPlayback();
+    _currentPlayingSurah = null;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _positionSub?.cancel();
     _stateSub?.cancel();
     _alarmSub?.cancel();
+    _mediaItemSub?.cancel();
     _foregroundTimer?.cancel();
     super.dispose();
   }

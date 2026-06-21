@@ -15,14 +15,14 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   /// Loads and plays the Surah from the given URL.
-  Future<void> playFromUrl(String url, String reciterName) async {
+  Future<void> playFromUrl(String url, String reciterName, {String surahName = 'سورة البقرة'}) async {
     try {
       // Set the media item metadata for the notification
       mediaItem.add(
         MediaItem(
           id: url,
           album: 'القرآن الكريم',
-          title: 'سورة البقرة',
+          title: surahName,
           artist: reciterName,
           duration: const Duration(hours: 2), // Approximate
         ),
@@ -37,12 +37,12 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   /// Play from a local file path.
-  Future<void> playFromFile(String filePath, String reciterName) async {
+  Future<void> playFromFile(String filePath, String reciterName, {String surahName = 'سورة البقرة'}) async {
     mediaItem.add(
       MediaItem(
         id: filePath,
         album: 'القرآن الكريم',
-        title: 'سورة البقرة',
+        title: surahName,
         artist: reciterName,
         duration: const Duration(hours: 2),
       ),
