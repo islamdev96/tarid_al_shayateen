@@ -15,7 +15,12 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   }
 
   /// Loads and plays the Surah from the given URL.
-  Future<void> playFromUrl(String url, String reciterName, {String surahName = 'سورة البقرة'}) async {
+  Future<void> playFromUrl(
+    String url, 
+    String reciterName, {
+    String surahName = 'سورة البقرة',
+    bool isLiveStream = false,
+  }) async {
     try {
       // Set the media item metadata for the notification
       mediaItem.add(
@@ -24,11 +29,19 @@ class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
           album: 'القرآن الكريم',
           title: surahName,
           artist: reciterName,
-          duration: const Duration(hours: 2), // Approximate
+          duration: isLiveStream ? null : const Duration(hours: 2),
         ),
       );
 
-      await _player.setUrl(url);
+      if (isLiveStream) {
+        // Prevent player from hanging on buffer length calculation for live streams
+        await _player.setAudioSource(
+          AudioSource.uri(Uri.parse(url)),
+          preload: false,
+        );
+      } else {
+        await _player.setUrl(url);
+      }
       _player.play(); // Do not await, as it blocks until playback finishes
     } catch (e) {
       // If online fails, the caller should handle fallback

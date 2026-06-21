@@ -19,27 +19,27 @@ const List<RadioStation> defaultStations = [
   RadioStation(
     nameAr: 'إذاعة القرآن الكريم - القاهرة',
     nameEn: 'Quran Radio Cairo',
-    url: 'https://stream.radiojar.com/8s5u5tpdtwzuv',
+    url: 'http://stream.radiojar.com/8s5u5tpdtwzuv',
   ),
   RadioStation(
     nameAr: 'إذاعة القرآن الكريم - مكة المكرمة',
     nameEn: 'Quran Radio Makkah',
-    url: 'https://live.mp3quran.net:9722/;',
+    url: 'http://live.mp3quran.net:9722/;',
   ),
   RadioStation(
     nameAr: 'إذاعة القرآن الكريم - الشارقة',
     nameEn: 'Sharjah Quran Radio',
-    url: 'https://live.mp3quran.net:9888/;',
+    url: 'http://live.mp3quran.net:9888/;',
   ),
   RadioStation(
     nameAr: 'إذاعة الرقية الشرعية',
     nameEn: 'Al-Ruqyah Al-Shariah Radio',
-    url: 'https://live.mp3quran.net:9702/;',
+    url: 'http://live.mp3quran.net:9702/;',
   ),
   RadioStation(
     nameAr: 'إذاعة تفسير القرآن الكريم',
     nameEn: 'Quran Tafsir Radio',
-    url: 'https://live.mp3quran.net:9718/;',
+    url: 'http://live.mp3quran.net:9718/;',
   ),
 ];
 
@@ -47,27 +47,27 @@ const List<RadioStation> reciterStations = [
   RadioStation(
     nameAr: 'إذاعة الشيخ عبد الباسط عبد الصمد',
     nameEn: 'Sheikh Abdul Basit Radio',
-    url: 'https://live.mp3quran.net:9984/;',
+    url: 'http://live.mp3quran.net:9984/;',
   ),
   RadioStation(
     nameAr: 'إذاعة الشيخ محمود خليل الحصري',
     nameEn: 'Sheikh Al-Hussary Radio',
-    url: 'https://live.mp3quran.net:9968/;',
+    url: 'http://live.mp3quran.net:9968/;',
   ),
   RadioStation(
     nameAr: 'إذاعة الشيخ محمد صديق المنشاوي',
     nameEn: 'Sheikh Al-Minshawi Radio',
-    url: 'https://live.mp3quran.net:9958/;',
+    url: 'http://live.mp3quran.net:9958/;',
   ),
   RadioStation(
     nameAr: 'إذاعة الشيخ ماهر المعيقلي',
     nameEn: 'Sheikh Maher Al-Muaiqly Radio',
-    url: 'https://live.mp3quran.net:9948/;',
+    url: 'http://live.mp3quran.net:9948/;',
   ),
   RadioStation(
     nameAr: 'إذاعة الشيخ مشاري بن راشد العفاسي',
     nameEn: 'Sheikh Al-Afasy Radio',
-    url: 'https://live.mp3quran.net:9938/;',
+    url: 'http://live.mp3quran.net:9938/;',
   ),
 ];
 

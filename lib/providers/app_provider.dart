@@ -560,7 +560,7 @@ class AppProvider extends ChangeNotifier {
       // Stop any currently playing audio
       await stopPlayback();
 
-      await _audioHandler.playFromUrl(url, 'إذاعة بث مباشر', surahName: name);
+      await _audioHandler.playFromUrl(url, 'إذاعة بث مباشر', surahName: name, isLiveStream: true);
       _isPlaying = true;
     } catch (e) {
       _errorMessage = 'فشل تشغيل الإذاعة المباشرة: تحقق من الإنترنت';
