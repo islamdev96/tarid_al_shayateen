@@ -14,6 +14,8 @@ import 'qiblah_screen.dart';
 import 'baqarah_fortification_screen.dart';
 import 'tasbeeh_screen.dart';
 import 'prayer_times_screen.dart';
+import 'radio_screen.dart';
+import 'settings_screen.dart';
 
 /// The redesigned Home screen displaying a premium dashboard.
 class HomeScreen extends StatefulWidget {
@@ -342,6 +344,24 @@ class _HomeScreenState extends State<HomeScreen> {
           color: const Color(0xFF0EA5E9),
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen()));
+          },
+          theme: theme,
+        ),
+        _buildActionItem(
+          icon: Icons.radio_rounded,
+          label: 'إذاعة القرآن',
+          color: const Color(0xFFFF7F32),
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const RadioScreen()));
+          },
+          theme: theme,
+        ),
+        _buildActionItem(
+          icon: Icons.settings_rounded,
+          label: 'إعدادات التطبيق',
+          color: Colors.blueGrey,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
           },
           theme: theme,
         ),

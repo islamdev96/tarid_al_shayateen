@@ -12,12 +12,9 @@ class MiniPlayerWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final provider = context.watch<AppProvider>();
 
-    if (provider.currentPlayingSurah == null) {
+    if (!provider.hasActiveAudio) {
       return const SizedBox.shrink();
     }
-
-    final surah = provider.currentPlayingSurah!;
-    final reciter = provider.currentPlayingReciter ?? provider.currentReciter;
 
     final progress = provider.totalDuration.inMilliseconds > 0
         ? provider.currentPosition.inMilliseconds / provider.totalDuration.inMilliseconds
@@ -70,7 +67,9 @@ class MiniPlayerWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'سورة ${surah.nameAr} (${surah.type})',
+                          provider.activeAudioTitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: theme.colorScheme.onSurface,
                             fontSize: 14,
@@ -80,7 +79,9 @@ class MiniPlayerWidget extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'القارئ: ${reciter.nameAr}',
+                          provider.activeAudioSubtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: theme.brightness == Brightness.dark
                                 ? AppTheme.textSecondary
@@ -142,12 +143,10 @@ class MiniPlayerWidget extends StatelessWidget {
         final innerTheme = Theme.of(context);
         return Consumer<AppProvider>(
           builder: (context, dynamicProvider, _) {
-            final currentSurah = dynamicProvider.currentPlayingSurah;
-            if (currentSurah == null) {
+            if (!dynamicProvider.hasActiveAudio) {
               Navigator.pop(ctx);
               return const SizedBox.shrink();
             }
-            final currentReciter = dynamicProvider.currentPlayingReciter ?? dynamicProvider.currentReciter;
             
             final totalMinutes = dynamicProvider.totalDuration.inMinutes;
             final totalSeconds = dynamicProvider.totalDuration.inSeconds % 60;
@@ -225,7 +224,7 @@ class MiniPlayerWidget extends StatelessWidget {
 
                       // Text Info
                       Text(
-                        'سورة ${currentSurah.nameAr}',
+                        dynamicProvider.activeAudioTitle,
                         style: TextStyle(
                           color: innerTheme.colorScheme.onSurface,
                           fontSize: 24,
@@ -235,7 +234,7 @@ class MiniPlayerWidget extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'القارئ الشيخ: ${currentReciter.nameAr}',
+                        dynamicProvider.activeAudioSubtitle,
                         style: TextStyle(
                           color: innerTheme.brightness == Brightness.dark
                               ? AppTheme.textSecondary
@@ -244,49 +243,83 @@ class MiniPlayerWidget extends StatelessWidget {
                           fontFamily: 'Cairo',
                         ),
                       ),
-                      const SizedBox(height: 24),
-
-                      // Seek Bar Slider
-                      Slider(
-                        value: currentMs.clamp(0.0, totalMs > 0 ? totalMs : 1.0),
-                        min: 0.0,
-                        max: totalMs > 0 ? totalMs : 1.0,
-                        activeColor: innerTheme.colorScheme.primary,
-                        inactiveColor: innerTheme.brightness == Brightness.dark
-                            ? AppTheme.cardBorder
-                            : AppTheme.lightCardBorder,
-                        onChanged: (v) {
-                          dynamicProvider.seekTo(Duration(milliseconds: v.toInt()));
-                        },
-                      ),
-                      
-                      // Duration Labels
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              currentStr,
-                              style: TextStyle(
-                                color: innerTheme.brightness == Brightness.dark
-                                    ? AppTheme.textMuted
-                                    : AppTheme.lightTextMuted,
-                                fontSize: 13,
+                      if (dynamicProvider.isLiveStream) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: innerTheme.colorScheme.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: innerTheme.colorScheme.primary.withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 8,
+                                height: 8,
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.red,
+                                ),
                               ),
-                            ),
-                            Text(
-                              totalStr,
-                              style: TextStyle(
-                                color: innerTheme.brightness == Brightness.dark
-                                    ? AppTheme.textMuted
-                                    : AppTheme.lightTextMuted,
-                                fontSize: 13,
+                              const SizedBox(width: 8),
+                              const Text(
+                                'بث مباشر',
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Cairo',
+                                  fontSize: 14,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                      ] else ...[
+                        // Seek Bar Slider
+                        Slider(
+                          value: currentMs.clamp(0.0, totalMs > 0 ? totalMs : 1.0),
+                          min: 0.0,
+                          max: totalMs > 0 ? totalMs : 1.0,
+                          activeColor: innerTheme.colorScheme.primary,
+                          inactiveColor: innerTheme.brightness == Brightness.dark
+                              ? AppTheme.cardBorder
+                              : AppTheme.lightCardBorder,
+                          onChanged: (v) {
+                            dynamicProvider.seekTo(Duration(milliseconds: v.toInt()));
+                          },
+                        ),
+                        
+                        // Duration Labels
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                currentStr,
+                                style: TextStyle(
+                                  color: innerTheme.brightness == Brightness.dark
+                                      ? AppTheme.textMuted
+                                      : AppTheme.lightTextMuted,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              Text(
+                                totalStr,
+                                style: TextStyle(
+                                  color: innerTheme.brightness == Brightness.dark
+                                      ? AppTheme.textMuted
+                                      : AppTheme.lightTextMuted,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 32),
 
                       // Playback Controls Row
@@ -294,16 +327,18 @@ class MiniPlayerWidget extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           // Fast Rewind
-                          IconButton(
-                            icon: const Icon(Icons.replay_10_rounded),
-                            iconSize: 36,
-                            color: innerTheme.colorScheme.primary,
-                            onPressed: () {
-                              final newPos = dynamicProvider.currentPosition - const Duration(seconds: 10);
-                              dynamicProvider.seekTo(newPos.inMilliseconds > 0 ? newPos : Duration.zero);
-                            },
-                          ),
-                          const SizedBox(width: 24),
+                          if (!dynamicProvider.isLiveStream) ...[
+                            IconButton(
+                              icon: const Icon(Icons.replay_10_rounded),
+                              iconSize: 36,
+                              color: innerTheme.colorScheme.primary,
+                              onPressed: () {
+                                final newPos = dynamicProvider.currentPosition - const Duration(seconds: 10);
+                                dynamicProvider.seekTo(newPos.inMilliseconds > 0 ? newPos : Duration.zero);
+                              },
+                            ),
+                            const SizedBox(width: 24),
+                          ],
 
                           // Play / Pause Circle Button
                           GestureDetector(
@@ -323,18 +358,20 @@ class MiniPlayerWidget extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 24),
 
                           // Fast Forward
-                          IconButton(
-                            icon: const Icon(Icons.forward_10_rounded),
-                            iconSize: 36,
-                            color: innerTheme.colorScheme.primary,
-                            onPressed: () {
-                              final newPos = dynamicProvider.currentPosition + const Duration(seconds: 10);
-                              dynamicProvider.seekTo(newPos < dynamicProvider.totalDuration ? newPos : dynamicProvider.totalDuration);
-                            },
-                          ),
+                          if (!dynamicProvider.isLiveStream) ...[
+                            const SizedBox(width: 24),
+                            IconButton(
+                              icon: const Icon(Icons.forward_10_rounded),
+                              iconSize: 36,
+                              color: innerTheme.colorScheme.primary,
+                              onPressed: () {
+                                final newPos = dynamicProvider.currentPosition + const Duration(seconds: 10);
+                                dynamicProvider.seekTo(newPos < dynamicProvider.totalDuration ? newPos : dynamicProvider.totalDuration);
+                              },
+                            ),
+                          ],
                         ],
                       ),
                       const SizedBox(height: 48),

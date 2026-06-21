@@ -48,6 +48,8 @@ class AppProvider extends ChangeNotifier {
   Surah? _currentPlayingSurah;
   Reciter? _currentPlayingReciter;
   StreamSubscription? _mediaItemSub;
+  String? _customTitle;
+  String? _customSubtitle;
 
   // Getters
   ScheduleSettings get settings => _settings;
@@ -73,6 +75,10 @@ class AppProvider extends ChangeNotifier {
   Map<String, bool> get prayerNotifications => _prayerNotifications;
   Surah? get currentPlayingSurah => _currentPlayingSurah;
   Reciter? get currentPlayingReciter => _currentPlayingReciter;
+  String get activeAudioTitle => _customTitle ?? (_currentPlayingSurah != null ? 'سورة ${_currentPlayingSurah!.nameAr}' : '');
+  String get activeAudioSubtitle => _customSubtitle ?? (_currentPlayingReciter != null ? 'القارئ: ${_currentPlayingReciter!.nameAr}' : '');
+  bool get isLiveStream => _customTitle != null;
+  bool get hasActiveAudio => _currentPlayingSurah != null || _customTitle != null;
 
   /// Initialize all services.
   Future<void> init(QuranAudioHandler audioHandler) async {
@@ -102,19 +108,30 @@ class AppProvider extends ChangeNotifier {
     // Listen to current media item to show in mini player
     _mediaItemSub = _audioHandler.mediaItem.listen((item) {
       if (item != null) {
-        _currentPlayingSurah = Surah.allSurahs.firstWhere(
-          (s) => s.nameAr == item.title,
-          orElse: () => Surah.findByNumber(2), // default to Baqarah
-        );
-        _currentPlayingReciter = Reciter.defaultReciters.firstWhere(
-          (r) => r.nameAr == item.artist,
-          orElse: () => currentReciter,
-        );
+        if (item.artist == 'إذاعة بث مباشر') {
+          _customTitle = item.title;
+          _customSubtitle = 'بث مباشر';
+          _currentPlayingSurah = null;
+          _currentPlayingReciter = null;
+        } else {
+          _customTitle = null;
+          _customSubtitle = null;
+          _currentPlayingSurah = Surah.allSurahs.firstWhere(
+            (s) => s.nameAr == item.title,
+            orElse: () => Surah.findByNumber(2), // default to Baqarah
+          );
+          _currentPlayingReciter = Reciter.defaultReciters.firstWhere(
+            (r) => r.nameAr == item.artist,
+            orElse: () => currentReciter,
+          );
+        }
         _isPlaying = _audioHandler.isPlaying;
         notifyListeners();
       } else {
         _currentPlayingSurah = null;
         _currentPlayingReciter = null;
+        _customTitle = null;
+        _customSubtitle = null;
         notifyListeners();
       }
     });
@@ -187,6 +204,8 @@ class AppProvider extends ChangeNotifier {
     if (_isLoading || _isPlaying) return; // Prevent double-tap or restarting if already playing
     _isLoading = true;
     _errorMessage = null;
+    _customTitle = null;
+    _customSubtitle = null;
     notifyListeners();
 
     final reciter = currentReciter;
@@ -492,6 +511,8 @@ class AppProvider extends ChangeNotifier {
     if (_isLoading) return;
     _isLoading = true;
     _errorMessage = null;
+    _customTitle = null;
+    _customSubtitle = null;
     notifyListeners();
 
     try {
@@ -521,6 +542,42 @@ class AppProvider extends ChangeNotifier {
   Future<void> stopQuranPlayback() async {
     await stopPlayback();
     _currentPlayingSurah = null;
+    notifyListeners();
+  }
+
+  /// Play a live Quran Radio stream.
+  Future<void> playRadio(String url, String name) async {
+    if (_isLoading) return;
+    _isLoading = true;
+    _errorMessage = null;
+    _customTitle = name;
+    _customSubtitle = 'بث مباشر';
+    _currentPlayingSurah = null;
+    _currentPlayingReciter = null;
+    notifyListeners();
+
+    try {
+      // Stop any currently playing audio
+      await stopPlayback();
+
+      await _audioHandler.playFromUrl(url, 'إذاعة بث مباشر', surahName: name);
+      _isPlaying = true;
+    } catch (e) {
+      _errorMessage = 'فشل تشغيل الإذاعة المباشرة: تحقق من الإنترنت';
+      _customTitle = null;
+      _customSubtitle = null;
+      debugPrint('Error playing Radio: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Stop live radio stream.
+  Future<void> stopRadio() async {
+    await stopPlayback();
+    _customTitle = null;
+    _customSubtitle = null;
     notifyListeners();
   }
 
