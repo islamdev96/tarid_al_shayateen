@@ -36,7 +36,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: deepBackground,
+      scaffoldBackgroundColor: Colors.transparent,
       colorScheme: const ColorScheme.dark(
         primary: accentTeal,       // Cyan for titles, icons, nav highlights
         onPrimary: deepBackground,
@@ -141,7 +141,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: lightBg,
+      scaffoldBackgroundColor: Colors.transparent,
       colorScheme: const ColorScheme.light(
         primary: primaryGreen, // Beautiful deep green as primary
         onPrimary: Colors.white,
@@ -246,15 +246,23 @@ class AppTheme {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDark) {
       return const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [deepBackground, Color(0xFF0B1B24), deepBackground],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF1B1035), // بنفسجي غامق
+          Color(0xFF24305E), // أزرق
+          Color(0xFF3A1C4D), // بنفسجي
+        ],
       );
     } else {
       return const LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [lightBg, lightBgMid, lightBg],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Color(0xFF2D1B54), // بنفسجي متوسط
+          Color(0xFF1A386D), // أزرق متوسط
+          Color(0xFF532468), // بنفسجي
+        ],
       );
     }
   }

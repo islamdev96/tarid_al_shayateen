@@ -1,8 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../app_theme.dart';
 import '../widgets/mini_player_widget.dart';
+import '../ui/glass/glass_bottom_bar.dart';
 import 'home_screen.dart';
 import 'quran_screen.dart';
 import 'prayer_times_screen.dart';
@@ -30,9 +29,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     return Scaffold(
       extendBody: true, // Allows the screens to scroll behind the navigation bar and mini player
       body: Stack(
@@ -44,72 +40,25 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           Positioned(
             left: 0,
             right: 0,
-            bottom: kBottomNavigationBarHeight + 16,
+            bottom: 104, // Perfectly positioned above the floating GlassBottomBar
             child: const MiniPlayerWidget(),
           ),
         ],
       ),
-      bottomNavigationBar: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: isDark 
-                  ? const Color(0xFF0C1921).withValues(alpha: 0.5) 
-                  : Colors.white.withValues(alpha: 0.5),
-              border: Border(
-                top: BorderSide(
-                  color: isDark 
-                      ? Colors.white.withValues(alpha: 0.08) 
-                      : AppTheme.lightCardBorder.withValues(alpha: 0.25),
-                  width: 0.5, // Thin iOS border line
-                ),
-              ),
-            ),
-            child: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-              },
-              type: BottomNavigationBarType.fixed,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              selectedItemColor: theme.colorScheme.primary,
-              unselectedItemColor: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, fontFamily: 'Cairo'),
-              unselectedLabelStyle: const TextStyle(fontSize: 10, fontFamily: 'Cairo'),
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.house),
-                  activeIcon: Icon(CupertinoIcons.house_fill),
-                  label: 'الرئيسية',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.book),
-                  activeIcon: Icon(CupertinoIcons.book_fill),
-                  label: 'القرآن',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.clock),
-                  activeIcon: Icon(CupertinoIcons.clock_fill),
-                  label: 'المواقيت',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.shield),
-                  activeIcon: Icon(CupertinoIcons.shield_fill),
-                  label: 'الأذكار',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(CupertinoIcons.settings),
-                  activeIcon: Icon(CupertinoIcons.settings_solid),
-                  label: 'الإعدادات',
-                ),
-              ],
-            ),
-          ),
-        ),
+      bottomNavigationBar: GlassBottomBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        icons: const [
+          CupertinoIcons.house_fill,
+          CupertinoIcons.book_fill,
+          CupertinoIcons.clock_fill,
+          CupertinoIcons.shield_fill,
+          CupertinoIcons.settings_solid,
+        ],
       ),
     );
   }
