@@ -20,114 +20,125 @@ class MiniPlayerWidget extends StatelessWidget {
         ? provider.currentPosition.inMilliseconds / provider.totalDuration.inMilliseconds
         : 0.0;
 
-    return GestureDetector(
-      onTap: () => _showFullPlayer(context, provider),
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: AppTheme.glassCard(context).copyWith(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Linear Progress Indicator
-            LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
-              minHeight: 3,
-              backgroundColor: theme.brightness == Brightness.dark
-                  ? AppTheme.cardBorder.withValues(alpha: 0.3)
-                  : AppTheme.lightCardBorder.withValues(alpha: 0.4),
-              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-            ),
-            
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              child: Row(
-                children: [
-                  // Spinning / Pulsing icon decoration
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    ),
-                    child: Icon(
-                      Icons.music_note_rounded,
-                      color: theme.colorScheme.primary,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  
-                  // Text Info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          provider.activeAudioTitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: theme.colorScheme.onSurface,
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Cairo',
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          provider.activeAudioSubtitle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: theme.brightness == Brightness.dark
-                                ? AppTheme.textSecondary
-                                : AppTheme.lightTextSecondary,
-                            fontSize: 12,
-                            fontFamily: 'Cairo',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  // Controls
-                  if (provider.isLoading)
-                    const Padding(
-                      padding: EdgeInsets.all(12),
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2.5),
-                      ),
-                    )
-                  else ...[
-                    IconButton(
-                      icon: Icon(
-                        provider.isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                        color: theme.colorScheme.primary,
-                        size: 28,
-                      ),
-                      onPressed: () => provider.togglePlayPause(),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.stop_rounded,
-                        color: Colors.red,
-                        size: 26,
-                      ),
-                      onPressed: () => provider.stopQuranPlayback(),
-                    ),
-                  ],
-                ],
+    return Dismissible(
+      key: const ValueKey('mini_player_dismiss'),
+      direction: DismissDirection.horizontal,
+      onDismissed: (direction) {
+        if (provider.isLiveStream) {
+          provider.stopRadio();
+        } else {
+          provider.stopQuranPlayback();
+        }
+      },
+      child: GestureDetector(
+        onTap: () => _showFullPlayer(context, provider),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: AppTheme.glassCard(context).copyWith(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Linear Progress Indicator
+              LinearProgressIndicator(
+                value: progress.clamp(0.0, 1.0),
+                minHeight: 3,
+                backgroundColor: theme.brightness == Brightness.dark
+                    ? AppTheme.cardBorder.withValues(alpha: 0.3)
+                    : AppTheme.lightCardBorder.withValues(alpha: 0.4),
+                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
               ),
-            ),
-          ],
+              
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: [
+                    // Spinning / Pulsing icon decoration
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      ),
+                      child: Icon(
+                        Icons.music_note_rounded,
+                        color: theme.colorScheme.primary,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    
+                    // Text Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            provider.activeAudioTitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            provider.activeAudioSubtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: theme.brightness == Brightness.dark
+                                  ? AppTheme.textSecondary
+                                  : AppTheme.lightTextSecondary,
+                              fontSize: 12,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Controls
+                    if (provider.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        ),
+                      )
+                    else ...[
+                      IconButton(
+                        icon: Icon(
+                          provider.isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          color: theme.colorScheme.primary,
+                          size: 28,
+                        ),
+                        onPressed: () => provider.togglePlayPause(),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.stop_rounded,
+                          color: Colors.red,
+                          size: 26,
+                        ),
+                        onPressed: () => provider.stopQuranPlayback(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
