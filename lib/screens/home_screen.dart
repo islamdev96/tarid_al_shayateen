@@ -8,6 +8,7 @@ import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
+import '../widgets/glass_card.dart';
 import '../widgets/mosque_header_widget.dart';
 import 'azkar_screen.dart';
 import 'quran_screen.dart';
@@ -242,9 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final name = _nextPrayer!['name'] as String;
     final time = _nextPrayer!['time'] as DateTime;
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassCard(context),
       child: Row(
         children: [
           Expanded(

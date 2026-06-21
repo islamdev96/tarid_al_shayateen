@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../app_theme.dart';
+import 'glass_card.dart';
 
 class HadithCard extends StatelessWidget {
   const HadithCard({super.key});
@@ -8,9 +8,8 @@ class HadithCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Container(
+    return GlassCard(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard(context),
       child: Column(
         children: [
           Icon(Icons.auto_stories_rounded, color: theme.colorScheme.primary, size: 28),

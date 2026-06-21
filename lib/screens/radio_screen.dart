@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import '../widgets/mosque_header_widget.dart';
+import '../widgets/glass_card.dart';
 
 class RadioStation {
   final String nameAr;
@@ -82,29 +83,27 @@ class _RadioScreenState extends State<RadioScreen> {
                 // Beautiful Center Radio Display Card
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
+                  child: GlassCard(
                     padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
-                    decoration: AppTheme.glassCard(context).copyWith(
-                      border: Border.all(
-                        color: isCurrent && isPlaying
-                            ? (isDark ? cyanAccent : AppTheme.primaryGreen)
-                            : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        if (isCurrent && isPlaying)
-                          BoxShadow(
-                            color: (isDark ? cyanAccent : AppTheme.primaryGreen).withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                          ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                    border: Border.all(
+                      color: isCurrent && isPlaying
+                          ? (isDark ? cyanAccent : AppTheme.primaryGreen)
+                          : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+                      width: 1.5,
                     ),
+                    boxShadow: [
+                      if (isCurrent && isPlaying)
+                        BoxShadow(
+                          color: (isDark ? cyanAccent : AppTheme.primaryGreen).withValues(alpha: 0.1),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -345,13 +344,9 @@ class _RadioScreenState extends State<RadioScreen> {
 
   Widget _buildVolumeControl(AppProvider provider, ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
-    return Container(
+    return GlassCard(
+      borderRadius: BorderRadius.circular(16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.5) : AppTheme.lightCardBackground.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? AppTheme.cardBorder.withValues(alpha: 0.5) : AppTheme.lightCardBorder.withValues(alpha: 0.5)),
-      ),
       child: Row(
         children: [
           Icon(

@@ -50,6 +50,15 @@ Future<void> main() async {
   runApp(const TaridApp());
 }
 
+class IosScrollBehavior extends ScrollBehavior {
+  const IosScrollBehavior();
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const BouncingScrollPhysics();
+  }
+}
+
 class TaridApp extends StatelessWidget {
   const TaridApp({super.key});
 
@@ -65,6 +74,7 @@ class TaridApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            scrollBehavior: const IosScrollBehavior(),
             locale: const Locale('ar', 'SA'),
             builder: (context, child) {
               return Directionality(
