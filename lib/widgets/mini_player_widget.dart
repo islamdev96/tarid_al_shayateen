@@ -4,8 +4,15 @@ import '../app_theme.dart';
 import '../providers/app_provider.dart';
 
 /// A premium, glassmorphic mini player docked at the bottom of the screens.
-class MiniPlayerWidget extends StatelessWidget {
+class MiniPlayerWidget extends StatefulWidget {
   const MiniPlayerWidget({super.key});
+
+  @override
+  State<MiniPlayerWidget> createState() => _MiniPlayerWidgetState();
+}
+
+class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
+  bool _isDismissed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -13,6 +20,11 @@ class MiniPlayerWidget extends StatelessWidget {
     final provider = context.watch<AppProvider>();
 
     if (!provider.hasActiveAudio) {
+      _isDismissed = false; // Reset dismissed state when playback fully stops
+      return const SizedBox.shrink();
+    }
+
+    if (_isDismissed) {
       return const SizedBox.shrink();
     }
 
@@ -24,6 +36,9 @@ class MiniPlayerWidget extends StatelessWidget {
       key: const ValueKey('mini_player_dismiss'),
       direction: DismissDirection.horizontal,
       onDismissed: (direction) {
+        setState(() {
+          _isDismissed = true; // Set local state immediately to remove from tree
+        });
         if (provider.isLiveStream) {
           provider.stopRadio();
         } else {
