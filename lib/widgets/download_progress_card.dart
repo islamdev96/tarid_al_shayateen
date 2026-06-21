@@ -10,24 +10,25 @@ class DownloadProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
     final percent = (provider.downloadProgress * 100).toInt();
+    final theme = Theme.of(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Column(
         children: [
           Row(
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentTeal),
+                child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.secondary),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'جاري تحميل سورة البقرة (${provider.downloadingReciterName})',
-                  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                  style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14),
                 ),
               ),
               // Cancel button
@@ -37,9 +38,9 @@ class DownloadProgressCard extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: Colors.red.withValues(alpha: 0.15),
+                    color: AppTheme.errorRed.withValues(alpha: 0.15),
                   ),
-                  child: const Text('إلغاء', style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.w600)),
+                  child: const Text('إلغاء', style: TextStyle(color: AppTheme.errorRed, fontSize: 12, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
@@ -49,15 +50,15 @@ class DownloadProgressCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: provider.downloadProgress,
-              backgroundColor: AppTheme.cardBorder,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentTeal),
+              backgroundColor: theme.brightness == Brightness.dark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
+              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.secondary),
               minHeight: 6,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             '$percent%',
-            style: const TextStyle(color: AppTheme.accentTeal, fontSize: 13, fontWeight: FontWeight.w600),
+            style: TextStyle(color: theme.colorScheme.secondary, fontSize: 13, fontWeight: FontWeight.w600),
           ),
         ],
       ),

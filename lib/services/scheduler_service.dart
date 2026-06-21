@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/reciter.dart';
 import 'audio_handler.dart';
+import 'notification_service.dart';
 
 const String _portName = 'tarid_alarm_port';
 
@@ -73,9 +74,73 @@ Future<void> alarmCallback() async {
   }
 }
 
+/// Callback that fires when morning Azkar alarm triggers.
+@pragma('vm:entry-point')
+Future<void> morningAlarmCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+  await NotificationService.showNotification(
+    id: 222,
+    title: 'أذكار الصباح ☀️',
+    body: 'حان الآن موعد أذكار الصباح. حصّن نفسك ويومك بذكر الله.',
+    payload: 'morning',
+  );
+
+  // Reschedule for the next day
+  final prefs = await SharedPreferences.getInstance();
+  final hour = prefs.getInt('azkar_morning_hour') ?? 6;
+  final minute = prefs.getInt('azkar_morning_minute') ?? 30;
+  
+  final now = DateTime.now();
+  var nextTime = DateTime(now.year, now.month, now.day, hour, minute).add(const Duration(days: 1));
+
+  await AndroidAlarmManager.oneShotAt(
+    nextTime,
+    222, // morningAlarmId
+    morningAlarmCallback,
+    exact: true,
+    wakeup: true,
+    rescheduleOnReboot: true,
+    allowWhileIdle: true,
+  );
+}
+
+/// Callback that fires when evening Azkar alarm triggers.
+@pragma('vm:entry-point')
+Future<void> eveningAlarmCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+  await NotificationService.showNotification(
+    id: 333,
+    title: 'أذكار المساء 🌙',
+    body: 'حان الآن موعد أذكار المساء. حفظك الله من كل سوء ومكروه.',
+    payload: 'evening',
+  );
+
+  // Reschedule for the next day
+  final prefs = await SharedPreferences.getInstance();
+  final hour = prefs.getInt('azkar_evening_hour') ?? 17;
+  final minute = prefs.getInt('azkar_evening_minute') ?? 0;
+  
+  final now = DateTime.now();
+  var nextTime = DateTime(now.year, now.month, now.day, hour, minute).add(const Duration(days: 1));
+
+  await AndroidAlarmManager.oneShotAt(
+    nextTime,
+    333, // eveningAlarmId
+    eveningAlarmCallback,
+    exact: true,
+    wakeup: true,
+    rescheduleOnReboot: true,
+    allowWhileIdle: true,
+  );
+}
+
 /// Manages scheduling periodic alarms to trigger Surah Al-Baqarah playback.
 class SchedulerService {
   static const int _alarmId = 111; // Non-zero ID to prevent OEM ignorance
+  static const int _morningAlarmId = 222;
+  static const int _eveningAlarmId = 333;
   static Future<void> init() async {
     await AndroidAlarmManager.initialize();
   }
@@ -141,5 +206,64 @@ class SchedulerService {
     }
 
     return false;
+  }
+
+  /// Schedule Azkar morning and evening reminders
+  static Future<void> scheduleAzkarReminders(
+    bool isEnabled,
+    TimeOfDay morningTime,
+    TimeOfDay eveningTime,
+  ) async {
+    // Cancel any existing alarms
+    await AndroidAlarmManager.cancel(_morningAlarmId);
+    await AndroidAlarmManager.cancel(_eveningAlarmId);
+
+    if (!isEnabled) return;
+
+    final now = DateTime.now();
+
+    // 1. Schedule Morning Alarm
+    var morningDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      morningTime.hour,
+      morningTime.minute,
+    );
+    if (morningDateTime.isBefore(now)) {
+      morningDateTime = morningDateTime.add(const Duration(days: 1));
+    }
+
+    await AndroidAlarmManager.oneShotAt(
+      morningDateTime,
+      _morningAlarmId,
+      morningAlarmCallback,
+      exact: true,
+      wakeup: true,
+      rescheduleOnReboot: true,
+      allowWhileIdle: true,
+    );
+
+    // 2. Schedule Evening Alarm
+    var eveningDateTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      eveningTime.hour,
+      eveningTime.minute,
+    );
+    if (eveningDateTime.isBefore(now)) {
+      eveningDateTime = eveningDateTime.add(const Duration(days: 1));
+    }
+
+    await AndroidAlarmManager.oneShotAt(
+      eveningDateTime,
+      _eveningAlarmId,
+      eveningAlarmCallback,
+      exact: true,
+      wakeup: true,
+      rescheduleOnReboot: true,
+      allowWhileIdle: true,
+    );
   }
 }

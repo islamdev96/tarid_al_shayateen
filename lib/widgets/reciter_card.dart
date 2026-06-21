@@ -11,6 +11,7 @@ class ReciterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
     final reciter = provider.currentReciter;
+    final theme = Theme.of(context);
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -19,7 +20,7 @@ class ReciterCard extends StatelessWidget {
       ),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: AppTheme.glassCard,
+        decoration: AppTheme.glassCard(context),
         child: Row(
           children: [
             Container(
@@ -27,34 +28,41 @@ class ReciterCard extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.gold.withValues(alpha: 0.15),
+                color: theme.colorScheme.primary.withValues(alpha: 0.15),
               ),
-              child: const Icon(Icons.mic_rounded, color: AppTheme.gold, size: 24),
+              child: Icon(Icons.mic_rounded, color: theme.colorScheme.primary, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('القارئ', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                  Text(
+                    'القارئ', 
+                    style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     reciter.nameAr,
-                    style: const TextStyle(color: AppTheme.textPrimary, fontSize: 16, fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface, 
+                      fontSize: 16, 
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   Row(
                     children: [
                       Icon(
                         reciter.isOffline ? Icons.phone_android_rounded : Icons.wifi_rounded,
                         size: 14,
-                        color: reciter.isOffline ? AppTheme.successGreen : AppTheme.accentTeal,
+                        color: reciter.isOffline ? AppTheme.successGreen : theme.colorScheme.secondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         reciter.isOffline ? 'بدون إنترنت' : 'أونلاين',
                         style: TextStyle(
                           fontSize: 12,
-                          color: reciter.isOffline ? AppTheme.successGreen : AppTheme.accentTeal,
+                          color: reciter.isOffline ? AppTheme.successGreen : theme.colorScheme.secondary,
                         ),
                       ),
                     ],
@@ -62,7 +70,7 @@ class ReciterCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_left_rounded, color: AppTheme.textMuted),
+            Icon(Icons.chevron_left_rounded, color: theme.textTheme.bodySmall?.color),
           ],
         ),
       ),

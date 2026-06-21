@@ -32,6 +32,7 @@ class _CountdownWidgetState extends State<CountdownWidget> {
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
     final nextTime = provider.nextPlayback;
+    final theme = Theme.of(context);
 
     if (nextTime == null || !provider.settings.isEnabled) {
       return const SizedBox.shrink();
@@ -49,21 +50,24 @@ class _CountdownWidgetState extends State<CountdownWidget> {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Column(
         children: [
-          const Text('التشغيل القادم بعد', style: TextStyle(color: AppTheme.textSecondary, fontSize: 14)),
+          Text(
+            'التشغيل القادم بعد', 
+            style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 14),
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              if (days > 0) _buildTimeUnit(days.toString(), 'يوم'),
+              if (days > 0) _buildTimeUnit(days.toString(), 'يوم', theme),
               if (days > 0) const SizedBox(width: 16),
-              _buildTimeUnit(hours.toString().padLeft(2, '0'), 'ساعة'),
+              _buildTimeUnit(hours.toString().padLeft(2, '0'), 'ساعة', theme),
               const SizedBox(width: 16),
-              _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'دقيقة'),
+              _buildTimeUnit(minutes.toString().padLeft(2, '0'), 'دقيقة', theme),
               const SizedBox(width: 16),
-              _buildTimeUnit(seconds.toString().padLeft(2, '0'), 'ثانية'),
+              _buildTimeUnit(seconds.toString().padLeft(2, '0'), 'ثانية', theme),
             ],
           ),
         ],
@@ -71,20 +75,20 @@ class _CountdownWidgetState extends State<CountdownWidget> {
     );
   }
 
-  Widget _buildTimeUnit(String value, String label) {
+  Widget _buildTimeUnit(String value, String label, ThemeData theme) {
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppTheme.gold.withValues(alpha: 0.1),
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
+            border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
           ),
-          child: Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.gold)),
+          child: Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.primary)),
         ),
         const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.textMuted)),
+        Text(label, style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color)),
       ],
     );
   }

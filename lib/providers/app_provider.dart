@@ -19,6 +19,7 @@ class AppProvider extends ChangeNotifier {
 
   ScheduleSettings _settings = const ScheduleSettings();
   bool _isPlaying = false;
+  bool _isDarkMode = true;
   bool _isLoading = false;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
@@ -33,6 +34,11 @@ class AppProvider extends ChangeNotifier {
   StreamSubscription? _stateSub;
   StreamSubscription? _alarmSub;
   Timer? _foregroundTimer;
+
+  // Azkar reminder variables
+  bool _isAzkarReminderEnabled = true;
+  TimeOfDay _azkarMorningTime = const TimeOfDay(hour: 6, minute: 30);
+  TimeOfDay _azkarEveningTime = const TimeOfDay(hour: 17, minute: 0);
 
   // Getters
   ScheduleSettings get settings => _settings;
@@ -49,12 +55,28 @@ class AppProvider extends ChangeNotifier {
   DateTime? get nextPlayback => _settings.getNextPlaybackTime();
   int get playCount => _settingsService.playCount;
   List<(DateTime, String)> get playHistory => _settingsService.playHistory;
+  bool get isDarkMode => _isDarkMode;
+  bool get isAzkarReminderEnabled => _isAzkarReminderEnabled;
+  TimeOfDay get azkarMorningTime => _azkarMorningTime;
+  TimeOfDay get azkarEveningTime => _azkarEveningTime;
 
   /// Initialize all services.
   Future<void> init(QuranAudioHandler audioHandler) async {
     _audioHandler = audioHandler;
     await _settingsService.init();
     _settings = await _settingsService.loadSettings();
+    _isDarkMode = _settingsService.isDarkMode;
+
+    // Load Azkar reminder settings
+    _isAzkarReminderEnabled = _settingsService.isAzkarReminderEnabled;
+    _azkarMorningTime = TimeOfDay(
+      hour: _settingsService.azkarMorningHour,
+      minute: _settingsService.azkarMorningMinute,
+    );
+    _azkarEveningTime = TimeOfDay(
+      hour: _settingsService.azkarEveningHour,
+      minute: _settingsService.azkarEveningMinute,
+    );
 
     // Listen to audio position updates
     _positionSub = _audioHandler.positionStream.listen((pos) {
@@ -84,6 +106,11 @@ class AppProvider extends ChangeNotifier {
     // Schedule next if enabled
     if (_settings.isEnabled) {
       _scheduleNext();
+    }
+
+    // Schedule Azkar reminders if enabled
+    if (_isAzkarReminderEnabled) {
+      _scheduleAzkarReminders();
     }
 
     notifyListeners();
@@ -365,6 +392,43 @@ class AppProvider extends ChangeNotifier {
         });
       }
     }
+  }
+
+  /// Toggle between light and dark themes.
+  Future<void> toggleThemeMode() async {
+    _isDarkMode = !_isDarkMode;
+    await _settingsService.setDarkMode(_isDarkMode);
+    notifyListeners();
+  }
+
+  /// Update Azkar reminder settings and reschedule.
+  Future<void> updateAzkarReminderSettings({
+    required bool isEnabled,
+    required TimeOfDay morningTime,
+    required TimeOfDay eveningTime,
+  }) async {
+    _isAzkarReminderEnabled = isEnabled;
+    _azkarMorningTime = morningTime;
+    _azkarEveningTime = eveningTime;
+
+    await _settingsService.setAzkarReminderEnabled(isEnabled);
+    await _settingsService.setAzkarMorningHour(morningTime.hour);
+    await _settingsService.setAzkarMorningMinute(morningTime.minute);
+    await _settingsService.setAzkarEveningHour(eveningTime.hour);
+    await _settingsService.setAzkarEveningMinute(eveningTime.minute);
+
+    _scheduleAzkarReminders();
+
+    notifyListeners();
+  }
+
+  /// Internal helper to reschedule Azkar alarms.
+  void _scheduleAzkarReminders() {
+    SchedulerService.scheduleAzkarReminders(
+      _isAzkarReminderEnabled,
+      _azkarMorningTime,
+      _azkarEveningTime,
+    );
   }
 
   @override

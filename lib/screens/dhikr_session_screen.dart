@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:just_audio/just_audio.dart';
 import '../app_theme.dart';
 import '../models/dhikr.dart';
 
@@ -19,6 +21,9 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
   
   // Track remaining counts for each dhikr in the session
   late List<int> _remainingCounts;
+  
+  // Player for transition sound effect
+  final AudioPlayer _soundPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -26,11 +31,21 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
     _azkar = Dhikr.getByCategory(widget.category);
     _pageController = PageController();
     _remainingCounts = _azkar.map((d) => d.count).toList();
+    _loadSoundEffect();
+  }
+
+  Future<void> _loadSoundEffect() async {
+    try {
+      await _soundPlayer.setAsset('assets/transition.mp3');
+    } catch (e) {
+      debugPrint('Error loading transition sound: $e');
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _soundPlayer.dispose();
     super.dispose();
   }
 
@@ -47,9 +62,19 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
         // Stronger vibration on completion of current dhikr
         HapticFeedback.mediumImpact();
         
+        // Play transition chime sound
+        _playTransitionSound();
+        
         _goToNextDhikr();
       }
     }
+  }
+
+  Future<void> _playTransitionSound() async {
+    try {
+      await _soundPlayer.seek(Duration.zero);
+      _soundPlayer.play();
+    } catch (_) {}
   }
 
   void _goToNextDhikr() {
@@ -81,28 +106,29 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
   }
 
   void _showCompletionDialog() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppTheme.cardBackground,
+        backgroundColor: theme.colorScheme.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Center(
+        title: Center(
           child: Column(
             children: [
-              Icon(Icons.stars_rounded, color: AppTheme.gold, size: 56),
-              SizedBox(height: 12),
+              Icon(Icons.stars_rounded, color: theme.colorScheme.primary, size: 56),
+              const SizedBox(height: 12),
               Text(
                 'تقبل الله طاعتكم',
-                style: TextStyle(color: AppTheme.gold, fontSize: 22, fontWeight: FontWeight.bold),
+                style: TextStyle(color: theme.colorScheme.primary, fontSize: 22, fontWeight: FontWeight.bold),
               ),
             ],
           ),
         ),
-        content: const Text(
+        content: Text(
           'لقد تممت قراءة أذكار التحصين بنجاح. حفظك الله ورعاك.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: AppTheme.textSecondary, fontSize: 15, height: 1.5),
+          style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 15, height: 1.5),
         ),
         actions: [
           Row(
@@ -135,10 +161,12 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_azkar.isEmpty) {
       return Scaffold(
         body: Center(
-          child: Text('لا توجد أذكار مضافة حالياً.', style: TextStyle(color: AppTheme.textPrimary)),
+          child: Text('لا توجد أذكار مضافة حالياً.', style: TextStyle(color: theme.colorScheme.onSurface)),
         ),
       );
     }
@@ -150,12 +178,12 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
         child: SafeArea(
           child: Column(
             children: [
               // Top Bar with progress indicator
-              _buildTopBar(),
+              _buildTopBar(theme),
               
               // Dhikr PageView list
               Expanded(
@@ -168,13 +196,13 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                   },
                   itemCount: _azkar.length,
                   itemBuilder: (context, index) {
-                    return _buildDhikrCard(_azkar[index], index);
+                    return _buildDhikrCard(_azkar[index], index, theme);
                   },
                 ),
               ),
 
               // Interactive Tasbeeh Circular Counter
-              _buildCounterSection(remaining, totalCount, completedPercent),
+              _buildCounterSection(remaining, totalCount, completedPercent, theme),
               
               const SizedBox(height: 24),
             ],
@@ -184,7 +212,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
     );
   }
 
-  Widget _buildTopBar() {
+  Widget _buildTopBar(ThemeData theme) {
     final progressVal = (_currentIndex + 1) / _azkar.length;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -194,16 +222,16 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_ios_rounded, color: AppTheme.gold),
+                icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
                 onPressed: () => Navigator.pop(context),
               ),
               Text(
                 Dhikr.getCategoryNameAr(widget.category),
-                style: const TextStyle(color: AppTheme.gold, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
               ),
               Text(
                 '${_currentIndex + 1} / ${_azkar.length}',
-                style: const TextStyle(color: AppTheme.textMuted, fontSize: 14, fontWeight: FontWeight.bold),
+                style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ],
           ),
@@ -214,8 +242,8 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
               borderRadius: BorderRadius.circular(6),
               child: LinearProgressIndicator(
                 value: progressVal,
-                backgroundColor: AppTheme.cardBorder.withValues(alpha: 0.3),
-                valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.gold),
+                backgroundColor: theme.brightness == Brightness.dark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
+                valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                 minHeight: 5,
               ),
             ),
@@ -225,69 +253,73 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
     );
   }
 
-  Widget _buildDhikrCard(Dhikr dhikr, int index) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Container(
+  Widget _buildDhikrCard(Dhikr dhikr, int index, ThemeData theme) {
+    return GestureDetector(
+      onTap: _onTapCircle,
+      behavior: HitTestBehavior.opaque,
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        decoration: AppTheme.glassCard,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Text of Dhikr
-            Center(
-              child: Text(
-                dhikr.text,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 20,
-                  height: 1.8,
-                  fontWeight: FontWeight.w500,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: AppTheme.glassCard(context),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Text of Dhikr
+              Center(
+                child: Text(
+                  dhikr.text,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 20,
+                    height: 1.8,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 12),
-            
-            // Virtue / Reward
-            if (dhikr.virtue.isNotEmpty) ...[
-              const Row(
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 12),
+              
+              // Virtue / Reward
+              if (dhikr.virtue.isNotEmpty) ...[
+                Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: theme.colorScheme.primary, size: 18),
+                    const SizedBox(width: 6),
+                    Text('فضل الذكر', style: TextStyle(color: theme.colorScheme.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  dhikr.virtue,
+                  style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 13, height: 1.5),
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Source / Reference
+              Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, color: AppTheme.gold, size: 18),
-                  SizedBox(width: 6),
-                  Text('فضل الذكر', style: TextStyle(color: AppTheme.gold, fontSize: 13, fontWeight: FontWeight.bold)),
+                  Icon(Icons.history_edu_rounded, color: theme.textTheme.bodySmall?.color, size: 18),
+                  const SizedBox(width: 6),
+                  Text('تخريج الحديث والإسناد', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 13, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 6),
               Text(
-                dhikr.virtue,
-                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
+                dhikr.source,
+                style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12, height: 1.5, fontStyle: FontStyle.italic),
               ),
-              const SizedBox(height: 16),
             ],
-
-            // Source / Reference
-            const Row(
-              children: [
-                Icon(Icons.history_edu_rounded, color: AppTheme.textMuted, size: 18),
-                SizedBox(width: 6),
-                Text('تخريج الحديث والإسناد', style: TextStyle(color: AppTheme.textMuted, fontSize: 13, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              dhikr.source,
-              style: const TextStyle(color: AppTheme.textMuted, fontSize: 12, height: 1.5, fontStyle: FontStyle.italic),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCounterSection(int remaining, int totalCount, double completedPercent) {
+  Widget _buildCounterSection(int remaining, int totalCount, double completedPercent, ThemeData theme) {
     return GestureDetector(
       onTap: _onTapCircle,
       child: Container(
@@ -297,7 +329,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppTheme.gold.withValues(alpha: remaining > 0 ? 0.15 : 0.05),
+              color: theme.colorScheme.primary.withValues(alpha: remaining > 0 ? 0.15 : 0.05),
               blurRadius: 24,
               spreadRadius: 2,
             )
@@ -313,9 +345,9 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
               child: CircularProgressIndicator(
                 value: completedPercent,
                 strokeWidth: 8,
-                backgroundColor: AppTheme.cardBorder,
+                backgroundColor: theme.brightness == Brightness.dark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  remaining > 0 ? AppTheme.gold : AppTheme.successGreen,
+                  remaining > 0 ? theme.colorScheme.primary : AppTheme.successGreen,
                 ),
               ),
             ),
@@ -327,9 +359,9 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                 if (remaining > 0) ...[
                   Text(
                     remaining.toString(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 36,
-                      color: AppTheme.gold,
+                      color: theme.colorScheme.primary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -337,7 +369,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                     'تكرار',
                     style: TextStyle(
                       fontSize: 12,
-                      color: AppTheme.textSecondary.withValues(alpha: 0.8),
+                      color: theme.textTheme.bodyMedium?.color,
                     ),
                   ),
                 ] else ...[

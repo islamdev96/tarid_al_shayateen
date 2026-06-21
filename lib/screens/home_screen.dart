@@ -90,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
         child: SafeArea(
           child: Consumer<AppProvider>(
             builder: (context, provider, _) {
@@ -103,8 +103,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: const Text('🛡️ طارد الشياطين'),
                     actions: [
                       IconButton(
+                        icon: Icon(
+                          provider.isDarkMode
+                              ? Icons.wb_sunny_rounded
+                              : Icons.mode_night_rounded,
+                        ),
+                        color: provider.isDarkMode ? AppTheme.gold : AppTheme.lightGold,
+                        onPressed: () => provider.toggleThemeMode(),
+                      ),
+                      IconButton(
                         icon: const Icon(Icons.settings_rounded),
-                        color: AppTheme.gold,
+                        color: provider.isDarkMode ? AppTheme.gold : AppTheme.lightGold,
                         onPressed: () => Navigator.push(
                           context,
                           MaterialPageRoute(builder: (_) => const SettingsScreen()),
@@ -213,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: AppTheme.glassCard.copyWith(
+        decoration: AppTheme.glassCard(context).copyWith(
           border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
         ),
         child: Row(

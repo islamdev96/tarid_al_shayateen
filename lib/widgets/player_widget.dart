@@ -30,19 +30,25 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Consumer<AppProvider>(
       builder: (context, provider, _) {
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppTheme.cardBackground.withValues(alpha: 0.8),
+            color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: provider.isPlaying ? AppTheme.gold.withValues(alpha: 0.4) : AppTheme.cardBorder,
+              color: provider.isPlaying 
+                  ? theme.colorScheme.primary.withValues(alpha: 0.5) 
+                  : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+              width: provider.isPlaying ? 1.5 : 1,
             ),
             boxShadow: provider.isPlaying
-                ? [BoxShadow(color: AppTheme.gold.withValues(alpha: 0.15), blurRadius: 20)]
-                : [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 12)],
+                ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.15), blurRadius: 20)]
+                : [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05), blurRadius: 12)],
           ),
           child: Column(
             children: [
@@ -52,13 +58,13 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
-                  color: provider.isPlaying ? AppTheme.gold : AppTheme.textPrimary,
+                  color: provider.isPlaying ? theme.colorScheme.primary : theme.colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 provider.currentReciter.nameAr,
-                style: const TextStyle(fontSize: 14, color: AppTheme.textMuted),
+                style: TextStyle(fontSize: 14, color: theme.textTheme.bodySmall?.color),
               ),
               const SizedBox(height: 20),
 
@@ -75,8 +81,8 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                   onChanged: (provider.isPlaying || provider.currentPosition > Duration.zero)
                       ? (v) => provider.seekTo(Duration(seconds: v.toInt()))
                       : null,
-                  activeColor: AppTheme.gold,
-                  inactiveColor: AppTheme.cardBorder,
+                  activeColor: theme.colorScheme.primary,
+                  inactiveColor: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
                 ),
               ),
 
@@ -88,11 +94,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                   children: [
                     Text(
                       _formatDuration(provider.currentPosition),
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                      style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
                     ),
                     Text(
                       _formatDuration(provider.totalDuration),
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                      style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
                     ),
                   ],
                 ),
@@ -107,20 +113,22 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                   _controlButton(
                     icon: Icons.stop_rounded,
                     size: 28,
-                    color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? AppTheme.errorRed : AppTheme.textMuted,
+                    color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? AppTheme.errorRed : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                     onTap: (provider.isPlaying || provider.currentPosition > Duration.zero) ? () => provider.stopPlayback() : null,
+                    context: context,
                   ),
 
                   // Rewind 10s
                   _controlButton(
                     icon: Icons.replay_10_rounded,
                     size: 32,
-                    color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? AppTheme.textPrimary : AppTheme.textMuted,
+                    color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? theme.colorScheme.onSurface : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                     onTap: (provider.isPlaying || provider.currentPosition > Duration.zero)
                         ? () => provider.seekTo(
                               Duration(seconds: (provider.currentPosition.inSeconds - 10).clamp(0, 999999)),
                             )
                         : null,
+                    context: context,
                   ),
 
                   // Main play/pause button
@@ -152,7 +160,7 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                               gradient: AppTheme.goldGradient,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.gold.withValues(
+                                  color: theme.colorScheme.primary.withValues(
                                     alpha: provider.isPlaying ? 0.5 : 0.3,
                                   ),
                                   blurRadius: provider.isPlaying ? 20 : 12,
@@ -186,20 +194,22 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                   _controlButton(
                     icon: Icons.forward_10_rounded,
                     size: 32,
-                    color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? AppTheme.textPrimary : AppTheme.textMuted,
+                    color: (provider.isPlaying || provider.currentPosition > Duration.zero) ? theme.colorScheme.onSurface : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                     onTap: (provider.isPlaying || provider.currentPosition > Duration.zero)
                         ? () => provider.seekTo(
                               Duration(seconds: provider.currentPosition.inSeconds + 10),
                             )
                         : null,
+                    context: context,
                   ),
 
                   // Volume
                   _controlButton(
                     icon: provider.volume == 0 ? Icons.volume_off_rounded : Icons.volume_up_rounded,
                     size: 28,
-                    color: AppTheme.textSecondary,
+                    color: theme.textTheme.bodyMedium?.color ?? Colors.grey,
                     onTap: () => _showVolumeSlider(context, provider),
+                    context: context,
                   ),
                 ],
               ),
@@ -226,11 +236,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.history_rounded, color: AppTheme.textMuted, size: 16),
+                    Icon(Icons.history_rounded, color: theme.textTheme.bodySmall?.color, size: 16),
                     const SizedBox(width: 4),
                     Text(
                       'آخر تشغيل: ${_getAgoText(provider.settings.lastPlayedAt!)}',
-                      style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                      style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
                     ),
                   ],
                 ),
@@ -246,8 +256,10 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
     required IconData icon,
     required double size,
     required Color color,
+    required BuildContext context,
     VoidCallback? onTap,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -255,7 +267,7 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
         height: 48,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: AppTheme.cardBorder.withValues(alpha: 0.3),
+          color: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.3),
         ),
         child: Icon(icon, size: size, color: color),
       ),
@@ -263,9 +275,10 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
   }
 
   void _showVolumeSlider(BuildContext context, AppProvider provider) {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppTheme.cardBackground,
+      backgroundColor: theme.colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -275,11 +288,11 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('مستوى الصوت', style: TextStyle(color: AppTheme.gold, fontSize: 16, fontWeight: FontWeight.w600)),
+              Text('مستوى الصوت', style: TextStyle(color: theme.colorScheme.primary, fontSize: 16, fontWeight: FontWeight.w600)),
               const SizedBox(height: 16),
               Row(
                 children: [
-                  const Icon(Icons.volume_down_rounded, color: AppTheme.textMuted),
+                  Icon(Icons.volume_down_rounded, color: theme.textTheme.bodySmall?.color),
                   Expanded(
                     child: Slider(
                       value: provider.volume,
@@ -289,10 +302,10 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
                       },
                     ),
                   ),
-                  const Icon(Icons.volume_up_rounded, color: AppTheme.textMuted),
+                  Icon(Icons.volume_up_rounded, color: theme.textTheme.bodySmall?.color),
                 ],
               ),
-              Text('${(provider.volume * 100).toInt()}%', style: const TextStyle(color: AppTheme.gold, fontSize: 18, fontWeight: FontWeight.w700)),
+              Text('${(provider.volume * 100).toInt()}%', style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
             ],
           ),

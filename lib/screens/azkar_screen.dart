@@ -8,9 +8,11 @@ class AzkarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -24,7 +26,7 @@ class AzkarScreen extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 12),
-                    _buildHadithHeader(),
+                    _buildHadithHeader(theme),
                     const SizedBox(height: 32),
                     
                     _buildCategoryCard(
@@ -33,8 +35,9 @@ class AzkarScreen extends StatelessWidget {
                       title: 'أذكار الصباح',
                       subtitle: 'تحصين يومك من شروق الشمس حتى زوالها',
                       icon: Icons.wb_sunny_rounded,
-                      iconColor: AppTheme.gold,
+                      iconColor: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.lightGold,
                       count: Dhikr.getByCategory(DhikrCategory.morning).length,
+                      theme: theme,
                     ),
                     const SizedBox(height: 16),
                     
@@ -46,6 +49,7 @@ class AzkarScreen extends StatelessWidget {
                       icon: Icons.mode_night_rounded,
                       iconColor: AppTheme.accentTeal,
                       count: Dhikr.getByCategory(DhikrCategory.evening).length,
+                      theme: theme,
                     ),
                     const SizedBox(height: 16),
                     
@@ -55,8 +59,9 @@ class AzkarScreen extends StatelessWidget {
                       title: 'أذكار النوم',
                       subtitle: 'حرزك وحفظك من الشياطين حتى تصبح',
                       icon: Icons.hotel_rounded,
-                      iconColor: AppTheme.textSecondary,
+                      iconColor: theme.brightness == Brightness.dark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
                       count: Dhikr.getByCategory(DhikrCategory.sleep).length,
+                      theme: theme,
                     ),
                   ]),
                 ),
@@ -68,23 +73,23 @@ class AzkarScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHadithHeader() {
+  Widget _buildHadithHeader(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.gold.withValues(alpha: 0.05),
+        color: theme.colorScheme.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.2)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
       ),
-      child: const Column(
+      child: Column(
         children: [
-          Icon(Icons.check_circle_outline_rounded, color: AppTheme.gold, size: 24),
-          SizedBox(height: 8),
+          Icon(Icons.check_circle_outline_rounded, color: theme.colorScheme.primary, size: 24),
+          const SizedBox(height: 8),
           Text(
             'أذكار مأثورة بأحاديث صحيحة مسندة من كتب السنة النبوية المطهرة لتحصين النفس والبيت.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: AppTheme.gold,
+              color: theme.colorScheme.primary,
               fontSize: 14,
               fontWeight: FontWeight.w500,
               height: 1.5,
@@ -103,6 +108,7 @@ class AzkarScreen extends StatelessWidget {
     required IconData icon,
     required Color iconColor,
     required int count,
+    required ThemeData theme,
   }) {
     return GestureDetector(
       onTap: () {
@@ -115,7 +121,7 @@ class AzkarScreen extends StatelessWidget {
       },
       child: Container(
         padding: const EdgeInsets.all(20),
-        decoration: AppTheme.glassCard,
+        decoration: AppTheme.glassCard(context),
         child: Row(
           children: [
             Container(
@@ -134,8 +140,8 @@ class AzkarScreen extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: AppTheme.textPrimary,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -143,8 +149,8 @@ class AzkarScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
+                    style: TextStyle(
+                      color: theme.textTheme.bodyMedium?.color,
                       fontSize: 13,
                     ),
                   ),
@@ -155,13 +161,13 @@ class AzkarScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.cardBorder.withValues(alpha: 0.3),
+                color: (theme.brightness == Brightness.dark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '$count أذكار',
-                style: const TextStyle(
-                  color: AppTheme.gold,
+                style: TextStyle(
+                  color: theme.colorScheme.primary,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),

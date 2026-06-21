@@ -12,6 +12,12 @@ class SettingsService {
   static const _keyIsEnabled = 'is_enabled';
   static const _keySelectedReciterId = 'selected_reciter_id';
   static const _keyLastPlayedAt = 'last_played_at';
+  static const _keyIsDarkMode = 'is_dark_mode';
+  static const _keyIsAzkarReminderEnabled = 'is_azkar_reminder_enabled';
+  static const _keyAzkarMorningHour = 'azkar_morning_hour';
+  static const _keyAzkarMorningMinute = 'azkar_morning_minute';
+  static const _keyAzkarEveningHour = 'azkar_evening_hour';
+  static const _keyAzkarEveningMinute = 'azkar_evening_minute';
 
   late SharedPreferences _prefs;
 
@@ -91,5 +97,53 @@ class SettingsService {
       final parts = e.split('|');
       return (DateTime.parse(parts[0]), parts.length > 1 ? parts[1] : '');
     }).toList();
+  }
+
+  /// Get current theme mode (defaults to true for dark mode).
+  bool get isDarkMode => _prefs.getBool(_keyIsDarkMode) ?? true;
+
+  /// Save theme mode preference.
+  Future<void> setDarkMode(bool val) async {
+    await _prefs.setBool(_keyIsDarkMode, val);
+  }
+
+  /// Get whether Azkar reminders are enabled (defaults to true)
+  bool get isAzkarReminderEnabled => _prefs.getBool(_keyIsAzkarReminderEnabled) ?? true;
+
+  /// Save Azkar reminders enabled status
+  Future<void> setAzkarReminderEnabled(bool val) async {
+    await _prefs.setBool(_keyIsAzkarReminderEnabled, val);
+  }
+
+  /// Get morning Azkar reminder hour (defaults to 6)
+  int get azkarMorningHour => _prefs.getInt(_keyAzkarMorningHour) ?? 6;
+
+  /// Save morning Azkar reminder hour
+  Future<void> setAzkarMorningHour(int val) async {
+    await _prefs.setInt(_keyAzkarMorningHour, val);
+  }
+
+  /// Get morning Azkar reminder minute (defaults to 30)
+  int get azkarMorningMinute => _prefs.getInt(_keyAzkarMorningMinute) ?? 30;
+
+  /// Save morning Azkar reminder minute
+  Future<void> setAzkarMorningMinute(int val) async {
+    await _prefs.setInt(_keyAzkarMorningMinute, val);
+  }
+
+  /// Get evening Azkar reminder hour (defaults to 17 - 5:00 PM)
+  int get azkarEveningHour => _prefs.getInt(_keyAzkarEveningHour) ?? 17;
+
+  /// Save evening Azkar reminder hour
+  Future<void> setAzkarEveningHour(int val) async {
+    await _prefs.setInt(_keyAzkarEveningHour, val);
+  }
+
+  /// Get evening Azkar reminder minute (defaults to 0)
+  int get azkarEveningMinute => _prefs.getInt(_keyAzkarEveningMinute) ?? 0;
+
+  /// Save evening Azkar reminder minute
+  Future<void> setAzkarEveningMinute(int val) async {
+    await _prefs.setInt(_keyAzkarEveningMinute, val);
   }
 }

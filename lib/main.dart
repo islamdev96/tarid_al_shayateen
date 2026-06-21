@@ -8,6 +8,7 @@ import 'providers/app_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/audio_handler.dart';
 import 'services/scheduler_service.dart';
+import 'services/notification_service.dart';
 
 late QuranAudioHandler _audioHandler;
 
@@ -43,6 +44,9 @@ Future<void> main() async {
   // Initialize alarm scheduler
   await SchedulerService.init();
 
+  // Initialize notification service
+  await NotificationService.init();
+
   runApp(const TaridApp());
 }
 
@@ -53,18 +57,24 @@ class TaridApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => AppProvider()..init(_audioHandler),
-      child: MaterialApp(
-        title: 'طارد الشياطين',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        locale: const Locale('ar', 'SA'),
-        builder: (context, child) {
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: child!,
+      child: Consumer<AppProvider>(
+        builder: (context, provider, _) {
+          return MaterialApp(
+            title: 'طارد الشياطين',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            locale: const Locale('ar', 'SA'),
+            builder: (context, child) {
+              return Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              );
+            },
+            home: const SplashScreen(),
           );
         },
-        home: const SplashScreen(),
       ),
     );
   }

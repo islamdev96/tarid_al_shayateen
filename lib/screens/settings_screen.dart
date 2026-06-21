@@ -13,32 +13,46 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late ScheduleSettings _draft;
+  late bool _azkarReminderEnabled;
+  late TimeOfDay _azkarMorningTime;
+  late TimeOfDay _azkarEveningTime;
 
   @override
   void initState() {
     super.initState();
-    _draft = context.read<AppProvider>().settings;
+    final provider = context.read<AppProvider>();
+    _draft = provider.settings;
+    _azkarReminderEnabled = provider.isAzkarReminderEnabled;
+    _azkarMorningTime = provider.azkarMorningTime;
+    _azkarEveningTime = provider.azkarEveningTime;
   }
 
   void _save() {
     final provider = context.read<AppProvider>();
     provider.updateSettings(_draft);
     
+    // Save Azkar reminders settings
+    provider.updateAzkarReminderSettings(
+      isEnabled: _azkarReminderEnabled,
+      morningTime: _azkarMorningTime,
+      eveningTime: _azkarEveningTime,
+    );
+
     final nextTime = _draft.getNextPlaybackTime();
     if (nextTime != null) {
       final timeStr = '${nextTime.hour.toString().padLeft(2, '0')}:${nextTime.minute.toString().padLeft(2, '0')}';
       final dateStr = '${nextTime.year}-${nextTime.month.toString().padLeft(2, '0')}-${nextTime.day.toString().padLeft(2, '0')}';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('تم الجدولة بنجاح: سيتم التشغيل يوم $dateStr الساعة $timeStr', style: const TextStyle(fontFamily: 'Cairo')),
+          content: Text('تم حفظ الإعدادات بنجاح وجدولة تشغيل سورة البقرة يوم $dateStr الساعة $timeStr', style: const TextStyle(fontFamily: 'Cairo')),
           backgroundColor: AppTheme.accentTeal,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('تم إيقاف الجدولة التلقائية', style: TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: AppTheme.textMuted,
+          content: Text('تم حفظ إعدادات التطبيق بنجاح', style: TextStyle(fontFamily: 'Cairo')),
+          backgroundColor: AppTheme.accentTeal,
         ),
       );
     }
@@ -48,9 +62,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -61,7 +77,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 actions: [
                   TextButton(
                     onPressed: _save,
-                    child: const Text('حفظ', style: TextStyle(color: AppTheme.gold, fontWeight: FontWeight.w700)),
+                    child: Text('حفظ', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700)),
                   ),
                 ],
               ),
@@ -70,16 +86,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     const SizedBox(height: 8),
-                    _buildEnableToggle(),
-                    const SizedBox(height: 16),
-                    _buildTimePicker(),
-                    const SizedBox(height: 16),
-                    _buildRepeatModeSelector(),
-                    const SizedBox(height: 16),
-                    if (_draft.repeatMode == RepeatMode.everyXDays) _buildIntervalSelector(),
-                    if (_draft.repeatMode == RepeatMode.weekDays) _buildWeekDaySelector(),
-                    const SizedBox(height: 24),
-                    _buildPreview(),
+                    _buildSectionHeader('جدولة تشغيل سورة البقرة', theme),
+                    const SizedBox(height: 8),
+                    _buildEnableToggle(theme),
+                    if (_draft.isEnabled) ...[
+                      const SizedBox(height: 16),
+                      _buildTimePicker(theme),
+                      const SizedBox(height: 16),
+                      _buildRepeatModeSelector(theme),
+                      const SizedBox(height: 16),
+                      if (_draft.repeatMode == RepeatMode.everyXDays) _buildIntervalSelector(theme),
+                      if (_draft.repeatMode == RepeatMode.weekDays) _buildWeekDaySelector(theme),
+                      const SizedBox(height: 24),
+                      _buildPreview(theme),
+                    ],
+                    const Divider(height: 40),
+                    _buildSectionHeader('تنبيهات الأذكار اليومية', theme),
+                    const SizedBox(height: 8),
+                    _buildAzkarReminderToggle(theme),
+                    if (_azkarReminderEnabled) ...[
+                      const SizedBox(height: 16),
+                      _buildAzkarMorningTimePicker(theme),
+                      const SizedBox(height: 16),
+                      _buildAzkarEveningTimePicker(theme),
+                    ],
                     const SizedBox(height: 32),
                   ]),
                 ),
@@ -91,16 +121,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildEnableToggle() {
+  Widget _buildEnableToggle(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Row(
         children: [
-          const Icon(Icons.power_settings_new_rounded, color: AppTheme.gold),
+          Icon(Icons.power_settings_new_rounded, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
-          const Expanded(
-            child: Text('تفعيل الجدولة التلقائية', style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
+          Expanded(
+            child: Text(
+              'تفعيل الجدولة التلقائية', 
+              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+            ),
           ),
           Switch(
             value: _draft.isEnabled,
@@ -111,7 +144,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildTimePicker() {
+  Widget _buildTimePicker(ThemeData theme) {
     return GestureDetector(
       onTap: () async {
         final picked = await showTimePicker(
@@ -119,14 +152,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           initialTime: _draft.playbackTime,
           builder: (context, child) {
             return Theme(
-              data: AppTheme.darkTheme.copyWith(
+              data: theme.copyWith(
                 timePickerTheme: TimePickerThemeData(
-                  backgroundColor: AppTheme.cardBackground,
-                  dialHandColor: AppTheme.gold,
-                  hourMinuteColor: AppTheme.gold.withValues(alpha: 0.15),
-                  hourMinuteTextColor: AppTheme.gold,
-                  dayPeriodColor: AppTheme.gold.withValues(alpha: 0.15),
-                  dayPeriodTextColor: AppTheme.gold,
+                  backgroundColor: theme.colorScheme.surface,
+                  dialHandColor: theme.colorScheme.primary,
+                  hourMinuteColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  hourMinuteTextColor: theme.colorScheme.primary,
+                  dayPeriodColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  dayPeriodTextColor: theme.colorScheme.primary,
                 ),
               ),
               child: Directionality(
@@ -142,24 +175,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: AppTheme.glassCard,
+        decoration: AppTheme.glassCard(context),
         child: Row(
           children: [
-            const Icon(Icons.access_time_rounded, color: AppTheme.accentTeal),
+            Icon(Icons.access_time_rounded, color: theme.colorScheme.secondary),
             const SizedBox(width: 12),
-            const Expanded(
-              child: Text('وقت التشغيل', style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
+            Expanded(
+              child: Text(
+                'وقت التشغيل', 
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppTheme.gold.withValues(alpha: 0.15),
+                color: theme.colorScheme.primary.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
               ),
               child: Text(
                 '${_draft.playbackTime.hour.toString().padLeft(2, '0')}:${_draft.playbackTime.minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(color: AppTheme.gold, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -168,67 +204,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildRepeatModeSelector() {
+  Widget _buildRepeatModeSelector(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.repeat_rounded, color: AppTheme.gold),
-              SizedBox(width: 12),
-              Text('نمط التكرار', style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
+              Icon(Icons.repeat_rounded, color: theme.colorScheme.primary),
+              const SizedBox(width: 12),
+              Text(
+                'نمط التكرار', 
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          _buildModeOption(RepeatMode.daily, 'كل يوم', Icons.calendar_today_rounded),
+          _buildModeOption(RepeatMode.daily, 'كل يوم', Icons.calendar_today_rounded, theme),
           const SizedBox(height: 8),
-          _buildModeOption(RepeatMode.everyXDays, 'كل عدد أيام معين', Icons.date_range_rounded),
+          _buildModeOption(RepeatMode.everyXDays, 'كل عدد أيام معين', Icons.date_range_rounded, theme),
           const SizedBox(height: 8),
-          _buildModeOption(RepeatMode.weekDays, 'أيام معينة في الأسبوع', Icons.view_week_rounded),
+          _buildModeOption(RepeatMode.weekDays, 'أيام معينة في الأسبوع', Icons.view_week_rounded, theme),
         ],
       ),
     );
   }
 
-  Widget _buildModeOption(RepeatMode mode, String label, IconData icon) {
+  Widget _buildModeOption(RepeatMode mode, String label, IconData icon, ThemeData theme) {
     final isSelected = _draft.repeatMode == mode;
+    final isDark = theme.brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => setState(() => _draft = _draft.copyWith(repeatMode: mode)),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.gold.withValues(alpha: 0.1) : Colors.transparent,
+          color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: isSelected ? AppTheme.gold : AppTheme.cardBorder),
+          border: Border.all(
+            color: isSelected 
+                ? theme.colorScheme.primary 
+                : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: isSelected ? AppTheme.gold : AppTheme.textMuted),
+            Icon(
+              icon, 
+              size: 20, 
+              color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodySmall?.color,
+            ),
             const SizedBox(width: 12),
-            Text(label, style: TextStyle(color: isSelected ? AppTheme.gold : AppTheme.textSecondary, fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal)),
+            Text(
+              label, 
+              style: TextStyle(
+                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface, 
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
             const Spacer(),
-            if (isSelected) const Icon(Icons.check_circle_rounded, color: AppTheme.gold, size: 22),
+            if (isSelected) Icon(Icons.check_circle_rounded, color: theme.colorScheme.primary, size: 22),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildIntervalSelector() {
+  Widget _buildIntervalSelector(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Column(
         children: [
           Row(
             children: [
-              const Icon(Icons.looks_3_rounded, color: AppTheme.accentTeal),
+              Icon(Icons.looks_3_rounded, color: theme.colorScheme.secondary),
               const SizedBox(width: 12),
-              Text('كل ${_draft.intervalDays} أيام', style: const TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
+              Text(
+                'كل ${_draft.intervalDays} أيام', 
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -241,9 +298,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('يوم', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
-              Text('${_draft.intervalDays}', style: const TextStyle(color: AppTheme.gold, fontSize: 16, fontWeight: FontWeight.bold)),
-              const Text('١٤ يوم', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+              Text('يوم', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12)),
+              Text('${_draft.intervalDays}', style: TextStyle(color: theme.colorScheme.primary, fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('١٤ يوم', style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12)),
             ],
           ),
         ],
@@ -251,21 +308,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildWeekDaySelector() {
+  Widget _buildWeekDaySelector(ThemeData theme) {
     final dayNames = {1: 'الاثنين', 2: 'الثلاثاء', 3: 'الأربعاء', 4: 'الخميس', 5: 'الجمعة', 6: 'السبت', 7: 'الأحد'};
     final shortNames = {1: 'اث', 2: 'ثل', 3: 'أر', 4: 'خم', 5: 'جم', 6: 'سب', 7: 'أح'};
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.calendar_view_week_rounded, color: AppTheme.accentTeal),
-              SizedBox(width: 12),
-              Text('اختر الأيام', style: TextStyle(color: AppTheme.textPrimary, fontSize: 15, fontWeight: FontWeight.w500)),
+              Icon(Icons.calendar_view_week_rounded, color: theme.colorScheme.secondary),
+              const SizedBox(width: 12),
+              Text(
+                'اختر الأيام', 
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -283,11 +344,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.gold.withValues(alpha: 0.2) : Colors.transparent,
+                    color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.2) : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: isSelected ? AppTheme.gold : AppTheme.cardBorder),
+                    border: Border.all(
+                      color: isSelected 
+                          ? theme.colorScheme.primary 
+                          : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+                    ),
                   ),
-                  child: Text(shortNames[entry.key]!, style: TextStyle(color: isSelected ? AppTheme.gold : AppTheme.textMuted, fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal, fontSize: 13)),
+                  child: Text(
+                    shortNames[entry.key]!, 
+                    style: TextStyle(
+                      color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodySmall?.color, 
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal, 
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               );
             }).toList(),
@@ -297,25 +369,183 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildPreview() {
+  Widget _buildPreview(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.gold.withValues(alpha: 0.05),
+        color: theme.colorScheme.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.2)),
+        border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline_rounded, color: AppTheme.gold),
+          Icon(Icons.info_outline_rounded, color: theme.colorScheme.primary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               _draft.getScheduleDescription(),
-              style: const TextStyle(color: AppTheme.gold, fontSize: 14, fontWeight: FontWeight.w500),
+              style: TextStyle(color: theme.colorScheme.primary, fontSize: 14, fontWeight: FontWeight.w500),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4, top: 12, right: 4),
+      child: Text(
+        title,
+        style: TextStyle(
+          color: theme.colorScheme.primary,
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Cairo',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAzkarReminderToggle(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: AppTheme.glassCard(context),
+      child: Row(
+        children: [
+          Icon(Icons.notifications_active_rounded, color: theme.colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'تفعيل تنبيهات الأذكار',
+              style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+            ),
+          ),
+          Switch(
+            value: _azkarReminderEnabled,
+            onChanged: (v) => setState(() => _azkarReminderEnabled = v),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAzkarMorningTimePicker(ThemeData theme) {
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: _azkarMorningTime,
+          builder: (context, child) {
+            return Theme(
+              data: theme.copyWith(
+                timePickerTheme: TimePickerThemeData(
+                  backgroundColor: theme.colorScheme.surface,
+                  dialHandColor: theme.colorScheme.primary,
+                  hourMinuteColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  hourMinuteTextColor: theme.colorScheme.primary,
+                  dayPeriodColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  dayPeriodTextColor: theme.colorScheme.primary,
+                ),
+              ),
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              ),
+            );
+          },
+        );
+        if (picked != null) {
+          setState(() => _azkarMorningTime = picked);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: AppTheme.glassCard(context),
+        child: Row(
+          children: [
+            Icon(Icons.wb_sunny_rounded, color: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.lightGold),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'وقت تنبيه أذكار الصباح',
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                '${_azkarMorningTime.hour.toString().padLeft(2, '0')}:${_azkarMorningTime.minute.toString().padLeft(2, '0')}',
+                style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAzkarEveningTimePicker(ThemeData theme) {
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: _azkarEveningTime,
+          builder: (context, child) {
+            return Theme(
+              data: theme.copyWith(
+                timePickerTheme: TimePickerThemeData(
+                  backgroundColor: theme.colorScheme.surface,
+                  dialHandColor: theme.colorScheme.primary,
+                  hourMinuteColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  hourMinuteTextColor: theme.colorScheme.primary,
+                  dayPeriodColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  dayPeriodTextColor: theme.colorScheme.primary,
+                ),
+              ),
+              child: Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              ),
+            );
+          },
+        );
+        if (picked != null) {
+          setState(() => _azkarEveningTime = picked);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: AppTheme.glassCard(context),
+        child: Row(
+          children: [
+            Icon(Icons.mode_night_rounded, color: AppTheme.accentTeal),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'وقت تنبيه أذكار المساء',
+                style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 15, fontWeight: FontWeight.w500),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+              ),
+              child: Text(
+                '${_azkarEveningTime.hour.toString().padLeft(2, '0')}:${_azkarEveningTime.minute.toString().padLeft(2, '0')}',
+                style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

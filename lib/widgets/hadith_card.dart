@@ -6,27 +6,32 @@ class HadithCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Column(
         children: [
-          const Icon(Icons.auto_stories_rounded, color: AppTheme.gold, size: 28),
+          Icon(Icons.auto_stories_rounded, color: theme.colorScheme.primary, size: 28),
           const SizedBox(height: 8),
           Text(
             '«لا تجعلوا بيوتكم مقابر،\nإن الشيطان ينفر من البيت\nالذي تُقرأ فيه سورة البقرة»',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
-              color: AppTheme.textPrimary.withValues(alpha: 0.9),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.9),
               height: 1.8,
             ),
           ),
           const SizedBox(height: 4),
-          const Text(
+          Text(
             'رواه مسلم',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: AppTheme.textMuted),
+            style: TextStyle(
+              fontSize: 12, 
+              color: theme.textTheme.bodySmall?.color,
+            ),
           ),
         ],
       ),

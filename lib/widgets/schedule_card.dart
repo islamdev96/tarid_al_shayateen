@@ -9,10 +9,11 @@ class ScheduleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<AppProvider>();
+    final theme = Theme.of(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      decoration: AppTheme.glassCard(context),
       child: Row(
         children: [
           Container(
@@ -20,20 +21,27 @@ class ScheduleCard extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppTheme.accentTeal.withValues(alpha: 0.15),
+              color: theme.colorScheme.secondary.withValues(alpha: 0.15),
             ),
-            child: const Icon(Icons.schedule_rounded, color: AppTheme.accentTeal, size: 24),
+            child: Icon(Icons.schedule_rounded, color: theme.colorScheme.secondary, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('جدولة التشغيل', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
+                Text(
+                  'جدولة التشغيل', 
+                  style: TextStyle(color: theme.textTheme.bodySmall?.color, fontSize: 12),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   provider.settings.getScheduleDescription(),
-                  style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface, 
+                    fontSize: 14, 
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),

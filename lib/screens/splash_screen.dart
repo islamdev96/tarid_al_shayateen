@@ -93,8 +93,8 @@ class _SplashScreenState extends State<SplashScreen>
         animation: _fadeIn,
         builder: (context, _) {
           return Container(
-            decoration: const BoxDecoration(
-              gradient: AppTheme.backgroundGradient,
+            decoration: BoxDecoration(
+              gradient: AppTheme.backgroundGradient(context),
             ),
             child: Center(
               child: Opacity(

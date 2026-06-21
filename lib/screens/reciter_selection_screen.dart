@@ -62,7 +62,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
         if (mounted) {
           setState(() => _previewingId = null);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تعذر تشغيل المعاينة - تحقق من الإنترنت')),
+            const SnackBar(content: Text('تعذر تشغيل المعاينة - تحقق من الإنترنت', style: TextStyle(fontFamily: 'Cairo'))),
           );
         }
       }
@@ -79,7 +79,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
           _cachedMap[reciter.id] = true;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('تم تحميل ${reciter.nameAr} بنجاح ✅')),
+          SnackBar(content: Text('تم تحميل ${reciter.nameAr} بنجاح ✅', style: const TextStyle(fontFamily: 'Cairo'))),
         );
       }
     } catch (e) {
@@ -87,7 +87,12 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
         setState(() => _downloadingId = null);
         final isCancelled = e.toString().contains('إلغاء');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(isCancelled ? 'تم إلغاء التحميل' : 'فشل التحميل - تحقق من الإنترنت')),
+          SnackBar(
+            content: Text(
+              isCancelled ? 'تم إلغاء التحميل' : 'فشل التحميل - تحقق من الإنترنت',
+              style: const TextStyle(fontFamily: 'Cairo'),
+            ),
+          ),
         );
       }
     }
@@ -95,9 +100,12 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
+        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
         child: SafeArea(
           child: Consumer<AppProvider>(
             builder: (context, provider, _) {
@@ -106,10 +114,10 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
 
               return CustomScrollView(
                 slivers: [
-                  SliverAppBar(
+                  const SliverAppBar(
                     floating: true,
                     backgroundColor: Colors.transparent,
-                    title: const Text('اختيار القارئ'),
+                    title: Text('اختيار القارئ'),
                   ),
 
                   // Download progress
@@ -119,20 +127,20 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                         child: Container(
                           padding: const EdgeInsets.all(16),
-                          decoration: AppTheme.glassCard,
+                          decoration: AppTheme.glassCard(context),
                           child: Column(
                             children: [
                               Row(
                                 children: [
-                                  const SizedBox(
+                                  SizedBox(
                                     width: 20, height: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentTeal),
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.secondary),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: Text(
                                       'جاري تحميل القارئ (${provider.downloadingReciterName})',
-                                      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                                      style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 14),
                                     ),
                                   ),
                                   // Cancel button
@@ -154,15 +162,15 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                                 borderRadius: BorderRadius.circular(6),
                                 child: LinearProgressIndicator(
                                   value: provider.downloadProgress,
-                                  backgroundColor: AppTheme.cardBorder,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.accentTeal),
+                                  backgroundColor: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
+                                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.secondary),
                                   minHeight: 6,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 '${(provider.downloadProgress * 100).toInt()}%',
-                                style: const TextStyle(color: AppTheme.accentTeal, fontSize: 13, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: theme.colorScheme.secondary, fontSize: 13, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -170,7 +178,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                       ),
                     ),
 
-                  _buildReciterList(context, reciters, selectedId, provider),
+                  _buildReciterList(context, reciters, selectedId, provider, theme),
                   const SliverToBoxAdapter(child: SizedBox(height: 32)),
                 ],
               );
@@ -181,7 +189,9 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
     );
   }
 
-  Widget _buildReciterList(BuildContext ctx, List<Reciter> reciters, String selectedId, AppProvider provider) {
+  Widget _buildReciterList(BuildContext ctx, List<Reciter> reciters, String selectedId, AppProvider provider, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverList(
@@ -193,6 +203,12 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
             final isCached = _cachedMap[r.id] ?? r.isOffline;
             final isDownloadingThis = _downloadingId == r.id;
             final isAnyDownloading = provider.isDownloading;
+
+            final borderCol = isPreviewing 
+                ? theme.colorScheme.secondary 
+                : (isSelected 
+                    ? theme.colorScheme.primary 
+                    : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder));
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -206,10 +222,12 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                   duration: const Duration(milliseconds: 250),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.gold.withValues(alpha: 0.1) : AppTheme.cardBackground,
+                    color: isSelected 
+                        ? theme.colorScheme.primary.withValues(alpha: 0.1) 
+                        : theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: isPreviewing ? AppTheme.accentTeal : (isSelected ? AppTheme.gold : AppTheme.cardBorder),
+                      color: borderCol,
                       width: isSelected || isPreviewing ? 1.5 : 1,
                     ),
                   ),
@@ -220,9 +238,11 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                         width: 44, height: 44,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isSelected ? AppTheme.gold.withValues(alpha: 0.2) : AppTheme.cardBorder.withValues(alpha: 0.3),
+                          color: isSelected 
+                              ? theme.colorScheme.primary.withValues(alpha: 0.2) 
+                              : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.3),
                         ),
-                        child: Icon(Icons.person_rounded, color: isSelected ? AppTheme.gold : AppTheme.textMuted, size: 22),
+                        child: Icon(Icons.person_rounded, color: isSelected ? theme.colorScheme.primary : theme.textTheme.bodySmall?.color, size: 22),
                       ),
                       const SizedBox(width: 12),
 
@@ -234,7 +254,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                             Text(
                               r.nameAr,
                               style: TextStyle(
-                                color: isSelected ? AppTheme.gold : AppTheme.textPrimary,
+                                color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
                                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                                 fontSize: 15,
                               ),
@@ -245,24 +265,24 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                                 Icon(
                                   isCached ? Icons.phone_android_rounded : Icons.wifi_rounded,
                                   size: 13,
-                                  color: isCached ? AppTheme.successGreen : AppTheme.accentTeal,
+                                  color: isCached ? AppTheme.successGreen : theme.colorScheme.secondary,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   isCached ? 'محفوظ أوفلاين ✓' : 'أونلاين',
                                   style: TextStyle(
                                     fontSize: 11,
-                                    color: isCached ? AppTheme.successGreen : AppTheme.accentTeal,
+                                    color: isCached ? AppTheme.successGreen : theme.colorScheme.secondary,
                                   ),
                                 ),
                               ],
                             ),
                             if (isPreviewing)
-                              const Row(
+                              Row(
                                 children: [
-                                  SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.accentTeal)),
-                                  SizedBox(width: 6),
-                                  Text('جاري المعاينة...', style: TextStyle(fontSize: 11, color: AppTheme.accentTeal)),
+                                  SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: theme.colorScheme.secondary)),
+                                  const SizedBox(width: 6),
+                                  Text('جاري المعاينة...', style: TextStyle(fontSize: 11, color: theme.colorScheme.secondary)),
                                 ],
                               ),
                           ],
@@ -276,11 +296,13 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                           width: 34, height: 34,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: isPreviewing ? AppTheme.accentTeal.withValues(alpha: 0.2) : AppTheme.cardBorder.withValues(alpha: 0.3),
+                            color: isPreviewing 
+                                ? theme.colorScheme.secondary.withValues(alpha: 0.2) 
+                                : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.3),
                           ),
                           child: Icon(
                             isPreviewing ? Icons.stop_rounded : Icons.play_arrow_rounded,
-                            color: isPreviewing ? AppTheme.accentTeal : AppTheme.textMuted,
+                            color: isPreviewing ? theme.colorScheme.secondary : theme.textTheme.bodySmall?.color,
                             size: 18,
                           ),
                         ),
@@ -304,8 +326,8 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                               color: isDownloadingThis
                                   ? AppTheme.errorRed.withValues(alpha: 0.15)
                                   : (isAnyDownloading
-                                      ? AppTheme.textMuted.withValues(alpha: 0.15)
-                                      : AppTheme.gold.withValues(alpha: 0.15)),
+                                      ? theme.textTheme.bodySmall?.color?.withValues(alpha: 0.15)
+                                      : theme.colorScheme.primary.withValues(alpha: 0.15)),
                             ),
                             child: isDownloadingThis
                                 ? Stack(
@@ -320,7 +342,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                                     ],
                                   )
                                 : Icon(Icons.download_rounded, 
-                                    color: isAnyDownloading ? AppTheme.textMuted : AppTheme.gold, 
+                                    color: isAnyDownloading ? theme.textTheme.bodySmall?.color : theme.colorScheme.primary, 
                                     size: 18),
                           ),
                         ),
@@ -330,9 +352,9 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                       isSelected
                           ? Container(
                               width: 28, height: 28,
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                gradient: LinearGradient(colors: [AppTheme.goldDark, AppTheme.gold]),
+                                gradient: AppTheme.goldGradient,
                               ),
                               child: const Icon(Icons.check_rounded, color: AppTheme.deepBackground, size: 18),
                             )
@@ -340,7 +362,10 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                               width: 28, height: 28,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppTheme.cardBorder, width: 2),
+                                border: Border.all(
+                                  color: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder,
+                                  width: 2,
+                                ),
                               ),
                             ),
                     ],
