@@ -6,16 +6,18 @@ class AppTheme {
   // --- Dark Mode Color Palette ---
   static const Color primaryGreen = Color(0xFF0D4A2B);
   static const Color darkGreen = Color(0xFF072A18);
-  static const Color deepBackground = Color(0xFF040F09);
-  static const Color cardBackground = Color(0xFF0A2E1A);
-  static const Color cardBorder = Color(0xFF1A5C3A);
-  static const Color gold = Color(0xFFD4A843);
-  static const Color goldLight = Color(0xFFE8C96A);
-  static const Color goldDark = Color(0xFFB88B2E);
-  static const Color textPrimary = Color(0xFFF5F0E8);
-  static const Color textSecondary = Color(0xFFA8C4B0);
-  static const Color textMuted = Color(0xFF6B8F78);
-  static const Color accentTeal = Color(0xFF2EC4A0);
+  static const Color deepBackground = Color(0xFF060F14); // Ultra-dark slate blue/black
+  static const Color cardBackground = Color(0xFF0D1B24); // Dark slate card
+  static const Color cardBorder = Color(0xFF1B313F);     // Slate border
+  static const Color gold = Color(0xFFFF7F32);           // Vibrant orange accent (play buttons, active tabs)
+  static const Color goldLight = Color(0xFFFF9E63);      // Light orange
+  static const Color goldDark = Color(0xFFD65C12);       // Dark orange
+  static const Color textPrimary = Color(0xFFF0F4F8);    // Crisp white-slate text
+  static const Color textSecondary = Color(0xFF8EA1A8);  // Muted slate text
+  static const Color textMuted = Color(0xFF556972);      // Dark muted text
+  static const Color accentTeal = Color(0xFF00BCD4);     // ✅ REAL cyan/teal (titles, icons, nav, glowing borders)
+  static const Color accentTealLight = Color(0xFF4DD0E1); // Light cyan
+  static const Color accentTealDark = Color(0xFF0097A7);  // Dark cyan
   static const Color errorRed = Color(0xFFE85454);
   static const Color successGreen = Color(0xFF4CAF50);
 
@@ -36,9 +38,9 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: deepBackground,
       colorScheme: const ColorScheme.dark(
-        primary: gold,
+        primary: accentTeal,       // Cyan for titles, icons, nav highlights
         onPrimary: deepBackground,
-        secondary: accentTeal,
+        secondary: gold,           // Orange for play buttons, active tabs
         onSecondary: deepBackground,
         surface: cardBackground,
         onSurface: textPrimary,
@@ -49,14 +51,14 @@ class AppTheme {
         const TextTheme(
           displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: textPrimary, letterSpacing: -0.5),
           displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textPrimary),
-          headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: gold),
+          headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: accentTeal),
           headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: textPrimary),
           titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: textPrimary),
           titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: textSecondary),
           bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: textPrimary),
           bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: textSecondary),
           bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: textMuted),
-          labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: gold),
+          labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: accentTeal),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -67,7 +69,7 @@ class AppTheme {
         titleTextStyle: GoogleFonts.cairo(
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          color: gold,
+          color: accentTeal,
         ),
       ),
       cardTheme: CardThemeData(
@@ -80,7 +82,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: gold,
+          backgroundColor: accentTeal,
           foregroundColor: deepBackground,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -90,33 +92,33 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: gold,
-          side: const BorderSide(color: gold, width: 1.5),
+          foregroundColor: accentTeal,
+          side: const BorderSide(color: accentTeal, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return gold;
+          if (states.contains(WidgetState.selected)) return accentTeal;
           return textMuted;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return gold.withValues(alpha: 0.3);
+            return accentTeal.withValues(alpha: 0.3);
           }
           return cardBorder;
         }),
       ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: gold,
+        activeTrackColor: accentTeal,
         inactiveTrackColor: cardBorder,
-        thumbColor: gold,
-        overlayColor: gold.withValues(alpha: 0.2),
+        thumbColor: accentTeal,
+        overlayColor: accentTeal.withValues(alpha: 0.2),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: cardBackground,
-        selectedColor: gold.withValues(alpha: 0.2),
+        selectedColor: accentTeal.withValues(alpha: 0.2),
         labelStyle: GoogleFonts.cairo(color: textPrimary, fontSize: 13),
         side: const BorderSide(color: cardBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -246,7 +248,7 @@ class AppTheme {
       return const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [deepBackground, Color(0xFF061A0F), deepBackground],
+        colors: [deepBackground, Color(0xFF0B1B24), deepBackground],
       );
     } else {
       return const LinearGradient(
@@ -257,9 +259,16 @@ class AppTheme {
     }
   }
 
-  /// Dynamic gold gradient.
+  /// Dynamic gold/orange gradient (for play buttons, active tabs).
   static LinearGradient get goldGradient => const LinearGradient(
     colors: [goldDark, gold, goldLight],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  /// Dynamic cyan gradient (for countdown cards, splash, highlights).
+  static LinearGradient get cyanGradient => const LinearGradient(
+    colors: [accentTealDark, accentTeal, accentTealLight],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -284,7 +293,34 @@ class AppTheme {
     );
   }
 
-  /// Glowing play button decoration.
+  /// Glowing cyan card decoration for dark mode feature cards.
+  static BoxDecoration glowingCyanCard(BuildContext context, {Color? glowColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final glow = glowColor ?? accentTeal;
+    return BoxDecoration(
+      color: isDark ? cardBackground.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.75),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: isDark ? glow.withValues(alpha: 0.3) : lightCardBorder.withValues(alpha: 0.7),
+        width: isDark ? 1.2 : 1,
+      ),
+      boxShadow: [
+        if (isDark)
+          BoxShadow(
+            color: glow.withValues(alpha: 0.08),
+            blurRadius: 16,
+            spreadRadius: 1,
+          ),
+        BoxShadow(
+          color: isDark ? Colors.black.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.05),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    );
+  }
+
+  /// Glowing play button decoration (orange/gold).
   static BoxDecoration get glowingPlayButton => BoxDecoration(
     shape: BoxShape.circle,
     gradient: goldGradient,

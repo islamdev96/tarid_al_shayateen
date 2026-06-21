@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
+import '../widgets/mosque_header_widget.dart';
 
 class RadioStation {
   final String nameAr;
@@ -15,61 +16,11 @@ class RadioStation {
   });
 }
 
-const List<RadioStation> defaultStations = [
-  RadioStation(
-    nameAr: 'إذاعة القرآن الكريم - القاهرة',
-    nameEn: 'Quran Radio Cairo',
-    url: 'http://stream.radiojar.com/8s5u5tpdtwzuv',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة القرآن الكريم - مكة المكرمة',
-    nameEn: 'Quran Radio Makkah',
-    url: 'http://live.mp3quran.net:9722/;',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة القرآن الكريم - الشارقة',
-    nameEn: 'Sharjah Quran Radio',
-    url: 'http://live.mp3quran.net:9888/;',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة الرقية الشرعية',
-    nameEn: 'Al-Ruqyah Al-Shariah Radio',
-    url: 'http://live.mp3quran.net:9702/;',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة تفسير القرآن الكريم',
-    nameEn: 'Quran Tafsir Radio',
-    url: 'http://live.mp3quran.net:9718/;',
-  ),
-];
-
-const List<RadioStation> reciterStations = [
-  RadioStation(
-    nameAr: 'إذاعة الشيخ عبد الباسط عبد الصمد',
-    nameEn: 'Sheikh Abdul Basit Radio',
-    url: 'http://live.mp3quran.net:9984/;',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة الشيخ محمود خليل الحصري',
-    nameEn: 'Sheikh Al-Hussary Radio',
-    url: 'http://live.mp3quran.net:9968/;',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة الشيخ محمد صديق المنشاوي',
-    nameEn: 'Sheikh Al-Minshawi Radio',
-    url: 'http://live.mp3quran.net:9958/;',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة الشيخ ماهر المعيقلي',
-    nameEn: 'Sheikh Maher Al-Muaiqly Radio',
-    url: 'http://live.mp3quran.net:9948/;',
-  ),
-  RadioStation(
-    nameAr: 'إذاعة الشيخ مشاري بن راشد العفاسي',
-    nameEn: 'Sheikh Al-Afasy Radio',
-    url: 'http://live.mp3quran.net:9938/;',
-  ),
-];
+const RadioStation egyptRadio = RadioStation(
+  nameAr: 'إذاعة القرآن الكريم - القاهرة',
+  nameEn: 'Quran Radio Cairo',
+  url: 'http://stream.radiojar.com/8s5u5tpdtwzuv',
+);
 
 class RadioScreen extends StatefulWidget {
   const RadioScreen({super.key});
@@ -79,12 +30,11 @@ class RadioScreen extends StatefulWidget {
 }
 
 class _RadioScreenState extends State<RadioScreen> {
-  int _activeTab = 0; // 0 = Radio, 1 = Reciters
   bool _isMuted = false;
   double _preMuteVolume = 1.0;
 
-  static const Color orangeAccent = Color(0xFFFF7F32); // Premium orange accent from the screenshot
-  static const Color darkCardBg = Color(0xFF0C1612);   // Very dark background matching the card design
+  Color get cyanAccent => AppTheme.accentTeal;
+  Color get orangeAccent => Theme.of(context).colorScheme.secondary; // Gold/orange for play buttons
 
   void _toggleMute(AppProvider provider) {
     if (_isMuted) {
@@ -105,45 +55,121 @@ class _RadioScreenState extends State<RadioScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final provider = context.watch<AppProvider>();
-    final stations = _activeTab == 0 ? defaultStations : reciterStations;
+    final isDark = theme.brightness == Brightness.dark;
+
+    final isCurrent = provider.isLiveStream && provider.activeAudioTitle == egyptRadio.nameAr;
+    final isPlaying = isCurrent && provider.isPlaying;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Top Bar with Back Button
-              _buildTopBar(theme),
-
-              // Logo & App Name Header
-              _buildHeaderLogo(),
-
-              // Tabs Selector (Radio & Reciters)
-              _buildTabsSelector(theme),
-              const SizedBox(height: 20),
-
-              // Stations List View
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-                  itemCount: stations.length,
-                  itemBuilder: (context, index) {
-                    final station = stations[index];
-                    final isCurrent = provider.isLiveStream && provider.activeAudioTitle == station.nameAr;
-                    final isPlaying = isCurrent && provider.isPlaying;
-
-                    return _buildStationCard(context, station, isCurrent, isPlaying, provider, theme);
-                  },
-                ),
-              ),
-
-              // Global Premium Player Panel (Fixed at Bottom when Radio plays)
-              if (provider.isLiveStream)
-                _buildPlayerPanel(provider, theme),
-            ],
+      body: Stack(
+        children: [
+          // Background Gradient
+          Container(
+            decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
           ),
-        ),
+
+          // Mosque silhouette header
+          const MosqueHeaderWidget(height: 220),
+
+          SafeArea(
+            child: Column(
+              children: [
+                // Top Custom Header
+                _buildTopBar(theme),
+
+                const Spacer(flex: 1),
+
+                // Beautiful Center Radio Display Card
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 20),
+                    decoration: AppTheme.glassCard(context).copyWith(
+                      border: Border.all(
+                        color: isCurrent && isPlaying
+                            ? (isDark ? cyanAccent : AppTheme.primaryGreen)
+                            : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+                        width: 1.5,
+                      ),
+                      boxShadow: [
+                        if (isCurrent && isPlaying)
+                          BoxShadow(
+                            color: (isDark ? cyanAccent : AppTheme.primaryGreen).withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                          ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Radio Wave / Calligraphy Circular Display
+                        _buildRadioArt(isCurrent && isPlaying, isDark),
+                        const SizedBox(height: 24),
+
+                        // Active badge
+                        if (isCurrent && isPlaying) ...[
+                          _buildLiveBadge(),
+                          const SizedBox(height: 12),
+                        ],
+
+                        // Title
+                        Text(
+                          egyptRadio.nameAr,
+                          textAlign: TextAlign.center,
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                            fontFamily: 'Cairo',
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+
+                        // Subtitle
+                        Text(
+                          'جمهورية مصر العربية • بث مباشر 24 ساعة',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Cairo',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                const Spacer(flex: 1),
+
+                // Controls and Volume Panel
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      // Player Controls
+                      _buildPlayerControls(provider, isCurrent, isPlaying, theme),
+                      const SizedBox(height: 32),
+
+                      // Volume Slider
+                      _buildVolumeControl(provider, theme),
+                    ],
+                  ),
+                ),
+
+                const Spacer(flex: 2),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -155,12 +181,17 @@ class _RadioScreenState extends State<RadioScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
+            icon: Icon(Icons.arrow_back_ios_rounded, color: theme.brightness == Brightness.dark ? cyanAccent : AppTheme.primaryGreen),
             onPressed: () => Navigator.pop(context),
           ),
-          const Text(
+          Text(
             'إذاعة القرآن الكريم',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'Cairo'),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Cairo',
+              color: theme.brightness == Brightness.dark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+            ),
           ),
           const SizedBox(width: 48), // Spacer to balance back button
         ],
@@ -168,319 +199,192 @@ class _RadioScreenState extends State<RadioScreen> {
     );
   }
 
-  Widget _buildHeaderLogo() {
-    return Column(
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 12, bottom: 8),
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: orangeAccent.withValues(alpha: 0.1),
-            border: Border.all(color: orangeAccent.withValues(alpha: 0.3), width: 1.5),
-          ),
-          child: const Icon(
-            Icons.radio_rounded,
-            color: orangeAccent,
-            size: 32,
-          ),
-        ),
-        const Text(
-          'سَكينة راديو',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: orangeAccent,
-            fontFamily: 'Cairo',
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildTabsSelector(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
+  Widget _buildRadioArt(bool isPlaying, bool isDark) {
+    // Elegant pulsing radio icon art
+    final activeColor = isDark ? cyanAccent : AppTheme.primaryGreen;
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(4),
+      width: 140,
+      height: 140,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF14241D) : const Color(0xFFE6EDE9),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildTabButton(
-              label: 'Radio',
-              icon: Icons.radio_rounded,
-              isActive: _activeTab == 0,
-              onTap: () => setState(() => _activeTab = 0),
-            ),
-          ),
-          Expanded(
-            child: _buildTabButton(
-              label: 'Reciters',
-              icon: Icons.person_rounded,
-              isActive: _activeTab == 1,
-              onTap: () => setState(() => _activeTab = 1),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabButton({
-    required String label,
-    required IconData icon,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isActive ? orangeAccent : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isActive ? Colors.white : Colors.grey,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? Colors.white : Colors.grey,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStationCard(
-    BuildContext context,
-    RadioStation station,
-    bool isCurrent,
-    bool isPlaying,
-    AppProvider provider,
-    ThemeData theme,
-  ) {
-    final isDark = theme.brightness == Brightness.dark;
-    final cardBorderColor = isCurrent ? orangeAccent : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: isDark ? darkCardBg : Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        shape: BoxShape.circle,
+        color: isDark ? AppTheme.deepBackground : Colors.white,
         border: Border.all(
-          color: cardBorderColor,
-          width: isCurrent ? 2 : 1,
+          color: isPlaying ? activeColor : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+          width: 3,
         ),
         boxShadow: [
-          BoxShadow(
-            color: isCurrent
-                ? orangeAccent.withValues(alpha: 0.15)
-                : Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+          if (isPlaying)
+            BoxShadow(
+              color: activeColor.withValues(alpha: 0.2),
+              blurRadius: 30,
+              spreadRadius: 4,
+            ),
+        ],
+      ),
+      child: Center(
+        child: Icon(
+          Icons.radio_rounded,
+          color: isPlaying ? activeColor : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
+          size: 64,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLiveBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.red.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.red,
+            ),
+          ),
+          const SizedBox(width: 6),
+          const Text(
+            'بث مباشر',
+            style: TextStyle(
+              color: Colors.red,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Cairo',
+            ),
           ),
         ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 44,
-          height: 44,
+    );
+  }
+
+  Widget _buildPlayerControls(AppProvider provider, bool isCurrent, bool isPlaying, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Mute/Unmute
+        Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isCurrent
-                ? orangeAccent.withValues(alpha: 0.15)
-                : (isDark ? AppTheme.cardBorder.withValues(alpha: 0.2) : AppTheme.lightCardBorder.withValues(alpha: 0.3)),
+            color: isDark ? AppTheme.cardBackground : AppTheme.lightCardBackground,
+            border: Border.all(color: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
           ),
-          child: Icon(
-            Icons.radio_rounded,
-            color: isCurrent ? orangeAccent : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
-            size: 20,
-          ),
-        ),
-        title: Text(
-          station.nameAr,
-          textDirection: TextDirection.rtl,
-          style: TextStyle(
-            color: theme.colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-            fontSize: 15,
-            fontFamily: 'Cairo',
+          child: IconButton(
+            icon: Icon(
+              _isMuted || provider.volume == 0.0
+                  ? Icons.volume_off_rounded
+                  : Icons.volume_up_rounded,
+              color: isDark ? cyanAccent : AppTheme.primaryGreen,
+            ),
+            iconSize: 24,
+            onPressed: () => _toggleMute(provider),
           ),
         ),
-        subtitle: Text(
-          station.nameEn,
-          style: TextStyle(
-            color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
-            fontSize: 12,
-          ),
-        ),
-        trailing: GestureDetector(
+        const SizedBox(width: 24),
+
+        // Main Play/Pause Button
+        GestureDetector(
           onTap: () {
             if (isCurrent) {
               provider.togglePlayPause();
             } else {
-              provider.playRadio(station.url, station.nameAr);
+              provider.playRadio(egyptRadio.url, egyptRadio.nameAr);
             }
           },
           child: Container(
-            width: 36,
-            height: 36,
+            width: 76,
+            height: 76,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isPlaying ? Colors.red.withValues(alpha: 0.15) : orangeAccent,
+              gradient: isDark ? AppTheme.cyanGradient : AppTheme.goldGradient,
+              boxShadow: [
+                BoxShadow(
+                  color: (isDark ? cyanAccent : AppTheme.gold).withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
             child: Icon(
-              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              color: isPlaying ? Colors.red : Colors.white,
-              size: 22,
+              provider.isLoading
+                  ? Icons.hourglass_empty_rounded
+                  : isPlaying
+                      ? Icons.pause_rounded
+                      : Icons.play_arrow_rounded,
+              size: 40,
+              color: Colors.white,
             ),
           ),
         ),
-      ),
+        const SizedBox(width: 24),
+
+        // Stop Button
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark ? AppTheme.cardBackground : AppTheme.lightCardBackground,
+            border: Border.all(color: isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.stop_rounded, color: Colors.red),
+            iconSize: 24,
+            onPressed: isCurrent ? () => provider.stopRadio() : null,
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildPlayerPanel(AppProvider provider, ThemeData theme) {
+  Widget _buildVolumeControl(AppProvider provider, ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? darkCardBg : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: orangeAccent, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: orangeAccent.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
-          ),
-        ],
+        color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.5) : AppTheme.lightCardBackground.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? AppTheme.cardBorder.withValues(alpha: 0.5) : AppTheme.lightCardBorder.withValues(alpha: 0.5)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          // Station Name & Live Indicator
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Mute Button
-              IconButton(
-                icon: Icon(
-                  _isMuted || provider.volume == 0.0
-                      ? Icons.volume_off_rounded
-                      : Icons.volume_up_rounded,
-                  color: orangeAccent,
-                ),
-                onPressed: () => _toggleMute(provider),
-              ),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      provider.activeAudioTitle,
-                      textDirection: TextDirection.rtl,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        fontFamily: 'Cairo',
-                      ),
-                    ),
-                    const Text(
-                      'البث المباشر للإذاعة',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Cairo',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Live Pulse indicator
-              Container(
-                width: 10,
-                height: 10,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.red,
-                ),
-              ),
-            ],
+          Icon(
+            Icons.volume_down_rounded,
+            color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+            size: 20,
           ),
-          const SizedBox(height: 12),
-
-          // Main Controls
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Close/Stop Button
-              IconButton(
-                icon: const Icon(Icons.stop_rounded, color: Colors.red),
-                iconSize: 28,
-                onPressed: () => provider.stopRadio(),
+          Expanded(
+            child: SliderTheme(
+              data: theme.sliderTheme.copyWith(
+                trackHeight: 4,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
               ),
-              const SizedBox(width: 24),
-
-              // Play / Pause Circle Button
-              GestureDetector(
-                onTap: () => provider.togglePlayPause(),
-                child: Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: orangeAccent,
-                    boxShadow: [
-                      BoxShadow(
-                        color: orangeAccent.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    provider.isLoading
-                        ? Icons.hourglass_empty_rounded
-                        : provider.isPlaying
-                            ? Icons.pause_rounded
-                            : Icons.play_arrow_rounded,
-                    size: 32,
-                    color: Colors.white,
-                  ),
-                ),
+              child: Slider(
+                value: provider.volume,
+                min: 0.0,
+                max: 1.0,
+                onChanged: (value) {
+                  provider.setVolume(value);
+                  if (value > 0.0 && _isMuted) {
+                    setState(() {
+                      _isMuted = false;
+                    });
+                  }
+                },
               ),
-              const SizedBox(width: 52), // Symmetry space
-            ],
+            ),
+          ),
+          Icon(
+            Icons.volume_up_rounded,
+            color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+            size: 20,
           ),
         ],
       ),

@@ -8,6 +8,7 @@ import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
+import '../widgets/mosque_header_widget.dart';
 import 'azkar_screen.dart';
 import 'quran_screen.dart';
 import 'qiblah_screen.dart';
@@ -145,67 +146,77 @@ class _HomeScreenState extends State<HomeScreen> {
     final provider = context.watch<AppProvider>();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // Beautiful Custom Header
-              SliverAppBar(
-                floating: true,
-                backgroundColor: Colors.transparent,
-                title: Row(
-                  children: [
-                    Text(
-                      'سَكينة',
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                        fontFamily: 'Cairo',
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: Icon(
-                        provider.isDarkMode
-                            ? Icons.wb_sunny_rounded
-                            : Icons.mode_night_rounded,
-                      ),
-                      color: provider.isDarkMode ? AppTheme.gold : AppTheme.lightGold,
-                      onPressed: () => provider.toggleThemeMode(),
-                    ),
-                  ],
-                ),
-              ),
-
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const SizedBox(height: 12),
-
-                    // Bismillah Header
-                    _buildBismillahHeader(theme),
-                    const SizedBox(height: 16),
-
-                    // Next Prayer Card (Quick Summary)
-                    _buildNextPrayerCard(theme, provider),
-                    const SizedBox(height: 20),
-
-                    // Quick Actions Grid (2x2)
-                    _buildQuickActionsGrid(context, theme),
-                    const SizedBox(height: 20),
-
-                    // Hadith Card
-                    const HadithCard(),
-                    const SizedBox(height: 32),
-                  ]),
-                ),
-              ),
-            ],
+      body: Stack(
+        children: [
+          // Background gradient
+          Container(
+            decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
           ),
-        ),
+
+          // Mosque silhouette header (behind content)
+          const MosqueHeaderWidget(height: 220),
+
+          // Scrollable content
+          SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                // Beautiful Custom Header
+                SliverAppBar(
+                  floating: true,
+                  backgroundColor: Colors.transparent,
+                  title: Row(
+                    children: [
+                      Text(
+                        'سَكينة',
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          fontFamily: 'Cairo',
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: Icon(
+                          provider.isDarkMode
+                              ? Icons.wb_sunny_rounded
+                              : Icons.mode_night_rounded,
+                        ),
+                        color: provider.isDarkMode ? AppTheme.accentTeal : AppTheme.lightGold,
+                        onPressed: () => provider.toggleThemeMode(),
+                      ),
+                    ],
+                  ),
+                ),
+
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const SizedBox(height: 12),
+
+                      // Bismillah Header
+                      _buildBismillahHeader(theme),
+                      const SizedBox(height: 16),
+
+                      // Next Prayer Card (Quick Summary)
+                      _buildNextPrayerCard(theme, provider),
+                      const SizedBox(height: 20),
+
+                      // Quick Actions Grid (2x2)
+                      _buildQuickActionsGrid(context, theme),
+                      const SizedBox(height: 20),
+
+                      // Hadith Card
+                      const HadithCard(),
+                      const SizedBox(height: 32),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -217,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
       style: TextStyle(
         fontSize: 22,
         fontFamily: 'serif',
-        color: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.primaryGreen,
+        color: theme.brightness == Brightness.dark ? AppTheme.accentTeal : AppTheme.primaryGreen,
         fontWeight: FontWeight.w500,
         letterSpacing: 2,
       ),
@@ -285,18 +296,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildQuickActionsGrid(BuildContext context, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.25,
+      crossAxisSpacing: isDark ? 12 : 16,
+      mainAxisSpacing: isDark ? 12 : 8,
+      childAspectRatio: isDark ? 1.25 : 0.95,
       children: [
         _buildActionItem(
           icon: Icons.menu_book_rounded,
           label: 'القرآن الكريم',
-          color: theme.colorScheme.primary,
+          darkColor: AppTheme.accentTeal,
+          lightColor: AppTheme.primaryGreen,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranScreen()));
           },
@@ -304,8 +317,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         _buildActionItem(
           icon: Icons.shield_rounded,
-          label: 'أذكار اليوم',
-          color: AppTheme.accentTeal,
+          label: 'أذكار المسلم',
+          darkColor: AppTheme.accentTeal,
+          lightColor: AppTheme.primaryGreen,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const AzkarScreen()));
           },
@@ -314,7 +328,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildActionItem(
           icon: Icons.explore_rounded,
           label: 'اتجاه القبلة',
-          color: Colors.amber,
+          darkColor: AppTheme.accentTeal,
+          lightColor: AppTheme.primaryGreen,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblahScreen()));
           },
@@ -323,34 +338,38 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildActionItem(
           icon: Icons.security_rounded,
           label: 'حصن البيت',
-          color: theme.colorScheme.secondary,
+          darkColor: AppTheme.gold,
+          lightColor: AppTheme.lightGold,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const BaqarahFortificationScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
-          icon: Icons.all_inclusive_rounded,
-          label: 'المسبحة الإلكترونية',
-          color: const Color(0xFFA855F7),
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const TasbeehScreen()));
-          },
-          theme: theme,
-        ),
-        _buildActionItem(
           icon: Icons.access_time_filled_rounded,
           label: 'مواقيت الصلاة',
-          color: const Color(0xFF0EA5E9),
+          darkColor: AppTheme.accentTeal,
+          lightColor: AppTheme.primaryGreen,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
+          icon: Icons.all_inclusive_rounded,
+          label: 'المسبحة',
+          darkColor: AppTheme.accentTeal,
+          lightColor: AppTheme.primaryGreen,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const TasbeehScreen()));
+          },
+          theme: theme,
+        ),
+        _buildActionItem(
           icon: Icons.radio_rounded,
           label: 'إذاعة القرآن',
-          color: const Color(0xFFFF7F32),
+          darkColor: AppTheme.gold,
+          lightColor: AppTheme.lightGold,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const RadioScreen()));
           },
@@ -358,8 +377,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         _buildActionItem(
           icon: Icons.settings_rounded,
-          label: 'إعدادات التطبيق',
-          color: Colors.blueGrey,
+          label: 'الإعدادات',
+          darkColor: AppTheme.accentTealDark,
+          lightColor: Colors.blueGrey,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
           },
@@ -372,41 +392,90 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildActionItem({
     required IconData icon,
     required String label,
-    required Color color,
+    required Color darkColor,
+    required Color lightColor,
     required VoidCallback onTap,
     required ThemeData theme,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-        decoration: AppTheme.glassCard(context),
+    final isDark = theme.brightness == Brightness.dark;
+    final color = isDark ? darkColor : lightColor;
+
+    if (isDark) {
+      // ===== DARK MODE: Glowing card style (Siratic) =====
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          decoration: AppTheme.glowingCyanCard(context, glowColor: color),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: color.withValues(alpha: 0.15),
+                  border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // ===== LIGHT MODE: Large golden circle style (unnamed.webp) =====
+      final borderColor = lightColor == AppTheme.lightGold
+          ? AppTheme.lightGold
+          : AppTheme.lightGold;
+      return GestureDetector(
+        onTap: onTap,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 80,
+              height: 80,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: color.withValues(alpha: 0.15),
+                color: Colors.white,
+                border: Border.all(color: borderColor.withValues(alpha: 0.6), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: borderColor.withValues(alpha: 0.1),
+                    blurRadius: 12,
+                    spreadRadius: 1,
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(icon, color: color, size: 32),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: theme.colorScheme.onSurface,
+                color: AppTheme.lightTextPrimary,
                 fontSize: 13,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 fontFamily: 'Cairo',
               ),
             ),
           ],
         ),
-      ),
-    );
+      );
+    }
   }
 }

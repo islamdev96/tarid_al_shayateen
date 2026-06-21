@@ -5,6 +5,7 @@ import '../app_theme.dart';
 import '../models/prayer_time_settings.dart';
 import '../providers/app_provider.dart';
 import '../services/prayer_times_service.dart';
+import '../widgets/mosque_header_widget.dart';
 
 /// Screen displaying the computed daily prayer times, countdown to the next prayer, and city config.
 class PrayerTimesScreen extends StatefulWidget {
@@ -81,57 +82,62 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final list = prayerTimes.toList();
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
-        child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              // Screen Header
-              SliverAppBar(
-                floating: true,
-                backgroundColor: Colors.transparent,
-                title: const Text('مواقيت الصلاة'),
-              ),
-
-              // Countdown Dashboard Card
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: _buildCountdownCard(theme),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(gradient: AppTheme.backgroundGradient(context)),
+          ),
+          const MosqueHeaderWidget(height: 200),
+          SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                // Screen Header
+                SliverAppBar(
+                  floating: true,
+                  backgroundColor: Colors.transparent,
+                  title: const Text('مواقيت الصلاة'),
                 ),
-              ),
 
-              // City Selector
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  child: _buildCitySelectorCard(provider, theme),
-                ),
-              ),
-
-              // Prayer Times List
-              SliverPadding(
-                padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 96),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final item = list[index];
-                      final prayerId = item['id'] as String;
-                      final prayerName = item['name'] as String;
-                      final prayerTime = item['time'] as DateTime;
-                      
-                      final isNext = _nextPrayer != null && _nextPrayer!['id'] == prayerId && _nextPrayer!['isTomorrow'] != true;
-                      final isNotified = provider.prayerNotifications[prayerId] ?? (prayerId != 'sunrise');
-
-                      return _buildPrayerTimeItem(prayerId, prayerName, prayerTime, isNext, isNotified, provider, theme);
-                    },
-                    childCount: list.length,
+                // Countdown Dashboard Card
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: _buildCountdownCard(theme),
                   ),
                 ),
-              ),
-            ],
+
+                // City Selector
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    child: _buildCitySelectorCard(provider, theme),
+                  ),
+                ),
+
+                // Prayer Times List
+                SliverPadding(
+                  padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 96),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final item = list[index];
+                        final prayerId = item['id'] as String;
+                        final prayerName = item['name'] as String;
+                        final prayerTime = item['time'] as DateTime;
+                        
+                        final isNext = _nextPrayer != null && _nextPrayer!['id'] == prayerId && _nextPrayer!['isTomorrow'] != true;
+                        final isNotified = provider.prayerNotifications[prayerId] ?? (prayerId != 'sunrise');
+
+                        return _buildPrayerTimeItem(prayerId, prayerName, prayerTime, isNext, isNotified, provider, theme);
+                      },
+                      childCount: list.length,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -139,15 +145,16 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Widget _buildCountdownCard(ThemeData theme) {
     if (_nextPrayer == null) return const SizedBox.shrink();
     final prayerName = _nextPrayer!['name'] as String;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: AppTheme.goldGradient,
+        gradient: isDark ? AppTheme.cyanGradient : AppTheme.goldGradient,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.gold.withValues(alpha: 0.3),
+            color: (isDark ? AppTheme.accentTeal : AppTheme.gold).withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -158,7 +165,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Text(
             'الصلاة القادمة: صلاة $prayerName',
             style: const TextStyle(
-              color: AppTheme.deepBackground,
+              color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold,
               fontFamily: 'Cairo',
@@ -168,7 +175,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Text(
             _timeRemainingStr,
             style: const TextStyle(
-              color: AppTheme.deepBackground,
+              color: Colors.white,
               fontSize: 38,
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
@@ -178,8 +185,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           Text(
             'الوقت المتبقي لإقامة الصلاة في مدينة ${context.read<AppProvider>().selectedCity.nameAr}',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: AppTheme.deepBackground,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.85),
               fontSize: 12,
               fontFamily: 'Cairo',
               fontWeight: FontWeight.w500,

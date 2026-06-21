@@ -112,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
                         style: TextStyle(
                           fontSize: 18,
-                          color: isDark ? AppTheme.gold : AppTheme.primaryGreen,
+                          color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
                           fontFamily: 'serif',
                           letterSpacing: 2,
                         ),
@@ -132,7 +132,7 @@ class _SplashScreenState extends State<SplashScreen>
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: isDark
-                                  ? AppTheme.goldGradient
+                                  ? AppTheme.cyanGradient
                                   : const LinearGradient(
                                       colors: [AppTheme.primaryGreen, AppTheme.darkGreen],
                                       begin: Alignment.topLeft,
@@ -140,7 +140,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: (isDark ? AppTheme.gold : AppTheme.primaryGreen).withValues(
+                                  color: (isDark ? AppTheme.accentTeal : AppTheme.primaryGreen).withValues(
                                     alpha: 0.3 * _shieldGlow.value,
                                   ),
                                   blurRadius: 40 * _shieldGlow.value,
@@ -167,7 +167,7 @@ class _SplashScreenState extends State<SplashScreen>
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? AppTheme.gold : AppTheme.primaryGreen,
+                          color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
                           fontFamily: 'Cairo',
                         ),
                       ),
