@@ -38,33 +38,104 @@ class _PlayerWidgetState extends State<PlayerWidget> with SingleTickerProviderSt
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(20),
+            color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: provider.isPlaying 
-                  ? theme.colorScheme.primary.withValues(alpha: 0.5) 
+                  ? theme.colorScheme.primary
                   : (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder),
-              width: provider.isPlaying ? 1.5 : 1,
+              width: provider.isPlaying ? 2.0 : 1.5, // Solid highlight border matching screenshot
             ),
-            boxShadow: provider.isPlaying
-                ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.15), blurRadius: 20)]
-                : [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05), blurRadius: 12)],
+            boxShadow: [
+              BoxShadow(
+                color: (provider.isPlaying ? theme.colorScheme.primary : Colors.black).withValues(
+                  alpha: provider.isPlaying ? (isDark ? 0.2 : 0.08) : (isDark ? 0.3 : 0.04),
+                ),
+                blurRadius: provider.isPlaying ? 24 : 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             children: [
-              // Surah name & reciter
-              Text(
-                'سورة البقرة',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: provider.isPlaying ? theme.colorScheme.primary : theme.colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                provider.currentReciter.nameAr,
-                style: TextStyle(fontSize: 14, color: theme.textTheme.bodySmall?.color),
+              // Top Row: Reciter info, Title, and small play toggle matching screenshot layout
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Left side (in RTL): Quick toggle play button
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        provider.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                        color: theme.colorScheme.primary,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        if (provider.isLoading) return;
+                        if (provider.isPlaying || provider.currentPosition > Duration.zero) {
+                          provider.togglePlayPause();
+                        } else {
+                          provider.playNow();
+                        }
+                      },
+                    ),
+                  ),
+
+                  // Middle: Title and Subtitle (aligned to the right next to trailing icon)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'سورة البقرة',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            provider.currentReciter.nameAr,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                              fontFamily: 'Cairo',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Right side: Circular icon container
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.music_note_rounded,
+                      color: theme.colorScheme.primary,
+                      size: 20,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 20),
 

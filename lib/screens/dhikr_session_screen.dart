@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:share_plus/share_plus.dart';
 import '../app_theme.dart';
 import '../models/dhikr.dart';
 
@@ -279,6 +280,43 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  TextButton.icon(
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: dhikr.text));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تم نسخ الذكر إلى الحافظة', style: TextStyle(fontFamily: 'Cairo')),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.copy_rounded, color: theme.colorScheme.primary, size: 18),
+                    label: Text(
+                      'نسخ الذكر',
+                      style: TextStyle(color: theme.colorScheme.primary, fontFamily: 'Cairo', fontSize: 13),
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () {
+                      Share.share(
+                        '${dhikr.text}\n\nفضل الذكر: ${dhikr.virtue}\nالمصدر: ${dhikr.source}\n\nتمت المشاركة من تطبيق سَكينة',
+                        subject: 'أذكار اليوم',
+                      );
+                    },
+                    icon: Icon(Icons.share_rounded, color: theme.colorScheme.primary, size: 18),
+                    label: Text(
+                      'مشاركة',
+                      style: TextStyle(color: theme.colorScheme.primary, fontFamily: 'Cairo', fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               const Divider(),
               const SizedBox(height: 12),
               

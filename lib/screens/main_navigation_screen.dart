@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../app_theme.dart';
 import '../widgets/mini_player_widget.dart';
@@ -46,16 +47,23 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: isDark ? AppTheme.cardBackground.withValues(alpha: 0.9) : Colors.white.withValues(alpha: 0.95),
-          border: Border(
-            top: BorderSide(
-              color: isDark ? AppTheme.cardBorder.withValues(alpha: 0.5) : AppTheme.lightCardBorder.withValues(alpha: 0.5),
-              width: 1,
+      bottomNavigationBar: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark 
+                  ? AppTheme.cardBackground.withValues(alpha: 0.7) 
+                  : Colors.white.withValues(alpha: 0.75),
+              border: Border(
+                top: BorderSide(
+                  color: isDark 
+                      ? AppTheme.cardBorder.withValues(alpha: 0.3) 
+                      : AppTheme.lightCardBorder.withValues(alpha: 0.4),
+                  width: 0.5, // Thin iOS border line
+                ),
+              ),
             ),
-          ),
-        ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
@@ -94,6 +102,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ],
         ),
       ),
-    );
+    ),
+  ),
+);
   }
 }

@@ -20,13 +20,13 @@ class AppTheme {
   static const Color successGreen = Color(0xFF4CAF50);
 
   // --- Light Mode Color Palette ---
-  static const Color lightBg = Color(0xFFFCFAF6); // Soft warm white/cream
-  static const Color lightBgMid = Color(0xFFF5EFE4); // Soft beige
-  static const Color lightCardBackground = Color(0xFFF3ECE0); // Cream card
-  static const Color lightCardBorder = Color(0xFFE2D6C1); // Soft gold/beige border
-  static const Color lightTextPrimary = Color(0xFF163220); // Deep green
-  static const Color lightTextSecondary = Color(0xFF385E46); // Muted green
-  static const Color lightTextMuted = Color(0xFF6B8A75); // Lighter muted green
+  static const Color lightBg = Color(0xFFFAF8F5); // Warm Pearl/Cream
+  static const Color lightBgMid = Color(0xFFF0EAE1); // Warm sand
+  static const Color lightCardBackground = Color(0xFFF7F3EC); // Soft clean cream card
+  static const Color lightCardBorder = Color(0xFFE2DBCF); // Soft sand border
+  static const Color lightTextPrimary = Color(0xFF11261B); // Very deep emerald/charcoal
+  static const Color lightTextSecondary = Color(0xFF385243); // Muted deep green
+  static const Color lightTextMuted = Color(0xFF6F8978); // Soft sage green
   static const Color lightGold = Color(0xFFB88B2E); // Deep gold
 
   /// Dark Theme Configuration
@@ -141,9 +141,9 @@ class AppTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: lightBg,
       colorScheme: const ColorScheme.light(
-        primary: lightGold,
-        onPrimary: lightBg,
-        secondary: primaryGreen,
+        primary: primaryGreen, // Beautiful deep green as primary
+        onPrimary: Colors.white,
+        secondary: lightGold,
         onSecondary: Colors.white,
         surface: lightCardBackground,
         onSurface: lightTextPrimary,
@@ -154,14 +154,14 @@ class AppTheme {
         const TextTheme(
           displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: lightTextPrimary),
           displayMedium: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: lightTextPrimary),
-          headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: lightGold),
+          headlineLarge: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: primaryGreen), // Emerald green instead of yellow
           headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: lightTextPrimary),
           titleLarge: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: lightTextPrimary),
           titleMedium: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: lightTextSecondary),
           bodyLarge: TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: lightTextPrimary),
           bodyMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: lightTextSecondary),
           bodySmall: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: lightTextMuted),
-          labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: lightGold),
+          labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: primaryGreen),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -172,7 +172,7 @@ class AppTheme {
         titleTextStyle: GoogleFonts.cairo(
           fontSize: 20,
           fontWeight: FontWeight.w700,
-          color: lightGold,
+          color: primaryGreen, // Deep green appbar title
         ),
       ),
       cardTheme: CardThemeData(
@@ -185,7 +185,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: lightGold,
+          backgroundColor: primaryGreen,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -195,33 +195,33 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: lightGold,
-          side: const BorderSide(color: lightGold, width: 1.5),
+          foregroundColor: primaryGreen,
+          side: const BorderSide(color: primaryGreen, width: 1.5),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) return lightGold;
+          if (states.contains(WidgetState.selected)) return primaryGreen;
           return lightTextMuted;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return lightGold.withValues(alpha: 0.3);
+            return primaryGreen.withValues(alpha: 0.3);
           }
           return lightCardBorder;
         }),
       ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: lightGold,
+        activeTrackColor: primaryGreen,
         inactiveTrackColor: lightCardBorder,
-        thumbColor: lightGold,
-        overlayColor: lightGold.withValues(alpha: 0.2),
+        thumbColor: primaryGreen,
+        overlayColor: primaryGreen.withValues(alpha: 0.2),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: lightCardBackground,
-        selectedColor: lightGold.withValues(alpha: 0.2),
+        selectedColor: primaryGreen.withValues(alpha: 0.15),
         labelStyle: GoogleFonts.cairo(color: lightTextPrimary, fontSize: 13),
         side: const BorderSide(color: lightCardBorder),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

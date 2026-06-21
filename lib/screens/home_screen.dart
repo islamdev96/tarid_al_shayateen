@@ -8,13 +8,10 @@ import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
-import '../widgets/player_widget.dart';
-import '../widgets/countdown_widget.dart';
-import '../widgets/reciter_card.dart';
-import '../widgets/download_progress_card.dart';
 import 'azkar_screen.dart';
 import 'quran_screen.dart';
-import 'prayer_times_screen.dart';
+import 'qiblah_screen.dart';
+import 'baqarah_fortification_screen.dart';
 
 /// The redesigned Home screen displaying a premium dashboard.
 class HomeScreen extends StatefulWidget {
@@ -156,11 +153,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 title: Row(
                   children: [
                     Text(
-                      'طارد الشياطين',
+                      'سَكينة',
                       style: TextStyle(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 22,
                         fontFamily: 'Cairo',
                       ),
                     ),
@@ -182,47 +179,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
 
                     // Bismillah Header
-                    _buildBismillahHeader(),
-                    const SizedBox(height: 12),
+                    _buildBismillahHeader(theme),
+                    const SizedBox(height: 16),
 
                     // Next Prayer Card (Quick Summary)
                     _buildNextPrayerCard(theme, provider),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
 
-                    // Quick Actions Row
-                    _buildQuickActions(context, theme),
-                    const SizedBox(height: 16),
+                    // Quick Actions Grid (2x2)
+                    _buildQuickActionsGrid(context, theme),
+                    const SizedBox(height: 20),
 
                     // Hadith Card
                     const HadithCard(),
-                    const SizedBox(height: 24),
-
-                    // Surah Al-Baqarah Player section (core feature)
-                    _buildSectionHeader('سورة البقرة والتحصين', theme),
-                    const SizedBox(height: 8),
-                    
-                    if (provider.isDownloading) ...[
-                      const DownloadProgressCard(),
-                      const SizedBox(height: 16),
-                    ],
-                    if (provider.errorMessage != null) ...[
-                      _buildErrorCard(provider),
-                      const SizedBox(height: 16),
-                    ],
-
-                    const PlayerWidget(),
-                    const SizedBox(height: 16),
-
-                    if (provider.settings.isEnabled && provider.nextPlayback != null) ...[
-                      const CountdownWidget(),
-                      const SizedBox(height: 16),
-                    ],
-
-                    const ReciterCard(),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 32),
                   ]),
                 ),
               ),
@@ -233,15 +206,15 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBismillahHeader() {
-    return const Text(
+  Widget _buildBismillahHeader(ThemeData theme) {
+    return Text(
       'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
       textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: 22,
         fontFamily: 'serif',
-        color: AppTheme.gold,
-        fontWeight: FontWeight.w400,
+        color: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.primaryGreen,
+        fontWeight: FontWeight.w500,
         letterSpacing: 2,
       ),
     );
@@ -307,8 +280,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context, ThemeData theme) {
-    return Row(
+  Widget _buildQuickActionsGrid(BuildContext context, ThemeData theme) {
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 12,
+      mainAxisSpacing: 12,
+      childAspectRatio: 1.25,
       children: [
         _buildActionItem(
           icon: Icons.menu_book_rounded,
@@ -319,23 +298,30 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           theme: theme,
         ),
-        const SizedBox(width: 12),
         _buildActionItem(
           icon: Icons.shield_rounded,
-          label: 'أذكار التحصين',
+          label: 'أذكار اليوم',
           color: AppTheme.accentTeal,
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (_) => const AzkarScreen()));
           },
           theme: theme,
         ),
-        const SizedBox(width: 12),
         _buildActionItem(
-          icon: Icons.access_time_filled_rounded,
-          label: 'أوقات الصلاة',
+          icon: Icons.explore_rounded,
+          label: 'اتجاه القبلة',
+          color: Colors.amber,
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblahScreen()));
+          },
+          theme: theme,
+        ),
+        _buildActionItem(
+          icon: Icons.security_rounded,
+          label: 'حصن البيت',
           color: theme.colorScheme.secondary,
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const BaqarahFortificationScreen()));
           },
           theme: theme,
         ),
@@ -350,75 +336,36 @@ class _HomeScreenState extends State<HomeScreen> {
     required VoidCallback onTap,
     required ThemeData theme,
   }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-          decoration: AppTheme.glassCard(context),
-          child: Column(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withValues(alpha: 0.15),
-                ),
-                child: Icon(icon, color: color, size: 22),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: AppTheme.glassCard(context),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withValues(alpha: 0.15),
               ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Cairo',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 4),
-      child: Text(
-        title,
-        style: TextStyle(
-          color: theme.colorScheme.primary,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          fontFamily: 'Cairo',
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorCard(AppProvider provider) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline_rounded, color: Colors.red, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              provider.errorMessage!,
-              style: const TextStyle(color: Colors.red, fontSize: 13),
+              child: Icon(icon, color: color, size: 22),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Cairo',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

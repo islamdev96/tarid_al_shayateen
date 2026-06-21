@@ -60,7 +60,7 @@ class TaridApp extends StatelessWidget {
       child: Consumer<AppProvider>(
         builder: (context, provider, _) {
           return MaterialApp(
-            title: 'طارد الشياطين',
+            title: 'سَكينة',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,

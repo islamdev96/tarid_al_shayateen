@@ -63,6 +63,54 @@ class AzkarScreen extends StatelessWidget {
                       count: Dhikr.getByCategory(DhikrCategory.sleep).length,
                       theme: theme,
                     ),
+                    const SizedBox(height: 16),
+
+                    _buildCategoryCard(
+                      context,
+                      category: DhikrCategory.afterPrayer,
+                      title: 'أذكار بعد الصلاة',
+                      subtitle: 'الحصن المنيع بعد أداء الصلوات المفروضة',
+                      icon: Icons.mosque_rounded,
+                      iconColor: theme.colorScheme.primary,
+                      count: Dhikr.getByCategory(DhikrCategory.afterPrayer).length,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildCategoryCard(
+                      context,
+                      category: DhikrCategory.mosque,
+                      title: 'أذكار المسجد',
+                      subtitle: 'أدعية دخول وخروج المسجد لبركة العبادة',
+                      icon: Icons.meeting_room_rounded,
+                      iconColor: Colors.amber,
+                      count: Dhikr.getByCategory(DhikrCategory.mosque).length,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildCategoryCard(
+                      context,
+                      category: DhikrCategory.wakingUp,
+                      title: 'أذكار الاستيقاظ',
+                      subtitle: 'أول ما تبدأ به يومك بعد اليقظة بالحمد والذكر',
+                      icon: Icons.wb_twilight_rounded,
+                      iconColor: Colors.orangeAccent,
+                      count: Dhikr.getByCategory(DhikrCategory.wakingUp).length,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 16),
+
+                    _buildCategoryCard(
+                      context,
+                      category: DhikrCategory.travel,
+                      title: 'أدعية وأذكار السفر',
+                      subtitle: 'دعاء السفر المأثور للحفظ والأمان في الطريق',
+                      icon: Icons.explore_rounded,
+                      iconColor: Colors.cyan,
+                      count: Dhikr.getByCategory(DhikrCategory.travel).length,
+                      theme: theme,
+                    ),
                   ]),
                 ),
               ),
@@ -110,6 +158,7 @@ class AzkarScreen extends StatelessWidget {
     required int count,
     required ThemeData theme,
   }) {
+    final isDark = theme.brightness == Brightness.dark;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -120,57 +169,91 @@ class AzkarScreen extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: AppTheme.glassCard(context),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: AppTheme.glassCard(context).copyWith(
+          borderRadius: BorderRadius.circular(20), // Smooth iOS-style rounded corners
+        ),
         child: Row(
           children: [
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: iconColor.withValues(alpha: 0.15),
-              ),
-              child: Icon(icon, color: iconColor, size: 28),
+            // iOS Chevron on the far left (leading in RTL)
+            Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 14,
+              color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 8),
+
+            // iOS-style count badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: (isDark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ),
+            
+            const Spacer(),
+
+            // Texts in the middle (aligned to the right next to the trailing icon)
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurface,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end, // RTL alignment
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Cairo',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: theme.textTheme.bodyMedium?.color,
-                      fontSize: 13,
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                        fontSize: 11,
+                        fontFamily: 'Cairo',
+                      ),
                     ),
+                  ],
+                ),
+              ),
+            ),
+
+            // iOS-style Trailing Icon Squircle on the far right (trailing in RTL)
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconColor, // Solid background color matching screenshot
+                borderRadius: BorderRadius.circular(14), // Rounded square/squircle
+                boxShadow: [
+                  BoxShadow(
+                    color: iconColor.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: (theme.brightness == Brightness.dark ? AppTheme.cardBorder : AppTheme.lightCardBorder).withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '$count أذكار',
-                style: TextStyle(
-                  color: theme.colorScheme.primary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Icon(
+                icon,
+                color: Colors.white, // White icon inside
+                size: 24,
               ),
             ),
           ],

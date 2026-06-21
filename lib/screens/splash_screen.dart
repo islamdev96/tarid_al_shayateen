@@ -88,6 +88,9 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       body: AnimatedBuilder(
         animation: _fadeIn,
@@ -105,11 +108,11 @@ class _SplashScreenState extends State<SplashScreen>
                     // Bismillah
                     FadeTransition(
                       opacity: _textFade,
-                      child: const Text(
+                      child: Text(
                         'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
                         style: TextStyle(
                           fontSize: 18,
-                          color: AppTheme.gold,
+                          color: isDark ? AppTheme.gold : AppTheme.primaryGreen,
                           fontFamily: 'serif',
                           letterSpacing: 2,
                         ),
@@ -128,21 +131,27 @@ class _SplashScreenState extends State<SplashScreen>
                             height: 120,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: AppTheme.goldGradient,
+                              gradient: isDark
+                                  ? AppTheme.goldGradient
+                                  : const LinearGradient(
+                                      colors: [AppTheme.primaryGreen, AppTheme.darkGreen],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.gold.withValues(
-                                    alpha: 0.4 * _shieldGlow.value,
+                                  color: (isDark ? AppTheme.gold : AppTheme.primaryGreen).withValues(
+                                    alpha: 0.3 * _shieldGlow.value,
                                   ),
                                   blurRadius: 40 * _shieldGlow.value,
-                                  spreadRadius: 8 * _shieldGlow.value,
+                                  spreadRadius: 4 * _shieldGlow.value,
                                 ),
                               ],
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.shield_rounded,
                               size: 56,
-                              color: AppTheme.deepBackground,
+                              color: isDark ? AppTheme.deepBackground : Colors.white,
                             ),
                           ),
                         );
@@ -153,12 +162,13 @@ class _SplashScreenState extends State<SplashScreen>
                     // App name
                     FadeTransition(
                       opacity: _textFade,
-                      child: const Text(
-                        'طارد الشياطين',
+                      child: Text(
+                        'سَكينة',
                         style: TextStyle(
-                          fontSize: 30,
+                          fontSize: 32,
                           fontWeight: FontWeight.w800,
-                          color: AppTheme.gold,
+                          color: isDark ? AppTheme.gold : AppTheme.primaryGreen,
+                          fontFamily: 'Cairo',
                         ),
                       ),
                     ),
@@ -168,10 +178,11 @@ class _SplashScreenState extends State<SplashScreen>
                     FadeTransition(
                       opacity: _textFade,
                       child: Text(
-                        'سورة البقرة حصنك من الشيطان',
+                        'طمأنينة وأذكار وحفظ للمسلم',
                         style: TextStyle(
                           fontSize: 14,
-                          color: AppTheme.textSecondary.withValues(alpha: 0.8),
+                          color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                          fontFamily: 'Cairo',
                         ),
                       ),
                     ),
