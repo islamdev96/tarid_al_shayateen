@@ -6,6 +6,7 @@ import '../models/schedule_settings.dart';
 import '../providers/app_provider.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -112,6 +113,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 16),
                       _buildAzkarEveningTimePicker(theme),
                     ],
+                    const Divider(height: 40),
+                    _buildSectionHeader('تحسين العمل في الخلفية', theme),
+                    const SizedBox(height: 8),
+                    _buildBatteryOptimizationCard(theme),
                     const SizedBox(height: 120), // Padding to avoid overlap with mini player
                   ]),
                 ),
@@ -559,6 +564,73 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBatteryOptimizationCard(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    return GlassCard(
+      padding: const EdgeInsets.all(18),
+      borderRadius: BorderRadius.circular(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.battery_alert_rounded, color: theme.colorScheme.secondary, size: 24),
+              const SizedBox(width: 10),
+              Text(
+                'استثناء التطبيق من توفير البطارية',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'أنظمة التشغيل الحديثة (خاصة Android 13/14+) تقوم بإغلاق العمليات الخلفية للحفاظ على البطارية، مما قد يعطل تشغيل سورة البقرة أو الأذان في وقته بدقة.\n\nتأكد من إعطاء الصلاحية واختيار "غير مقيد" (Unrestricted) للتطبيق من إعدادات بطارية الهاتف.',
+            style: TextStyle(
+              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              fontSize: 13,
+              height: 1.6,
+              fontFamily: 'Cairo',
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onPressed: () async {
+              final isGranted = await Permission.ignoreBatteryOptimizations.isGranted;
+              if (!isGranted) {
+                await Permission.ignoreBatteryOptimizations.request();
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('الصلاحية مفعلة بالفعل للتطبيق', style: TextStyle(fontFamily: 'Cairo')),
+                      backgroundColor: AppTheme.successGreen,
+                    ),
+                  );
+                }
+              }
+            },
+            icon: const Icon(CupertinoIcons.battery_charging, size: 18),
+            label: const Text(
+              'تفعيل الاستثناء من الإعدادات',
+              style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ),
+        ],
       ),
     );
   }

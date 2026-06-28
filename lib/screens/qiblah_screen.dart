@@ -9,6 +9,9 @@ import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' hide Path;
+import 'package:geolocator/geolocator.dart';
 
 class QiblahScreen extends StatefulWidget {
   const QiblahScreen({super.key});
@@ -18,6 +21,58 @@ class QiblahScreen extends StatefulWidget {
 }
 
 class _QiblahScreenState extends State<QiblahScreen> {
+  bool _showMap = false;
+  Position? _userPosition;
+  bool _isLoadingLocation = false;
+
+  Future<void> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    setState(() {
+      _isLoadingLocation = true;
+    });
+
+    try {
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('خدمات الموقع غير مفعلة في الهاتف.');
+      }
+
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('تم رفض الوصول إلى موقعك الجغرافي.');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('تم رفض صلاحيات الموقع بشكل دائم. يرجى تفعيلها من إعدادات النظام.');
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+      );
+      setState(() {
+        _userPosition = position;
+        _isLoadingLocation = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingLocation = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString(), style: const TextStyle(fontFamily: 'Cairo')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   bool _hasHapticFeedbackTriggered = false;
 
   // Spherical trigonometry calculation of Qiblah direction from Makkah
@@ -67,8 +122,12 @@ class _QiblahScreenState extends State<QiblahScreen> {
     final provider = context.watch<AppProvider>();
     final city = provider.selectedCity;
 
-    final double qiblahAngle = _calculateQiblah(city.latitude, city.longitude);
-    final double distance = _calculateDistanceToKaaba(city.latitude, city.longitude);
+    final double userLat = _userPosition?.latitude ?? city.latitude;
+    final double userLng = _userPosition?.longitude ?? city.longitude;
+    final String locationName = _userPosition != null ? 'موقعي الفعلي' : city.nameAr;
+
+    final double qiblahAngle = _calculateQiblah(userLat, userLng);
+    final double distance = _calculateDistanceToKaaba(userLat, userLng);
 
     return Scaffold(
       body: GlassyBackground(
@@ -77,6 +136,9 @@ class _QiblahScreenState extends State<QiblahScreen> {
             children: [
               // Custom Navigation Top Bar
               _buildTopBar(theme),
+
+              // Top Segment Switch
+              _buildTopSegmentControl(theme, isDark),
 
               Expanded(
                 child: SingleChildScrollView(
@@ -87,64 +149,75 @@ class _QiblahScreenState extends State<QiblahScreen> {
                         const SizedBox(height: 10),
                         
                         // Header with city info
-                        _buildCityHeader(city.nameAr, qiblahAngle, distance, theme, isDark),
+                        _buildCityHeader(locationName, qiblahAngle, distance, theme, isDark),
                         
                         const SizedBox(height: 30),
 
-                        // Interactive Compass stream
-                        StreamBuilder<CompassEvent>(
-                          stream: FlutterCompass.events,
-                          builder: (context, snapshot) {
-                            if (snapshot.hasError) {
-                              return _buildFallbackCompass(qiblahAngle, theme, isDark, error: 'حدث خطأ في قراءة المستشعر');
-                            }
-
-                            // If compass sensor is not supported, or returned null data
-                            final data = snapshot.data;
-                            if (data == null || data.heading == null) {
-                              return _buildFallbackCompass(qiblahAngle, theme, isDark);
-                            }
-
-                            final double heading = data.heading!;
-                            
-                            // The compass rotation is -heading (to orient dial with north)
-                            final double compassRotation = -heading * math.pi / 180.0;
-                            // The Qiblah offset in screen space: Qiblah angle - heading
-                            final double relativeQiblah = (qiblahAngle - heading + 360.0) % 360.0;
-                            
-                            // Check if phone is aligned with Qiblah (within 5 degrees)
-                            final bool isAligned = (relativeQiblah < 5 || relativeQiblah > 355);
-
-                            if (isAligned) {
-                              if (!_hasHapticFeedbackTriggered) {
-                                HapticFeedback.mediumImpact();
-                                _hasHapticFeedbackTriggered = true;
+                        if (_showMap)
+                          _isLoadingLocation
+                              ? const SizedBox(
+                                  height: 380,
+                                  child: Center(
+                                    child: CupertinoActivityIndicator(radius: 14),
+                                  ),
+                                )
+                              : _buildMapUI(userLat, userLng, theme, isDark)
+                        else ...[
+                          // Interactive Compass stream
+                          StreamBuilder<CompassEvent>(
+                            stream: FlutterCompass.events,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                return _buildFallbackCompass(qiblahAngle, theme, isDark, error: 'حدث خطأ في قراءة المستشعر');
                               }
-                            } else {
-                              _hasHapticFeedbackTriggered = false;
-                            }
 
-                            return Column(
-                              children: [
-                                _buildCompassUI(
-                                  compassRotation: compassRotation,
-                                  qiblahAngleRad: qiblahAngle * math.pi / 180.0,
-                                  isAligned: isAligned,
-                                  theme: theme,
-                                  isDark: isDark,
-                                  relativeQiblah: relativeQiblah,
-                                ),
-                                const SizedBox(height: 32),
-                                _buildAlignmentIndicator(isAligned, relativeQiblah, theme),
-                              ],
-                            );
-                          },
-                        ),
-                        
-                        const SizedBox(height: 30),
+                              // If compass sensor is not supported, or returned null data
+                              final data = snapshot.data;
+                              if (data == null || data.heading == null) {
+                                return _buildFallbackCompass(qiblahAngle, theme, isDark);
+                              }
 
-                        // Compass calibration tips
-                        _buildCalibrationCard(theme, isDark),
+                              final double heading = data.heading!;
+                              
+                              // The compass rotation is -heading (to orient dial with north)
+                              final double compassRotation = -heading * math.pi / 180.0;
+                              // The Qiblah offset in screen space: Qiblah angle - heading
+                              final double relativeQiblah = (qiblahAngle - heading + 360.0) % 360.0;
+                              
+                              // Check if phone is aligned with Qiblah (within 5 degrees)
+                              final bool isAligned = (relativeQiblah < 5 || relativeQiblah > 355);
+
+                              if (isAligned) {
+                                if (!_hasHapticFeedbackTriggered) {
+                                  HapticFeedback.mediumImpact();
+                                  _hasHapticFeedbackTriggered = true;
+                                }
+                              } else {
+                                _hasHapticFeedbackTriggered = false;
+                              }
+
+                              return Column(
+                                children: [
+                                  _buildCompassUI(
+                                    compassRotation: compassRotation,
+                                    qiblahAngleRad: qiblahAngle * math.pi / 180.0,
+                                    isAligned: isAligned,
+                                    theme: theme,
+                                    isDark: isDark,
+                                    relativeQiblah: relativeQiblah,
+                                  ),
+                                  const SizedBox(height: 32),
+                                  _buildAlignmentIndicator(isAligned, relativeQiblah, theme),
+                                ],
+                              );
+                            },
+                          ),
+                          
+                          const SizedBox(height: 30),
+
+                          // Compass calibration tips
+                          _buildCalibrationCard(theme, isDark),
+                        ],
                         const SizedBox(height: 120), // Padding to avoid overlap with mini player
                       ],
                     ),
@@ -155,6 +228,191 @@ class _QiblahScreenState extends State<QiblahScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTopSegmentControl(ThemeData theme, bool isDark) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: CupertinoSegmentedControl<bool>(
+        groupValue: _showMap,
+        borderColor: theme.colorScheme.primary,
+        selectedColor: theme.colorScheme.primary,
+        unselectedColor: Colors.transparent,
+        pressedColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+        children: {
+          false: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CupertinoIcons.compass, size: 18),
+                const SizedBox(width: 6),
+                Text('البوصلة', style: TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: _showMap ? FontWeight.normal : FontWeight.bold)),
+              ],
+            ),
+          ),
+          true: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(CupertinoIcons.map, size: 18),
+                const SizedBox(width: 6),
+                Text('الخريطة التفاعلية', style: TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: _showMap ? FontWeight.bold : FontWeight.normal)),
+              ],
+            ),
+          ),
+        },
+        onValueChanged: (val) {
+          setState(() {
+            _showMap = val;
+          });
+          if (val && _userPosition == null) {
+            _determinePosition();
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildMapUI(double userLat, double userLng, ThemeData theme, bool isDark) {
+    final MapController mapController = MapController();
+    return Column(
+      children: [
+        GlassCard(
+          clipBehavior: Clip.antiAlias,
+          height: 380,
+          width: double.infinity,
+          child: Stack(
+            children: [
+              FlutterMap(
+                mapController: mapController,
+                options: MapOptions(
+                  initialCenter: LatLng(userLat, userLng),
+                  initialZoom: 4.5,
+                  maxZoom: 18,
+                  minZoom: 2,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.islamglab.tarid_al_shayateen',
+                  ),
+                  PolylineLayer(
+                    polylines: [
+                      Polyline(
+                        points: [
+                          LatLng(userLat, userLng),
+                          LatLng(21.422487, 39.826206),
+                        ],
+                        color: isDark ? AppTheme.gold : AppTheme.primaryGreen,
+                        strokeWidth: 4.0,
+                        isDotted: true,
+                      ),
+                    ],
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      // User Location Marker
+                      Marker(
+                        point: LatLng(userLat, userLng),
+                        width: 50,
+                        height: 50,
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: theme.colorScheme.primary,
+                                border: Border.all(color: Colors.white, width: 2),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black26, blurRadius: 6),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: const Icon(CupertinoIcons.person_fill, color: Colors.white, size: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Makkah Kaaba Marker
+                      Marker(
+                        point: LatLng(21.422487, 39.826206),
+                        width: 50,
+                        height: 50,
+                        child: Column(
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isDark ? AppTheme.gold : AppTheme.lightGold,
+                                border: Border.all(color: Colors.white, width: 2),
+                                boxShadow: const [
+                                  BoxShadow(color: Colors.black26, blurRadius: 6),
+                                ],
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              child: const Icon(Icons.mosque, color: Colors.black, size: 18),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              
+              // Map Zoom / Recenter Buttons on top of map
+              Positioned(
+                bottom: 12,
+                right: 12,
+                child: Column(
+                  children: [
+                    FloatingActionButton.small(
+                      heroTag: 'zoom_in',
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      onPressed: () => mapController.move(mapController.camera.center, mapController.camera.zoom + 1),
+                      child: const Icon(Icons.add),
+                    ),
+                    const SizedBox(height: 8),
+                    FloatingActionButton.small(
+                      heroTag: 'zoom_out',
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      onPressed: () => mapController.move(mapController.camera.center, mapController.camera.zoom - 1),
+                      child: const Icon(Icons.remove),
+                    ),
+                    const SizedBox(height: 8),
+                    FloatingActionButton.small(
+                      heroTag: 'recenter',
+                      backgroundColor: theme.colorScheme.secondary,
+                      foregroundColor: Colors.white,
+                      onPressed: () => mapController.move(LatLng(userLat, userLng), 5),
+                      child: const Icon(Icons.my_location),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        
+        const SizedBox(height: 16),
+        
+        // Locate me button to request geolocation manually
+        ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: _determinePosition,
+          icon: const Icon(CupertinoIcons.location_solid, size: 16),
+          label: const Text('تحديث الموقع الفعلي عبر GPS', style: TextStyle(fontFamily: 'Cairo', fontSize: 13)),
+        ),
+      ],
     );
   }
 

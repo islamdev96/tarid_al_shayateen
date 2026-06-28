@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../providers/app_provider.dart';
 import 'glass_card.dart';
+import '../screens/surah_text_screen.dart';
 
 /// A premium, glassmorphic mini player docked at the bottom of the screens.
 class MiniPlayerWidget extends StatefulWidget {
@@ -424,6 +425,32 @@ class _MiniPlayerWidgetState extends State<MiniPlayerWidget> {
                               ],
                             ],
                           ),
+                          if (dynamicProvider.currentPlayingSurah != null) ...[
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                backgroundColor: innerTheme.colorScheme.primary.withValues(alpha: 0.2),
+                                foregroundColor: innerTheme.colorScheme.primary,
+                                side: BorderSide(color: innerTheme.colorScheme.primary.withValues(alpha: 0.3)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                              icon: const Icon(CupertinoIcons.book),
+                              label: const Text(
+                                'قراءة السورة الحالية',
+                                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold),
+                              ),
+                              onPressed: () {
+                                Navigator.pop(ctx);
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => SurahTextScreen(surah: dynamicProvider.currentPlayingSurah!),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                           const SizedBox(height: 48),
                         ],
                       ),

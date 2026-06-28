@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -52,7 +53,12 @@ class AppProvider extends ChangeNotifier {
   String? _customTitle;
   String? _customSubtitle;
 
+  // Quran Text variables
+  bool _isLoadingSurahText = false;
+  final Map<int, List<String>> _cachedSurahTexts = {};
+
   // Getters
+  bool get isLoadingSurahText => _isLoadingSurahText;
   ScheduleSettings get settings => _settings;
   bool get isPlaying => _isPlaying;
   bool get isLoading => _isLoading;
@@ -629,6 +635,68 @@ class AppProvider extends ChangeNotifier {
       case 'isha': return 'العشاء';
       default: return '';
     }
+  }
+
+  List<String>? getSurahText(int number) => _cachedSurahTexts[number];
+
+  Future<List<String>?> loadSurahText(int surahNumber) async {
+    if (_cachedSurahTexts.containsKey(surahNumber)) {
+      return _cachedSurahTexts[surahNumber];
+    }
+
+    final path = await _getSurahTextFilePath(surahNumber);
+    final file = File(path);
+
+    if (await file.exists()) {
+      try {
+        final content = await file.readAsString();
+        final verses = content.split('\n');
+        _cachedSurahTexts[surahNumber] = verses;
+        return verses;
+      } catch (e) {
+        debugPrint('Error reading cached Surah text: $e');
+      }
+    }
+
+    _isLoadingSurahText = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await http.get(Uri.parse('https://api.alquran.cloud/v1/surah/$surahNumber'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final ayahsJson = data['data']['ayahs'] as List;
+        final verses = ayahsJson.map((a) => a['text'] as String).toList();
+
+        // Strip Bismillah from the first verse if it's there
+        if (verses.isNotEmpty && surahNumber != 1 && surahNumber != 9) {
+          const bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
+          if (verses[0].startsWith(bismillah)) {
+            verses[0] = verses[0].substring(bismillah.length).trim();
+          }
+        }
+
+        // Save to local cache file
+        await file.writeAsString(verses.join('\n'));
+        _cachedSurahTexts[surahNumber] = verses;
+        return verses;
+      } else {
+        throw Exception('فشل الاتصال بالخادم. رمز الخطأ: ${response.statusCode}');
+      }
+    } catch (e) {
+      _errorMessage = 'فشل تحميل نص السورة: تأكد من اتصالك بالإنترنت';
+      debugPrint('Error loading Surah text: $e');
+      return null;
+    } finally {
+      _isLoadingSurahText = false;
+      notifyListeners();
+    }
+  }
+
+  Future<String> _getSurahTextFilePath(int surahNumber) async {
+    final dir = await getApplicationDocumentsDirectory();
+    return '${dir.path}/surah_text_$surahNumber.txt';
   }
 
   @override

@@ -3,32 +3,32 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Islamic-inspired theme manager supporting both light and dark modes.
 class AppTheme {
-  // --- Dark Mode Color Palette (iOS Human Interface Guidelines) ---
-  static const Color primaryGreen = Color(0xFF0D4A2B);   // kept for Islamic identity
+  // --- Dark Mode Color Palette (elnegma-interactive colors) ---
+  static const Color primaryGreen = Color(0xFF0D4A2B);   // kept for reference
   static const Color darkGreen = Color(0xFF072A18);
-  static const Color deepBackground = Color(0xFF000000); // iOS System Background
-  static const Color cardBackground = Color(0xFF1C1C1E); // iOS Secondary Background
-  static const Color cardBorder = Color(0xFF3A3A3C);     // iOS Gray4
-  static const Color gold = Color(0xFFFF9F0A);           // iOS Orange (Dark)
-  static const Color goldLight = Color(0xFFFFD60A);      // iOS Yellow (Dark)
-  static const Color goldDark = Color(0xFFFF9500);       // iOS Orange (Light)
-  static const Color textPrimary = Color(0xFFFFFFFF);    // iOS Label
-  static const Color textSecondary = Color(0x99EBEBF5);  // iOS Secondary Label 60%
-  static const Color textMuted = Color(0x4DEBEBF5);      // iOS Tertiary Label 30%
-  static const Color accentTeal = Color(0xFF40CBE0);     // iOS Teal (Dark)
-  static const Color accentTealLight = Color(0xFF5E5CE6); // iOS Indigo (Dark)
-  static const Color accentTealDark = Color(0xFF0A84FF);  // iOS Blue (Dark)
-  static const Color errorRed = Color(0xFFFF453A);       // iOS Red (Dark)
-  static const Color successGreen = Color(0xFF30D158);   // iOS Green (Dark)
+  static const Color deepBackground = Color(0xFF181B24); // Dark Slate
+  static const Color cardBackground = Color(0xFF202430); // Muted Slate
+  static const Color cardBorder = Color(0x4DB165FB);     // Purple Tinted Border (rgba(177, 101, 251, 0.3))
+  static const Color gold = Color(0xFFD4A976);           // Accent Gold
+  static const Color goldLight = Color(0xFFE4C39B);      // Light Gold
+  static const Color goldDark = Color(0xFF59331F);       // Theme Brown
+  static const Color textPrimary = Color(0xFFFFFFFF);    // White
+  static const Color textSecondary = Color(0xFFA0AEC0);  // Muted Slate Text
+  static const Color textMuted = Color(0x4DA0AEC0);      // Muted Label
+  static const Color accentTeal = Color(0xFFB165FB);     // Accent Purple (Primary Accent)
+  static const Color accentTealLight = Color(0xFFC78CFC); // Light Accent Purple
+  static const Color accentTealDark = Color(0xFF9050DB);  // Dark Accent Purple
+  static const Color errorRed = Color(0xFFFF453A);       // Red (Dark)
+  static const Color successGreen = Color(0xFF30D158);   // Green (Dark)
 
   // --- Light Mode Color Palette ---
-  static const Color lightBg = Color(0xFFFAF8F5); // Warm Pearl/Cream
-  static const Color lightBgMid = Color(0xFFF0EAE1); // Warm sand
-  static const Color lightCardBackground = Color(0xFFF7F3EC); // Soft clean cream card
-  static const Color lightCardBorder = Color(0xFFE2DBCF); // Soft sand border
-  static const Color lightTextPrimary = Color(0xFF11261B); // Very deep emerald/charcoal
-  static const Color lightTextSecondary = Color(0xFF385243); // Muted deep green
-  static const Color lightTextMuted = Color(0xFF6F8978); // Soft sage green
+  static const Color lightBg = Color(0xFFFFFFFF); // Pure White
+  static const Color lightBgMid = Color(0xFFFFFFFF); // Pure White
+  static const Color lightCardBackground = Color(0x99FFFFFF); // Semi-transparent white card (60% opacity)
+  static const Color lightCardBorder = Color(0xFFE2E8F0); // Soft grey border
+  static const Color lightTextPrimary = Color(0xFF1E293B); // Deep Slate Grey
+  static const Color lightTextSecondary = Color(0xFF475569); // Muted Slate Grey
+  static const Color lightTextMuted = Color(0xFF94A3B8); // Soft Slate Grey
   static const Color lightGold = Color(0xFFB88B2E); // Deep gold
 
   /// Dark Theme Configuration
@@ -249,9 +249,9 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF000000), // iOS System Background
-          Color(0xFF0A0A1A), // أزرق-أسود خفيف
-          Color(0xFF1C1C1E), // iOS Secondary Background
+          Color(0xFF181B24), // Dark Slate
+          Color(0xFF0F1116), // Deep Dark Slate (transitional)
+          Color(0xFF181B24), // Dark Slate
         ],
       );
     } else {
@@ -259,9 +259,9 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFFEAF0FF), // أزرق فاتح جدًا
-          Color(0xFFF3E9FF), // بنفسجي فاتح
-          Color(0xFFFFF0F5), // وردي فاتح
+          Color(0xFFFFFFFF), // Pure White
+          Color(0xFFFFFFFF), // Pure White
+          Color(0xFFFFFFFF), // Pure White
         ],
       );
     }

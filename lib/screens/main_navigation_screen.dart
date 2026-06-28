@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import '../widgets/mini_player_widget.dart';
 import '../ui/glass/glass_bottom_bar.dart';
 import '../ui/app_icons.dart';
@@ -31,17 +30,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true, // Allows the screens to scroll behind the navigation bar and mini player
+      extendBody:
+          true, // Allows the screens to scroll behind the navigation bar and mini player
       body: Stack(
         children: [
           // Current active screen
           _screens[_currentIndex],
-          
+
           // Floating Mini Player docked above BottomNavigationBar
           Positioned(
             left: 0,
             right: 0,
-            bottom: 104, // Perfectly positioned above the floating GlassBottomBar
+            bottom:
+                104, // Perfectly positioned above the floating GlassBottomBar
             child: const MiniPlayerWidget(),
           ),
         ],

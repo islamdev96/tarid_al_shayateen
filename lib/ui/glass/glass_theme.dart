@@ -11,13 +11,13 @@ class GlassTokens {
   static const Color tintDark = Color(0xFFEBEBF5);
 
   // --- Light Mode (iOS ultraThinMaterial Light) ---
-  static const double cardOpacityLight = 0.55;
-  static const double barOpacityLight = 0.65;
-  static const double sheetOpacityLight = 0.60;
-  static const double softBlurLight = 40.0;
-  static const double strongBlurLight = 55.0;
-  static const double borderOpacityLight = 0.60;
-  static const Color tintLight = Color(0xFFFFFFFF);
+  static const double cardOpacityLight = 0.30;
+  static const double barOpacityLight = 0.40;
+  static const double sheetOpacityLight = 0.35;
+  static const double softBlurLight = 25.0;
+  static const double strongBlurLight = 45.0;
+  static const double borderOpacityLight = 0.30;
+  static const Color tintLight = Color(0xFFF1F5F9);
 
   // Shared defaults
   static const double radius = 22;

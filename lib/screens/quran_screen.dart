@@ -8,6 +8,7 @@ import '../models/reciter.dart';
 import '../providers/app_provider.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
+import 'surah_text_screen.dart';
 
 /// Screen allowing browsing, searching, and playing the 114 Surahs of the Holy Quran.
 class QuranScreen extends StatefulWidget {
@@ -243,20 +244,35 @@ class _QuranScreenState extends State<QuranScreen> {
             fontFamily: 'Cairo',
           ),
         ),
-        trailing: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isPlaying
-                ? Colors.red.withValues(alpha: 0.15)
-                : theme.colorScheme.primary.withValues(alpha: 0.1),
-          ),
-          child: Icon(
-            isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
-            color: isPlaying ? Colors.red : theme.colorScheme.primary,
-            size: 16,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(CupertinoIcons.book, color: theme.colorScheme.primary, size: 20),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => SurahTextScreen(surah: surah)),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: isPlaying
+                    ? Colors.red.withValues(alpha: 0.15)
+                    : theme.colorScheme.primary.withValues(alpha: 0.1),
+              ),
+              child: Icon(
+                isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+                color: isPlaying ? Colors.red : theme.colorScheme.primary,
+                size: 16,
+              ),
+            ),
+          ],
         ),
       ),
     );
