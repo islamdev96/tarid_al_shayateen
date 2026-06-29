@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -100,14 +101,14 @@ class AudioProvider extends ChangeNotifier {
     });
 
     final port = SchedulerService.registerPort();
-    _alarmSub = port.listen((message) {
+    _alarmSub = port?.listen((message) {
       if (message == 'play') {
         playNow();
       }
     });
 
     final prayerPort = SchedulerService.registerPrayerPort();
-    _prayerAlarmSub = prayerPort.listen((message) {
+    _prayerAlarmSub = prayerPort?.listen((message) {
       if (message.toString().startsWith('play_adhan_')) {
         final prayerId = message.toString().split('_').last;
         _playAdhanForeground(prayerId);
@@ -122,10 +123,8 @@ class AudioProvider extends ChangeNotifier {
     _isInitializing = false;
     notifyListeners();
 
-    final hasPending = await SchedulerService.checkPendingAlarm();
-    if (hasPending && settings.isEnabled) {
-      playNow();
-    }
+    _isInitializing = false;
+    notifyListeners();
   }
 
   Future<void> playNow() async {
@@ -310,6 +309,7 @@ class AudioProvider extends ChangeNotifier {
   }
 
   Future<String?> _findAnyCachedReciter() async {
+    if (kIsWeb) return null;
     for (final r in Reciter.defaultReciters) {
       final path = await _getCachedFilePath(r.id);
       if (await File(path).exists()) return path;
@@ -318,6 +318,7 @@ class AudioProvider extends ChangeNotifier {
   }
 
   Future<String> _getCachedFilePath(String reciterId) async {
+    if (kIsWeb) return '';
     final dir = await getApplicationDocumentsDirectory();
     return '${dir.path}/surah_baqarah_$reciterId.mp3';
   }

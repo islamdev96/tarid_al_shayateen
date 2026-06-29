@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
@@ -163,7 +164,7 @@ class AppProvider extends ChangeNotifier {
 
     // Register alarm port and listen
     final port = SchedulerService.registerPort();
-    _alarmSub = port.listen((message) {
+    _alarmSub = port?.listen((message) {
       if (message == 'play') {
         playNow();
       }
@@ -171,7 +172,7 @@ class AppProvider extends ChangeNotifier {
 
     // Register prayer alarm port and listen for foreground Adhan playback
     final prayerPort = SchedulerService.registerPrayerPort();
-    _prayerAlarmSub = prayerPort.listen((message) {
+    _prayerAlarmSub = prayerPort?.listen((message) {
       if (message.toString().startsWith('play_adhan_')) {
         final prayerId = message.toString().split('_').last;
         _playAdhanForeground(prayerId);
@@ -196,12 +197,6 @@ class AppProvider extends ChangeNotifier {
       notifyListeners();
     });
 
-    // Check if an alarm was missed while app was closed
-    final hasPending = await SchedulerService.checkPendingAlarm();
-    if (hasPending && _settings.isEnabled) {
-      playNow();
-    }
-
     // Auto-download offline reciter (visible to user)
     _autoDownloadOffline();
   }
@@ -209,6 +204,7 @@ class AppProvider extends ChangeNotifier {
   /// Download the offline reciter's audio if not cached yet.
   /// Progress is shown on the home screen.
   Future<void> _autoDownloadOffline() async {
+    if (kIsWeb) return;
     final offlineReciter = Reciter.defaultReciters.first; // Al-Hussary
     final path = await _getCachedFilePath(offlineReciter.id);
     if (!await File(path).exists()) {
@@ -425,17 +421,20 @@ class AppProvider extends ChangeNotifier {
 
   /// Check if a specific reciter is cached offline.
   Future<bool> isReciterCached(String reciterId) async {
+    if (kIsWeb) return false;
     final path = await _getCachedFilePath(reciterId);
     return File(path).exists();
   }
 
   /// Download a reciter for offline use.
   Future<void> downloadReciter(Reciter reciter) async {
+    if (kIsWeb) return;
     await _downloadAndCache(reciter);
   }
 
   /// Find any cached reciter file as fallback.
   Future<String?> _findAnyCachedReciter() async {
+    if (kIsWeb) return null;
     for (final r in Reciter.defaultReciters) {
       final path = await _getCachedFilePath(r.id);
       if (await File(path).exists()) return path;
@@ -444,6 +443,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<String> _getCachedFilePath(String reciterId) async {
+    if (kIsWeb) return '';
     final dir = await getApplicationDocumentsDirectory();
     return '${dir.path}/surah_baqarah_$reciterId.mp3';
   }
@@ -648,17 +648,19 @@ class AppProvider extends ChangeNotifier {
       return _cachedSurahTexts[surahNumber];
     }
 
-    final path = await _getSurahTextFilePath(surahNumber);
-    final file = File(path);
+    if (!kIsWeb) {
+      final path = await _getSurahTextFilePath(surahNumber);
+      final file = File(path);
 
-    if (await file.exists()) {
-      try {
-        final content = await file.readAsString();
-        final verses = content.split('\n');
-        _cachedSurahTexts[surahNumber] = verses;
-        return verses;
-      } catch (e) {
-        debugPrint('Error reading cached Surah text: $e');
+      if (await file.exists()) {
+        try {
+          final content = await file.readAsString();
+          final verses = content.split('\n');
+          _cachedSurahTexts[surahNumber] = verses;
+          return verses;
+        } catch (e) {
+          debugPrint('Error reading cached Surah text: $e');
+        }
       }
     }
 
@@ -682,7 +684,10 @@ class AppProvider extends ChangeNotifier {
         }
 
         // Save to local cache file
-        await file.writeAsString(verses.join('\n'));
+        if (!kIsWeb) {
+          final path = await _getSurahTextFilePath(surahNumber);
+          await File(path).writeAsString(verses.join('\n'));
+        }
         _cachedSurahTexts[surahNumber] = verses;
         return verses;
       } else {
@@ -699,6 +704,7 @@ class AppProvider extends ChangeNotifier {
   }
 
   Future<String> _getSurahTextFilePath(int surahNumber) async {
+    if (kIsWeb) return '';
     final dir = await getApplicationDocumentsDirectory();
     return '${dir.path}/surah_text_$surahNumber.txt';
   }

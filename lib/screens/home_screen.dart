@@ -261,25 +261,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 18,
                     fontFamily: 'Cairo',
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   'المتبقي: $_timeRemainingStr',
                   style: TextStyle(
                     color: theme.colorScheme.onSurface,
-                    fontSize: 14,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 6),
                 Text(
                   'المدينة: ${provider.selectedCity.nameAr} • الأذان في ${_formatTime(time)}',
                   style: TextStyle(
                     color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
-                    fontSize: 11,
+                    fontSize: 13,
                     fontFamily: 'Cairo',
                   ),
                 ),
@@ -287,13 +287,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           Container(
-            width: 48,
-            height: 48,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: theme.colorScheme.primary.withValues(alpha: 0.15),
             ),
-            child: Icon(CupertinoIcons.clock_fill, color: theme.colorScheme.primary, size: 24),
+            child: Icon(CupertinoIcons.clock_fill, color: theme.colorScheme.primary, size: 30),
           ),
         ],
       ),

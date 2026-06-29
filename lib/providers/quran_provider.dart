@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
@@ -68,7 +69,14 @@ class QuranProvider extends ChangeNotifier {
   }
 
   Future<String> _getSurahTextFilePath(int surahNumber) async {
+    if (kIsWeb) return '';
     final dir = await getApplicationDocumentsDirectory();
     return '${dir.path}/surah_text_$surahNumber.txt';
+  }
+
+  Future<String> _getCachedFilePath(String reciterId) async {
+    if (kIsWeb) return '';
+    final dir = await getApplicationDocumentsDirectory();
+    return '${dir.path}/surah_baqarah_$reciterId.mp3';
   }
 }

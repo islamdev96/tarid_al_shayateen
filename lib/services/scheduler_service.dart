@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:ui';
-import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart' if (dart.library.html) 'alarm_manager_stub.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -220,11 +221,13 @@ class SchedulerService {
   static const int _morningAlarmId = 222;
   static const int _eveningAlarmId = 333;
   static Future<void> init() async {
+    if (kIsWeb || !Platform.isAndroid) return;
     await AndroidAlarmManager.initialize();
   }
 
   /// Schedule the next playback at the given [dateTime].
   static Future<void> scheduleNext(DateTime dateTime, {bool isBackground = false}) async {
+    if (kIsWeb || !Platform.isAndroid) return;
     if (Platform.isAndroid && !isBackground) {
       final status = await Permission.scheduleExactAlarm.status;
       if (!status.isGranted) {
@@ -251,13 +254,15 @@ class SchedulerService {
 
   /// Cancel all scheduled alarms.
   static Future<void> cancelAll() async {
+    if (kIsWeb || !Platform.isAndroid) return;
     await AndroidAlarmManager.cancel(_alarmId);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('next_scheduled_time');
   }
 
   /// Register a port to listen for alarm callbacks from the background isolate.
-  static ReceivePort registerPort() {
+  static ReceivePort? registerPort() {
+    if (kIsWeb) return null;
     // Remove any existing port
     IsolateNameServer.removePortNameMapping(_portName);
 
@@ -285,6 +290,7 @@ class SchedulerService {
     TimeOfDay morningTime,
     TimeOfDay eveningTime,
   ) async {
+    if (kIsWeb || !Platform.isAndroid) return;
     // Cancel any existing alarms
     await AndroidAlarmManager.cancel(_morningAlarmId);
     await AndroidAlarmManager.cancel(_eveningAlarmId);
@@ -343,6 +349,7 @@ class SchedulerService {
 
   /// Schedule the next upcoming prayer time alarm.
   static Future<void> scheduleNextPrayer(CityConfig city, {bool isBackground = false}) async {
+    if (kIsWeb || !Platform.isAndroid) return;
     if (Platform.isAndroid && !isBackground) {
       final status = await Permission.scheduleExactAlarm.status;
       if (!status.isGranted) {
@@ -371,11 +378,13 @@ class SchedulerService {
 
   /// Cancel prayer alarms.
   static Future<void> cancelPrayerAlarms() async {
+    if (kIsWeb || !Platform.isAndroid) return;
     await AndroidAlarmManager.cancel(_prayerAlarmId);
   }
 
   /// Register a port to listen for prayer alarm callbacks from the background isolate.
-  static ReceivePort registerPrayerPort() {
+  static ReceivePort? registerPrayerPort() {
+    if (kIsWeb) return null;
     IsolateNameServer.removePortNameMapping(_prayerPortName);
     final receivePort = ReceivePort();
     IsolateNameServer.registerPortWithName(receivePort.sendPort, _prayerPortName);

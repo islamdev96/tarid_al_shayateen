@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../app_theme.dart';
 import '../models/surah.dart';
 import '../providers/app_provider.dart';
@@ -137,11 +138,10 @@ class _SurahTextScreenState extends State<SurahTextScreen> {
                                       SelectableText(
                                         verseText,
                                         textDirection: TextDirection.rtl,
-                                        style: TextStyle(
+                                        style: GoogleFonts.amiri(
                                           fontSize: _fontSize,
-                                          height: 1.8,
-                                          fontFamily: 'serif',
-                                          fontWeight: FontWeight.w500,
+                                          height: 2.0,
+                                          fontWeight: FontWeight.w600,
                                           color: theme.colorScheme.onSurface,
                                         ),
                                       ),
@@ -186,8 +186,8 @@ class _SurahTextScreenState extends State<SurahTextScreen> {
                 ),
               ),
 
-              // Bottom mini audio controller if this Surah is playing or audio is active
-              if (provider.hasActiveAudio) _buildFloatingAudioPlayer(provider, theme, isDark),
+              // Bottom mini audio controller
+              _buildFloatingAudioPlayer(provider, theme, isDark),
             ],
           ),
         ),

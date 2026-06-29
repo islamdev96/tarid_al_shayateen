@@ -257,19 +257,28 @@ class _QuranScreenState extends State<QuranScreen> {
               },
             ),
             const SizedBox(width: 8),
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isPlaying
-                    ? Colors.red.withValues(alpha: 0.15)
-                    : theme.colorScheme.primary.withValues(alpha: 0.1),
-              ),
-              child: Icon(
-                isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
-                color: isPlaying ? Colors.red : theme.colorScheme.primary,
-                size: 16,
+            GestureDetector(
+              onTap: () {
+                if (isPlaying) {
+                  provider.togglePlayPause();
+                } else {
+                  provider.playSurah(surah, provider.currentReciter);
+                }
+              },
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isPlaying
+                      ? Colors.red.withValues(alpha: 0.15)
+                      : theme.colorScheme.primary.withValues(alpha: 0.1),
+                ),
+                child: Icon(
+                  isPlaying ? CupertinoIcons.pause_fill : CupertinoIcons.play_fill,
+                  color: isPlaying ? Colors.red : theme.colorScheme.primary,
+                  size: 16,
+                ),
               ),
             ),
           ],

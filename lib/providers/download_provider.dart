@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import '../models/reciter.dart';
@@ -32,6 +33,11 @@ class DownloadProvider extends ChangeNotifier {
   }
 
   Future<void> downloadReciter(Reciter reciter) async {
+    if (kIsWeb) {
+      _errorMessage = 'التحميل غير مدعوم على نسخة الويب';
+      notifyListeners();
+      return;
+    }
     await _downloadAndCache(reciter);
   }
 
@@ -112,6 +118,7 @@ class DownloadProvider extends ChangeNotifier {
   }
 
   Future<String> _getCachedFilePath(String reciterId) async {
+    if (kIsWeb) return '';
     final dir = await getApplicationDocumentsDirectory();
     return '${dir.path}/surah_baqarah_$reciterId.mp3';
   }
