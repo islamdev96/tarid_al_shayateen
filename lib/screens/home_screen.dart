@@ -7,7 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../app_theme.dart';
 import '../ui/app_icons.dart';
-import '../providers/app_provider.dart';
+import '../providers/settings_provider.dart';
+import '../providers/prayer_times_provider.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
 import '../widgets/glass_card.dart';
@@ -52,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _updateNextPrayer() {
     if (!mounted) return;
-    final provider = context.read<AppProvider>();
+    final provider = context.read<PrayerTimesProvider>();
     final city = provider.selectedCity;
     
     final next = PrayerTimesService.getNextPrayer(city);
@@ -150,7 +151,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final provider = context.watch<AppProvider>();
+    final settingsProvider = context.watch<SettingsProvider>();
+    final prayerProvider = context.watch<PrayerTimesProvider>();
 
     return Scaffold(
       body: GlassyBackground(
@@ -181,12 +183,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         const Spacer(),
                         IconButton(
                           icon: Icon(
-                            provider.isDarkMode
+                            settingsProvider.isDarkMode
                                 ? CupertinoIcons.sun_max_fill
                                 : CupertinoIcons.moon_fill,
                           ),
-                          color: provider.isDarkMode ? AppTheme.accentTeal : AppTheme.lightGold,
-                          onPressed: () => provider.toggleThemeMode(),
+                          color: settingsProvider.isDarkMode ? AppTheme.accentTeal : AppTheme.lightGold,
+                          onPressed: () => settingsProvider.toggleThemeMode(),
                         ),
                       ],
                     ),
@@ -203,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 16),
 
                         // Next Prayer Card (Quick Summary)
-                        _buildNextPrayerCard(theme, provider),
+                        _buildNextPrayerCard(theme, prayerProvider),
                         const SizedBox(height: 20),
 
                         // Quick Actions Grid (2x2)
@@ -239,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildNextPrayerCard(ThemeData theme, AppProvider provider) {
+  Widget _buildNextPrayerCard(ThemeData theme, PrayerTimesProvider provider) {
     if (_nextPrayer == null) return const SizedBox.shrink();
     
     final isDark = theme.brightness == Brightness.dark;

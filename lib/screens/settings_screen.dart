@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../models/schedule_settings.dart';
-import '../providers/app_provider.dart';
+import '../providers/settings_provider.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -24,15 +24,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final provider = context.read<AppProvider>();
+    final provider = context.read<SettingsProvider>();
     _draft = provider.settings;
     _azkarReminderEnabled = provider.isAzkarReminderEnabled;
     _azkarMorningTime = provider.azkarMorningTime;
     _azkarEveningTime = provider.azkarEveningTime;
   }
 
-  void _save() {
-    final provider = context.read<AppProvider>();
+  String _formatTimeOfDay(TimeOfDay time) {
+    final hour = time.hour;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'م' : 'ص';
+    final formattedHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    return '$formattedHour:$minute $period';
+  }
+
+  void _save({bool showMessage = false}) {
+    final provider = context.read<SettingsProvider>();
     provider.updateSettings(_draft);
     
     // Save Azkar reminders settings
@@ -42,23 +50,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
       eveningTime: _azkarEveningTime,
     );
 
-    final nextTime = _draft.getNextPlaybackTime();
-    if (nextTime != null) {
-      final timeStr = '${nextTime.hour.toString().padLeft(2, '0')}:${nextTime.minute.toString().padLeft(2, '0')}';
-      final dateStr = '${nextTime.year}-${nextTime.month.toString().padLeft(2, '0')}-${nextTime.day.toString().padLeft(2, '0')}';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم حفظ الإعدادات بنجاح وجدولة تشغيل سورة البقرة يوم $dateStr الساعة $timeStr', style: const TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('تم حفظ إعدادات التطبيق بنجاح', style: TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
+    if (showMessage) {
+      final nextTime = _draft.getNextPlaybackTime();
+      if (nextTime != null) {
+        final hour = nextTime.hour;
+        final minute = nextTime.minute.toString().padLeft(2, '0');
+        final period = hour >= 12 ? 'م' : 'ص';
+        final formattedHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+        final timeStr = '$formattedHour:$minute $period';
+        final dateStr = '${nextTime.year}-${nextTime.month.toString().padLeft(2, '0')}-${nextTime.day.toString().padLeft(2, '0')}';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم الجدولة التلقائية يوم $dateStr الساعة $timeStr', style: const TextStyle(fontFamily: 'Cairo')),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('تم الحفظ التلقائي للإعدادات', style: TextStyle(fontFamily: 'Cairo')),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+      }
     }
   }
 
@@ -75,12 +89,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 floating: true,
                 backgroundColor: Colors.transparent,
                 title: const Text('الإعدادات'),
-                actions: [
-                  TextButton(
-                    onPressed: _save,
-                    child: Text('حفظ', style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700, fontFamily: 'Cairo')),
-                  ),
-                ],
               ),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -143,7 +151,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           CupertinoSwitch(
             value: _draft.isEnabled,
             activeTrackColor: theme.colorScheme.primary,
-            onChanged: (v) => setState(() => _draft = _draft.copyWith(isEnabled: v)),
+            onChanged: (v) {
+              setState(() => _draft = _draft.copyWith(isEnabled: v));
+              _save();
+            },
           ),
         ],
       ),
@@ -177,6 +188,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
         if (picked != null) {
           setState(() => _draft = _draft.copyWith(playbackTime: picked));
+          _save(showMessage: true);
         }
       },
       child: GlassCard(
@@ -200,7 +212,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 0.5),
               ),
               child: Text(
-                '${_draft.playbackTime.hour.toString().padLeft(2, '0')}:${_draft.playbackTime.minute.toString().padLeft(2, '0')}',
+                _formatTimeOfDay(_draft.playbackTime),
                 style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -242,7 +254,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isSelected = _draft.repeatMode == mode;
     final isDark = theme.brightness == Brightness.dark;
     return GestureDetector(
-      onTap: () => setState(() => _draft = _draft.copyWith(repeatMode: mode)),
+      onTap: () {
+        setState(() => _draft = _draft.copyWith(repeatMode: mode));
+        _save();
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -352,6 +367,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   final newDays = Set<int>.from(_draft.selectedWeekDays);
                   if (isSelected) { newDays.remove(entry.key); } else { newDays.add(entry.key); }
                   setState(() => _draft = _draft.copyWith(selectedWeekDays: newDays));
+                  _save();
                 },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
@@ -439,7 +455,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           CupertinoSwitch(
             value: _azkarReminderEnabled,
             activeTrackColor: theme.colorScheme.primary,
-            onChanged: (v) => setState(() => _azkarReminderEnabled = v),
+            onChanged: (v) {
+              setState(() => _azkarReminderEnabled = v);
+              _save();
+            },
           ),
         ],
       ),
@@ -473,6 +492,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
         if (picked != null) {
           setState(() => _azkarMorningTime = picked);
+          _save(showMessage: true);
         }
       },
       child: GlassCard(
@@ -496,7 +516,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 0.5),
               ),
               child: Text(
-                '${_azkarMorningTime.hour.toString().padLeft(2, '0')}:${_azkarMorningTime.minute.toString().padLeft(2, '0')}',
+                _formatTimeOfDay(_azkarMorningTime),
                 style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
@@ -533,6 +553,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         );
         if (picked != null) {
           setState(() => _azkarEveningTime = picked);
+          _save(showMessage: true);
         }
       },
       child: GlassCard(
@@ -556,7 +577,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3), width: 0.5),
               ),
               child: Text(
-                '${_azkarEveningTime.hour.toString().padLeft(2, '0')}:${_azkarEveningTime.minute.toString().padLeft(2, '0')}',
+                _formatTimeOfDay(_azkarEveningTime),
                 style: TextStyle(color: theme.colorScheme.primary, fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),

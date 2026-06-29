@@ -188,8 +188,10 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
     final remaining = _remainingCounts[_currentIndex];
     final completedPercent = totalCount > 0 ? (totalCount - remaining) / totalCount : 0.0;
 
-    return Scaffold(
-      body: GlassyBackground(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        body: GlassyBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -221,7 +223,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildTopBar(ThemeData theme) {

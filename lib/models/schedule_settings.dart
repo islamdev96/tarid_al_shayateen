@@ -111,8 +111,11 @@ class ScheduleSettings {
   String getScheduleDescription() {
     if (!isEnabled) return 'الجدولة متوقفة';
 
-    final timeStr =
-        '${playbackTime.hour.toString().padLeft(2, '0')}:${playbackTime.minute.toString().padLeft(2, '0')}';
+    final hour = playbackTime.hour;
+    final minute = playbackTime.minute.toString().padLeft(2, '0');
+    final period = hour >= 12 ? 'م' : 'ص';
+    final formattedHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    final timeStr = '$formattedHour:$minute $period';
 
     switch (repeatMode) {
       case RepeatMode.daily:

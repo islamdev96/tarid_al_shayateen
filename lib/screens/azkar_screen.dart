@@ -14,8 +14,10 @@ class AzkarScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      body: GlassyBackground(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        body: GlassyBackground(
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -129,7 +131,7 @@ class AzkarScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildHadithHeader(ThemeData theme) {

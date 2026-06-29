@@ -98,9 +98,12 @@ class TaridApp extends StatelessWidget {
             ],
             locale: const Locale('ar', 'SA'),
             builder: (context, child) {
-              return Directionality(
-                textDirection: TextDirection.rtl,
-                child: child!,
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: child!,
+                ),
               );
             },
             home: const SplashScreen(),

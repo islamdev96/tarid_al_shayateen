@@ -20,8 +20,10 @@ class BaqarahFortificationScreen extends StatelessWidget {
     final provider = context.watch<AppProvider>();
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      body: GlassyBackground(
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        body: GlassyBackground(
         child: SafeArea(
           child: CustomScrollView(
             slivers: [
@@ -93,7 +95,7 @@ class BaqarahFortificationScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildBismillahHeader() {
