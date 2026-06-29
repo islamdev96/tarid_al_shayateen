@@ -178,10 +178,18 @@ Future<void> prayerAlarmCallback() async {
 
     if (isNotified) {
       await NotificationService.init();
+      final isSunrise = prayerId == 'sunrise';
+      final notificationTitle = isSunrise
+          ? 'حان الآن وقت شروق الشمس ☀️'
+          : 'حان وقت صلاة $prayerName 🕌';
+      final notificationBody = isSunrise
+          ? 'حان الآن موعد شروق الشمس حسب التوقيت المحلي لمدينة ${city.nameAr}.'
+          : 'حان الآن موعد أذان صلاة $prayerName حسب التوقيت المحلي لمدينة ${city.nameAr}.';
+
       await NotificationService.showNotification(
         id: 444,
-        title: 'حان وقت صلاة $prayerName 🕌',
-        body: 'حان الآن موعد أذان صلاة $prayerName حسب التوقيت المحلي لمدينة ${city.nameAr}.',
+        title: notificationTitle,
+        body: notificationBody,
         payload: 'prayer_$prayerId',
       );
 

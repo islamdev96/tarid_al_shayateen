@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:just_audio/just_audio.dart';
@@ -96,14 +97,19 @@ class _AudioCategoryScreenState extends State<AudioCategoryScreen> {
       try {
         await _previewPlayer.stop();
         
-        // If cached, play local file to save bandwidth
-        final downloadProvider = context.read<DownloadProvider>();
-        final isCached = await downloadProvider.isAdhanCached(item.id);
-        if (isCached) {
-          final dir = await getApplicationDocumentsDirectory();
-          final localPath = '${dir.path}/adhan_${item.id}.mp3';
-          await _previewPlayer.setFilePath(localPath);
+        if (!kIsWeb) {
+          // If cached, play local file to save bandwidth
+          final downloadProvider = context.read<DownloadProvider>();
+          final isCached = await downloadProvider.isAdhanCached(item.id);
+          if (isCached) {
+            final dir = await getApplicationDocumentsDirectory();
+            final localPath = '${dir.path}/adhan_${item.id}.mp3';
+            await _previewPlayer.setFilePath(localPath);
+          } else {
+            await _previewPlayer.setUrl(item.url);
+          }
         } else {
+          // On web, always stream from URL
           await _previewPlayer.setUrl(item.url);
         }
 

@@ -31,9 +31,9 @@ class AdhanSound {
       url: 'https://www.islamcan.com/audio/adhan/azan4.mp3',
     ),
     AdhanSound(
-      id: 'mishary',
-      nameAr: 'أذان مشاري العفاسي',
-      url: 'https://www.islamcan.com/audio/adhan/azan5.mp3',
+      id: 'abdulbasit',
+      nameAr: 'أذان عبد الباسط عبد الصمد',
+      url: 'https://www.islamcan.com/audio/adhan/azan7.mp3',
     ),
     AdhanSound(
       id: 'yusuf',

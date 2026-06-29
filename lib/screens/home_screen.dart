@@ -219,10 +219,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         // City Selector
                         _buildCitySelectorCard(prayerProvider, theme),
-                        const SizedBox(height: 12),
-
-                        // Adhan Selector
-                        _buildAdhanSelectorCard(prayerProvider, downloadProvider, theme),
                         const SizedBox(height: 16),
 
                         // Daily Prayer Times Section
@@ -289,6 +285,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCountdownCard(ThemeData theme, PrayerTimesProvider provider) {
     if (_nextPrayer == null) return const SizedBox.shrink();
     final prayerName = _nextPrayer!['name'] as String;
+    final prayerId = _nextPrayer!['id'] as String;
+    final isSunrise = prayerId == 'sunrise';
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
@@ -304,7 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           Text(
-            'الصلاة القادمة: صلاة $prayerName',
+            isSunrise ? 'الحدث القادم: وقت الشروق' : 'الصلاة القادمة: صلاة $prayerName',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -324,7 +322,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'الوقت المتبقي لإقامة الصلاة في مدينة ${provider.selectedCity.nameAr}',
+            isSunrise
+                ? 'الوقت المتبقي لشروق الشمس في مدينة ${provider.selectedCity.nameAr}'
+                : 'الوقت المتبقي لإقامة الصلاة في مدينة ${provider.selectedCity.nameAr}',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
@@ -374,85 +374,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAdhanSelectorCard(PrayerTimesProvider provider, DownloadProvider downloadProvider, ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-    final selectedAdhanId = provider.selectedAdhanId;
-    final adhan = AdhanSound.findById(selectedAdhanId);
-    final cacheKey = downloadProvider.getAdhanCacheKey(adhan.id);
-    final isDownloading = downloadProvider.isDownloading(cacheKey);
-    final progress = downloadProvider.getProgress(cacheKey);
-
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      borderRadius: BorderRadius.circular(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: selectedAdhanId,
-                icon: Icon(CupertinoIcons.speaker_3_fill, color: theme.colorScheme.primary, size: 20),
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Cairo',
-                ),
-                dropdownColor: isDark 
-                    ? const Color(0xFF0C1921)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                isExpanded: true,
-                onChanged: (String? newAdhanId) {
-                  if (newAdhanId != null) {
-                    provider.updateSelectedAdhan(newAdhanId);
-                  }
-                },
-                items: AdhanSound.defaultAdhans.map<DropdownMenuItem<String>>((AdhanSound a) {
-                  return DropdownMenuItem<String>(
-                    value: a.id,
-                    child: Text('صوت الأذان: ${a.nameAr}'),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          FutureBuilder<bool>(
-            future: downloadProvider.isAdhanCached(adhan.id),
-            builder: (context, snapshot) {
-              final isCached = snapshot.data ?? false;
-              if (isCached) {
-                return Icon(CupertinoIcons.checkmark_alt_circle_fill, color: theme.colorScheme.primary);
-              }
-
-              if (isDownloading) {
-                return SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    value: progress,
-                    strokeWidth: 2.5,
-                    color: theme.colorScheme.primary,
-                  ),
-                );
-              }
-
-              return IconButton(
-                icon: const Icon(CupertinoIcons.cloud_download),
-                color: theme.colorScheme.primary,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () {
-                  downloadProvider.downloadAdhan(adhan);
-                },
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildPrayerTimeItem(
     String id,
