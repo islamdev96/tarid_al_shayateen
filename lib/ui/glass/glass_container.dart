@@ -53,7 +53,7 @@ class GlassContainer extends StatelessWidget {
 
     // Specular border gradient (light reflection from top-left to bottom-right)
     final double specularOpacity = GlassTokens.getSpecularOpacity(context);
-    final double baseOpacity = opacity ?? (isDark ? 0.07 : 0.50);
+    final double baseOpacity = opacity ?? (isDark ? 0.07 : 0.85);
 
     final content = Container(
       width: width,
@@ -74,21 +74,7 @@ class GlassContainer extends StatelessWidget {
                 ],
               )
             : null,
-        boxShadow: customBoxShadow ?? [
-          // Layer 1: Deep ambient shadow
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
-            blurRadius: GlassTokens.ambientShadowBlur,
-            spreadRadius: -4,
-            offset: const Offset(0, GlassTokens.floatingElevation),
-          ),
-          // Layer 2: Crisp outline shadow
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.04),
-            blurRadius: GlassTokens.crispShadowBlur,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: customBoxShadow,
       ),
       child: ClipRRect(
         borderRadius: borderRadius,

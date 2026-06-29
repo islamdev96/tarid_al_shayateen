@@ -81,6 +81,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: true,
         titleTextStyle: GoogleFonts.cairo(
           fontSize: 20,
@@ -185,6 +186,7 @@ class AppTheme {
         backgroundColor: Colors.transparent,
         foregroundColor: lightTextPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         centerTitle: true,
         titleTextStyle: GoogleFonts.cairo(
           fontSize: 20,

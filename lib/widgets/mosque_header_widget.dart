@@ -75,10 +75,8 @@ class MosqueHeaderWidget extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.transparent,
-                    isDark
-                        ? AppTheme.deepBackground
-                        : AppTheme.lightBg,
+                    (isDark ? AppTheme.deepBackground : AppTheme.lightBg).withValues(alpha: 0),
+                    isDark ? AppTheme.deepBackground : AppTheme.lightBg,
                   ],
                 ),
               ),

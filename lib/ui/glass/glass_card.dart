@@ -74,35 +74,7 @@ class GlassCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Build custom shadows for glow/elevated variants
-    List<BoxShadow>? resolvedShadows = boxShadow;
-    if (glowColor != null) {
-      resolvedShadows = [
-        BoxShadow(
-          color: glowColor!.withValues(alpha: 0.12),
-          blurRadius: 24,
-          spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.06),
-          blurRadius: 20,
-          offset: const Offset(0, 8),
-        ),
-      ];
-    } else if (elevated) {
-      resolvedShadows = [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.50 : 0.12),
-          blurRadius: 36,
-          spreadRadius: -2,
-          offset: const Offset(0, 16),
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.06),
-          blurRadius: 12,
-          offset: const Offset(0, 4),
-        ),
-      ];
-    }
+    List<BoxShadow>? resolvedShadows = null;
 
     return GlassContainer(
       borderRadius: borderRadius ?? BorderRadius.circular(GlassTokens.radius),

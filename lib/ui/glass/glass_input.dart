@@ -80,15 +80,6 @@ class _GlassTextFieldState extends State<GlassTextField> {
                       : Colors.white.withValues(alpha: 0.60)),
               width: _isFocused ? 1.0 : 0.5,
             ),
-            boxShadow: _isFocused
-                ? [
-                    BoxShadow(
-                      color: accentColor.withValues(alpha: 0.08),
-                      blurRadius: 16,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
           ),
           child: TextField(
             controller: widget.controller,
