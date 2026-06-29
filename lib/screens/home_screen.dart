@@ -7,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../app_theme.dart';
-import '../ui/app_icons.dart';
 import '../providers/settings_provider.dart';
 import '../providers/prayer_times_provider.dart';
 import '../services/prayer_times_service.dart';

@@ -184,43 +184,27 @@ class AzkarScreen extends StatelessWidget {
       },
       child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        borderRadius: BorderRadius.circular(20), // Smooth iOS-style rounded corners
+        borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            // iOS Chevron on the far left (leading in RTL)
-            Icon(
-              CupertinoIcons.chevron_left,
-              size: 14,
-              color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
-            ),
-            const SizedBox(width: 8),
- 
-            // iOS-style count badge
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(20),
+                color: iconColor,
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Text(
-                '$count',
-                style: TextStyle(
-                  color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Cairo',
-                ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 24,
               ),
             ),
-            
-            const Spacer(),
- 
-            // Texts in the middle (aligned to the right next to the trailing icon)
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 14),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end, // RTL alignment
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       title,
@@ -246,27 +230,27 @@ class AzkarScreen extends StatelessWidget {
                 ),
               ),
             ),
- 
-            // iOS-style Trailing Icon Squircle on the far right (trailing in RTL)
             Container(
-              width: 48,
-              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: iconColor, // Solid background color
-                borderRadius: BorderRadius.circular(14), // Rounded square/squircle
-                boxShadow: [
-                  BoxShadow(
-                    color: iconColor.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: Icon(
-                icon,
-                color: Colors.white, // White icon inside
-                size: 24,
+              child: Text(
+                '$count',
+                style: TextStyle(
+                  color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
               ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              CupertinoIcons.chevron_left,
+              size: 14,
+              color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
             ),
           ],
         ),
@@ -291,30 +275,24 @@ class AzkarScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            Icon(
-              CupertinoIcons.chevron_left,
-              size: 14,
-              color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
-            ),
-            const SizedBox(width: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(20),
+                color: iconColor,
+                borderRadius: BorderRadius.circular(14),
               ),
               child: const Icon(
-                CupertinoIcons.checkmark,
-                color: Color(0xFFA855F7),
-                size: 14,
+                CupertinoIcons.infinite,
+                color: Colors.white,
+                size: 24,
               ),
             ),
-            const Spacer(),
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.only(right: 14),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'المسبحة الإلكترونية',
@@ -341,24 +319,22 @@ class AzkarScreen extends StatelessWidget {
               ),
             ),
             Container(
-              width: 48,
-              height: 48,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: iconColor,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [
-                  BoxShadow(
-                    color: iconColor.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(20),
               ),
               child: const Icon(
-                CupertinoIcons.infinite,
-                color: Colors.white,
-                size: 24,
+                CupertinoIcons.checkmark,
+                color: Color(0xFFA855F7),
+                size: 14,
               ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              CupertinoIcons.chevron_left,
+              size: 14,
+              color: isDark ? AppTheme.textMuted : AppTheme.lightTextMuted,
             ),
           ],
         ),
