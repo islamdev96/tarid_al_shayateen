@@ -11,6 +11,7 @@ class SettingsService {
   static const _keySelectedWeekDays = 'selected_week_days';
   static const _keyIsEnabled = 'is_enabled';
   static const _keySelectedReciterId = 'selected_reciter_id';
+  static const _keySelectedAdhanId = 'selected_adhan_id';
   static const _keyLastPlayedAt = 'last_played_at';
   static const _keyIsDarkMode = 'is_dark_mode';
   static const _keyIsAzkarReminderEnabled = 'is_azkar_reminder_enabled';
@@ -164,5 +165,13 @@ class SettingsService {
   /// Save whether notification is enabled for a specific prayer
   Future<void> setPrayerNotification(String prayerId, bool val) async {
     await _prefs.setBool('prayer_notif_$prayerId', val);
+  }
+
+  /// Get selected Adhan ID (defaults to 'madinah')
+  String get selectedAdhanId => _prefs.getString(_keySelectedAdhanId) ?? 'madinah';
+
+  /// Save selected Adhan ID
+  Future<void> setSelectedAdhanId(String adhanId) async {
+    await _prefs.setString(_keySelectedAdhanId, adhanId);
   }
 }
