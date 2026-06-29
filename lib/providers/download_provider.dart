@@ -142,11 +142,13 @@ class DownloadProvider extends ChangeNotifier {
   String getAdhanCacheKey(String adhanId) => 'adhan_$adhanId';
 
   Future<bool> isSurahCached(int surahNumber, String reciterId) async {
+    if (kIsWeb) return false;
     final path = await getSurahCachedFilePath(surahNumber, reciterId);
     return File(path).exists();
   }
 
   Future<bool> isAdhanCached(String adhanId) async {
+    if (kIsWeb) return false;
     final path = await getAdhanCachedFilePath(adhanId);
     return File(path).exists();
   }

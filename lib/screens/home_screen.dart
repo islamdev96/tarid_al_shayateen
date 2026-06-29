@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -80,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _requestPermissions() async {
+    if (kIsWeb) return; // Permissions not needed/supported on web
     final prefs = await SharedPreferences.getInstance();
     final alreadyShown = prefs.getBool('permissions_requested') ?? false;
     if (alreadyShown || !mounted) return;
@@ -376,21 +378,6 @@ class _HomeScreenState extends State<HomeScreen> {
           lightColor: const Color(0xFFFF9500),
           onTap: () {
             Navigator.push(context, CupertinoPageRoute(builder: (_) => const RadioScreen()));
-          },
-          theme: theme,
-        ),
-        _buildActionItem(
-          icon: AppIcons.ai,
-          label: 'الرفيق الذكي AI',
-          darkColor: const Color(0xFF0A84FF),
-          lightColor: const Color(0xFF007AFF),
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('الرفيق الذكي قريباً...', style: TextStyle(fontFamily: 'Cairo')),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
           },
           theme: theme,
         ),

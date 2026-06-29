@@ -28,10 +28,13 @@ class AppTheme {
   // Legacy aliases (keep for compatibility during migration)
   static const Color primaryGreen = Color(0xFF0A84FF);       // Maps to iOS Blue now
   static const Color darkGreen = Color(0xFF0071E3);
+  static const Color primaryColor = accentTeal;
+  static const Color secondaryColor = gold;
+  static const Color darkBackground = deepBackground;
 
   // ─── Light Mode Color Palette (Apple iOS 18 Light) ───
-  static const Color lightBg = Color(0xFFF2F2F7);           // iOS System Background
-  static const Color lightBgMid = Color(0xFFF9F9FB);
+  static const Color lightBg = Color(0xFFFFFFFF);           // Pure White
+  static const Color lightBgMid = Color(0xFFFFFFFF);
   static const Color lightCardBackground = Color(0x99FFFFFF); // 60% white frosted
   static const Color lightCardBorder = Color(0x66FFFFFF);     // 40% white specular
   static const Color lightTextPrimary = Color(0xFF000000);
@@ -272,9 +275,9 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFFF0F0F8),  // Soft lavender white
-          Color(0xFFF5F3F0),  // Warm cream
-          Color(0xFFEEF0F8),  // Cool white
+          Color(0xFFFFFFFF),  // Pure white
+          Color(0xFFFFFFFF),  // Pure white
+          Color(0xFFFFFFFF),  // Pure white
         ],
       );
     }
@@ -308,13 +311,6 @@ class AppTheme {
             : Colors.white.withValues(alpha: 0.80),
         width: 0.5,
       ),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.06),
-          blurRadius: 24,
-          offset: const Offset(0, 8),
-        ),
-      ],
     );
   }
 
@@ -331,18 +327,6 @@ class AppTheme {
         color: glow.withValues(alpha: isDark ? 0.25 : 0.20),
         width: 0.8,
       ),
-      boxShadow: [
-        BoxShadow(
-          color: glow.withValues(alpha: 0.10),
-          blurRadius: 20,
-          spreadRadius: 0,
-        ),
-        BoxShadow(
-          color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
-          blurRadius: 20,
-          offset: const Offset(0, 8),
-        ),
-      ],
     );
   }
 
@@ -350,13 +334,6 @@ class AppTheme {
   static BoxDecoration get glowingPlayButton => BoxDecoration(
     shape: BoxShape.circle,
     gradient: goldGradient,
-    boxShadow: [
-      BoxShadow(
-        color: const Color(0xFFFFD60A).withValues(alpha: 0.35),
-        blurRadius: 28,
-        spreadRadius: 2,
-      ),
-    ],
   );
 
   /// Pill button decoration for glassmorphic buttons.
