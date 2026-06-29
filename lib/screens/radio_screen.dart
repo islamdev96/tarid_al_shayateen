@@ -11,22 +11,33 @@ class RadioStation {
   final String nameAr;
   final String nameEn;
   final String url;
+  final String subtitleAr;
 
   const RadioStation({
     required this.nameAr,
     required this.nameEn,
     required this.url,
+    required this.subtitleAr,
   });
+
+  static const RadioStation egyptRadio = RadioStation(
+    nameAr: 'إذاعة القرآن الكريم - القاهرة',
+    nameEn: 'Quran Radio Cairo',
+    url: 'https://stream.radiojar.com/8s5u5tpdtwzuv',
+    subtitleAr: 'جمهورية مصر العربية • بث مباشر 24 ساعة',
+  );
+
+  static const RadioStation majdRadio = RadioStation(
+    nameAr: 'راديو المجد للقرآن الكريم',
+    nameEn: 'Almajd Quran Radio',
+    url: 'https://qurango.net/radio/tarateel',
+    subtitleAr: 'تلاوات خاشعة ومتجددة على مدار الساعة',
+  );
 }
 
-const RadioStation egyptRadio = RadioStation(
-  nameAr: 'إذاعة القرآن الكريم - القاهرة',
-  nameEn: 'Quran Radio Cairo',
-  url: 'http://stream.radiojar.com/8s5u5tpdtwzuv',
-);
-
 class RadioScreen extends StatefulWidget {
-  const RadioScreen({super.key});
+  final RadioStation station;
+  const RadioScreen({super.key, required this.station});
 
   @override
   State<RadioScreen> createState() => _RadioScreenState();
@@ -60,7 +71,7 @@ class _RadioScreenState extends State<RadioScreen> {
     final provider = context.watch<AppProvider>();
     final isDark = theme.brightness == Brightness.dark;
 
-    final isCurrent = provider.isLiveStream && provider.activeAudioTitle == egyptRadio.nameAr;
+    final isCurrent = provider.isLiveStream && provider.activeAudioTitle == widget.station.nameAr;
     final isPlaying = isCurrent && provider.isPlaying;
 
     return Scaffold(
@@ -117,7 +128,7 @@ class _RadioScreenState extends State<RadioScreen> {
 
                           // Title
                           Text(
-                            egyptRadio.nameAr,
+                            widget.station.nameAr,
                             textAlign: TextAlign.center,
                             textDirection: TextDirection.rtl,
                             style: TextStyle(
@@ -131,7 +142,7 @@ class _RadioScreenState extends State<RadioScreen> {
 
                           // Subtitle
                           Text(
-                            'جمهورية مصر العربية • بث مباشر 24 ساعة',
+                            widget.station.subtitleAr,
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
@@ -293,7 +304,7 @@ class _RadioScreenState extends State<RadioScreen> {
             if (isCurrent) {
               provider.togglePlayPause();
             } else {
-              provider.playRadio(egyptRadio.url, egyptRadio.nameAr);
+              provider.playRadio(widget.station.url, widget.station.nameAr);
             }
           },
           child: Container(

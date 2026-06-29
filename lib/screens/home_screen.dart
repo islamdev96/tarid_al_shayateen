@@ -563,7 +563,7 @@ class _HomeScreenState extends State<HomeScreen> {
           darkColor: const Color(0xFFFF9F0A),
           lightColor: const Color(0xFFFF9500),
           onTap: () {
-            Navigator.push(context, CupertinoPageRoute(builder: (_) => const RadioScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const RadioScreen(station: RadioStation.egyptRadio)));
           },
           theme: theme,
         ),
