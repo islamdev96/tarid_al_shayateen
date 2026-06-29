@@ -20,7 +20,6 @@ import 'baqarah_fortification_screen.dart';
 import 'tasbeeh_screen.dart';
 import 'prayer_times_screen.dart';
 import 'radio_screen.dart';
-import 'ai_assistant_screen.dart';
 
 /// The redesigned Home screen displaying a premium dashboard.
 class HomeScreen extends StatefulWidget {
@@ -99,39 +98,43 @@ class _HomeScreenState extends State<HomeScreen> {
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: AppTheme.cardBackground,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Row(
-            children: [
-              Icon(Icons.battery_alert_rounded, color: AppTheme.gold),
-              SizedBox(width: 8),
-              Text('صلاحية هامة للتنبيه', style: TextStyle(color: AppTheme.gold, fontSize: 18)),
-            ],
-          ),
-          content: const Text(
-            'لضمان عمل التنبيه في وقته بالثانية وإنت قافل التطبيق، نحتاج إعطاء التطبيق صلاحية (العمل في الخلفية / استثناء من توفير البطارية).\n\nاضغط "تفعيل" ثم "سماح" (Allow).',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 14, height: 1.6),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('تخطي', style: TextStyle(color: AppTheme.textMuted)),
+        builder: (ctx) {
+          final dialogTheme = Theme.of(ctx);
+          final isDark = dialogTheme.brightness == Brightness.dark;
+          return AlertDialog(
+            backgroundColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Icon(Icons.battery_alert_rounded, color: dialogTheme.colorScheme.secondary),
+                const SizedBox(width: 8),
+                Text('صلاحية هامة للتنبيه', style: TextStyle(color: dialogTheme.colorScheme.secondary, fontSize: 18)),
+              ],
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentTeal,
-                foregroundColor: AppTheme.deepBackground,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            content: Text(
+              'لضمان عمل التنبيه في وقته بالثانية وإنت قافل التطبيق، نحتاج إعطاء التطبيق صلاحية (العمل في الخلفية / استثناء من توفير البطارية).\n\nاضغط "تفعيل" ثم "سماح" (Allow).',
+              style: TextStyle(color: dialogTheme.colorScheme.onSurface.withValues(alpha: 0.7), fontSize: 14, height: 1.6),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text('تخطي', style: TextStyle(color: dialogTheme.colorScheme.onSurface.withValues(alpha: 0.4))),
               ),
-              onPressed: () async {
-                Navigator.pop(ctx);
-                await Permission.ignoreBatteryOptimizations.request();
-              },
-              child: const Text('تفعيل الصلاحية', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-        ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: dialogTheme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await Permission.ignoreBatteryOptimizations.request();
+                },
+                child: const Text('تفعيل الصلاحية', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
       );
     }
   }
@@ -203,10 +206,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildNextPrayerCard(theme, provider),
                         const SizedBox(height: 20),
 
-                        // Premium AI Banner Card
-                        _buildAiBannerCard(context, theme),
-                        const SizedBox(height: 20),
-
                         // Quick Actions Grid (2x2)
                         _buildQuickActionsGrid(context, theme),
                         const SizedBox(height: 20),
@@ -228,12 +227,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBismillahHeader(ThemeData theme) {
     return Text(
-      'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
+      'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
       textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: 22,
         fontFamily: 'serif',
-        color: theme.brightness == Brightness.dark ? AppTheme.accentTeal : AppTheme.primaryGreen,
+        color: theme.colorScheme.primary,
         fontWeight: FontWeight.w500,
         letterSpacing: 2,
       ),
@@ -299,132 +298,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildAiBannerCard(BuildContext context, ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return GlassCard(
-      padding: const EdgeInsets.all(20),
-      borderRadius: BorderRadius.circular(24),
-      border: Border.all(
-        color: isDark 
-            ? AppTheme.accentTeal.withValues(alpha: 0.35) 
-            : AppTheme.lightGold.withValues(alpha: 0.35),
-        width: 1.2,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: (isDark ? AppTheme.accentTeal : AppTheme.gold).withValues(alpha: 0.08),
-          blurRadius: 16,
-          spreadRadius: 1,
-        ),
-      ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: (isDark ? AppTheme.accentTeal : AppTheme.primaryGreen).withValues(alpha: 0.15),
-                ),
-                child: Icon(
-                  AppIcons.ai,
-                  color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'الرفيق الروحي الذكي (AI)',
-                style: TextStyle(
-                  color: theme.colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  fontFamily: 'Cairo',
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.redAccent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Text(
-                  'جديد',
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Cairo',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'محاور حواري ذكي للإجابة عن تساؤلاتك الروحية، تدبر الآيات القرآنية، وتقديم الدعم الإرشادي بخصوصية تامة وفق منهج علمي رصين.',
-            style: TextStyle(
-              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
-              fontSize: 12.5,
-              height: 1.55,
-              fontFamily: 'Cairo',
-            ),
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
-              );
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                color: isDark 
-                    ? AppTheme.accentTeal.withValues(alpha: 0.12)
-                    : AppTheme.primaryGreen.withValues(alpha: 0.1),
-                border: Border.all(
-                  color: isDark 
-                      ? AppTheme.accentTeal.withValues(alpha: 0.35) 
-                      : AppTheme.primaryGreen.withValues(alpha: 0.3),
-                  width: 0.8,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'ابدأ حواراً مع الرفيق الذكي',
-                    style: TextStyle(
-                      color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                      fontFamily: 'Cairo',
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    AppIcons.ai,
-                    color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
-                    size: 14,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildQuickActionsGrid(BuildContext context, ThemeData theme) {
     return GridView.count(
       crossAxisCount: 2,
@@ -437,80 +310,85 @@ class _HomeScreenState extends State<HomeScreen> {
         _buildActionItem(
           icon: CupertinoIcons.book,
           label: 'القرآن الكريم',
-          darkColor: AppTheme.accentTeal,
-          lightColor: AppTheme.primaryGreen,
+          darkColor: const Color(0xFF5AC8FA),
+          lightColor: const Color(0xFF007AFF),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const QuranScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const QuranScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
           icon: CupertinoIcons.shield,
           label: 'أذكار المسلم',
-          darkColor: AppTheme.accentTeal,
-          lightColor: AppTheme.primaryGreen,
+          darkColor: const Color(0xFF30D158),
+          lightColor: const Color(0xFF34C759),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AzkarScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const AzkarScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
           icon: CupertinoIcons.compass,
           label: 'اتجاه القبلة',
-          darkColor: AppTheme.accentTeal,
-          lightColor: AppTheme.primaryGreen,
+          darkColor: const Color(0xFF40CBE0),
+          lightColor: const Color(0xFF30B0C7),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const QiblahScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const QiblahScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
           icon: CupertinoIcons.shield_fill,
           label: 'حصن البيت',
-          darkColor: AppTheme.gold,
-          lightColor: AppTheme.lightGold,
+          darkColor: const Color(0xFFFFD60A),
+          lightColor: const Color(0xFFFF9500),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const BaqarahFortificationScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const BaqarahFortificationScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
           icon: CupertinoIcons.alarm,
           label: 'مواقيت الصلاة',
-          darkColor: AppTheme.accentTeal,
-          lightColor: AppTheme.primaryGreen,
+          darkColor: const Color(0xFF5E5CE6),
+          lightColor: const Color(0xFF5856D6),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const PrayerTimesScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const PrayerTimesScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
           icon: CupertinoIcons.infinite,
           label: 'المسبحة',
-          darkColor: AppTheme.accentTeal,
-          lightColor: AppTheme.primaryGreen,
+          darkColor: const Color(0xFFBF5AF2),
+          lightColor: const Color(0xFFAF52DE),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const TasbeehScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const TasbeehScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
           icon: CupertinoIcons.antenna_radiowaves_left_right,
           label: 'إذاعة القرآن',
-          darkColor: AppTheme.gold,
-          lightColor: AppTheme.lightGold,
+          darkColor: const Color(0xFFFF9F0A),
+          lightColor: const Color(0xFFFF9500),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const RadioScreen()));
+            Navigator.push(context, CupertinoPageRoute(builder: (_) => const RadioScreen()));
           },
           theme: theme,
         ),
         _buildActionItem(
           icon: AppIcons.ai,
           label: 'الرفيق الذكي AI',
-          darkColor: AppTheme.accentTeal,
-          lightColor: AppTheme.primaryGreen,
+          darkColor: const Color(0xFF0A84FF),
+          lightColor: const Color(0xFF007AFF),
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AiAssistantScreen()));
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('الرفيق الذكي قريباً...', style: TextStyle(fontFamily: 'Cairo')),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
           },
           theme: theme,
         ),

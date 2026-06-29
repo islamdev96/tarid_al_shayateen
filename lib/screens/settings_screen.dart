@@ -49,19 +49,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('تم حفظ الإعدادات بنجاح وجدولة تشغيل سورة البقرة يوم $dateStr الساعة $timeStr', style: const TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: AppTheme.accentTeal,
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم حفظ إعدادات التطبيق بنجاح', style: TextStyle(fontFamily: 'Cairo')),
-          backgroundColor: AppTheme.accentTeal,
+        SnackBar(
+          content: const Text('تم حفظ إعدادات التطبيق بنجاح', style: TextStyle(fontFamily: 'Cairo')),
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     }
-
-    Navigator.pop(context);
   }
 
   @override
@@ -482,7 +480,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            Icon(CupertinoIcons.sun_max_fill, color: theme.brightness == Brightness.dark ? AppTheme.gold : AppTheme.lightGold),
+            Icon(CupertinoIcons.sun_max_fill, color: theme.colorScheme.secondary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -542,7 +540,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.circular(20),
         child: Row(
           children: [
-            Icon(CupertinoIcons.moon_fill, color: AppTheme.accentTeal),
+            Icon(CupertinoIcons.moon_fill, color: theme.colorScheme.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -569,7 +567,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildBatteryOptimizationCard(ThemeData theme) {
-    final isDark = theme.brightness == Brightness.dark;
     return GlassCard(
       padding: const EdgeInsets.all(18),
       borderRadius: BorderRadius.circular(20),
@@ -595,7 +592,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Text(
             'أنظمة التشغيل الحديثة (خاصة Android 13/14+) تقوم بإغلاق العمليات الخلفية للحفاظ على البطارية، مما قد يعطل تشغيل سورة البقرة أو الأذان في وقته بدقة.\n\nتأكد من إعطاء الصلاحية واختيار "غير مقيد" (Unrestricted) للتطبيق من إعدادات بطارية الهاتف.',
             style: TextStyle(
-              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              color: theme.textTheme.bodyMedium?.color,
               fontSize: 13,
               height: 1.6,
               fontFamily: 'Cairo',

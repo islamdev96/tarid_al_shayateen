@@ -210,7 +210,7 @@ Future<void> prayerAlarmCallback() async {
   }
 
   // Reschedule next prayer alarm
-  await SchedulerService.scheduleNextPrayer(city);
+  await SchedulerService.scheduleNextPrayer(city, isBackground: true);
 }
 
 /// Manages scheduling periodic alarms to trigger Surah Al-Baqarah playback.
@@ -224,9 +224,12 @@ class SchedulerService {
   }
 
   /// Schedule the next playback at the given [dateTime].
-  static Future<void> scheduleNext(DateTime dateTime) async {
-    if (Platform.isAndroid) {
-      await Permission.scheduleExactAlarm.request();
+  static Future<void> scheduleNext(DateTime dateTime, {bool isBackground = false}) async {
+    if (Platform.isAndroid && !isBackground) {
+      final status = await Permission.scheduleExactAlarm.status;
+      if (!status.isGranted) {
+        await Permission.scheduleExactAlarm.request();
+      }
     }
     // Cancel any existing alarm
     await AndroidAlarmManager.cancel(_alarmId);
@@ -339,9 +342,12 @@ class SchedulerService {
   static const String _prayerPortName = 'tarid_prayer_port';
 
   /// Schedule the next upcoming prayer time alarm.
-  static Future<void> scheduleNextPrayer(CityConfig city) async {
-    if (Platform.isAndroid) {
-      await Permission.scheduleExactAlarm.request();
+  static Future<void> scheduleNextPrayer(CityConfig city, {bool isBackground = false}) async {
+    if (Platform.isAndroid && !isBackground) {
+      final status = await Permission.scheduleExactAlarm.status;
+      if (!status.isGranted) {
+        await Permission.scheduleExactAlarm.request();
+      }
     }
     // Cancel any existing prayer alarms
     await AndroidAlarmManager.cancel(_prayerAlarmId);

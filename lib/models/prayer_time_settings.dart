@@ -27,6 +27,7 @@ class PrayerTimeSettings {
 }
 
 /// Represents a city configuration with its geographic coordinates.
+@pragma('vm:entry-point')
 class CityConfig {
   final String id;
   final String nameAr;

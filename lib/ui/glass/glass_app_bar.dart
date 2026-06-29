@@ -2,11 +2,18 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'glass_theme.dart';
 
+/// Premium glassmorphic app bar with strong blur backdrop.
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
+  final Widget? leading;
 
-  const GlassAppBar({super.key, required this.title, this.actions});
+  const GlassAppBar({
+    super.key,
+    required this.title,
+    this.actions,
+    this.leading,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -14,7 +21,6 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final tintColor = GlassTokens.getTint(context);
 
     return ClipRect(
       child: BackdropFilter(
@@ -22,20 +28,37 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
           sigmaX: GlassTokens.getStrongBlur(context),
           sigmaY: GlassTokens.getStrongBlur(context),
         ),
-        child: AppBar(
-          title: Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              fontFamily: 'Cairo',
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.white.withValues(alpha: 0.60),
+            border: Border(
+              bottom: BorderSide(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.04),
+                width: 0.5,
+              ),
             ),
           ),
-          centerTitle: true,
-          backgroundColor: tintColor.withValues(alpha: GlassTokens.getBarOpacity(context)),
-          elevation: 0,
-          foregroundColor: isDark ? Colors.white : Colors.black87,
-          actions: actions,
+          child: AppBar(
+            title: Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                fontFamily: 'Cairo',
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            foregroundColor: isDark ? Colors.white : Colors.black87,
+            leading: leading,
+            actions: actions,
+          ),
         ),
       ),
     );

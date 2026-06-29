@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'glass_theme.dart';
 
+/// Premium glassmorphic container with frosted blur, specular border,
+/// inner glow, and realistic iOS-style depth.
 class GlassContainer extends StatelessWidget {
   final Widget child;
   final double? blur;
@@ -9,8 +11,9 @@ class GlassContainer extends StatelessWidget {
   final BorderRadius borderRadius;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
-  final Color? tint;       // لون الزجاج (أبيض للوضع الفاتح / غامق للداكن)
+  final Color? tint;
   final bool showBorder;
+  final bool showInnerGlow;
   final VoidCallback? onTap;
 
   // Backward compatibility fields
@@ -32,6 +35,7 @@ class GlassContainer extends StatelessWidget {
     this.margin,
     this.tint,
     this.showBorder = true,
+    this.showInnerGlow = true,
     this.onTap,
     this.width,
     this.height,
@@ -46,41 +50,42 @@ class GlassContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final resolvedBlur = blur ?? GlassTokens.getSoftBlur(context);
-    
-    // Specular border opacity (fades out at bottom-right)
-    final double borderOpacity = isDark ? 0.22 : 0.40;
-    final double baseOpacity = opacity ?? (isDark ? 0.11 : 0.26);
-    
+
+    // Specular border gradient (light reflection from top-left to bottom-right)
+    final double specularOpacity = GlassTokens.getSpecularOpacity(context);
+    final double baseOpacity = opacity ?? (isDark ? 0.07 : 0.50);
+
     final content = Container(
       width: width,
       height: height,
-      padding: showBorder && customBorder == null ? const EdgeInsets.all(0.8) : EdgeInsets.zero, // Outer border gap
+      // Outer specular border container
+      padding: showBorder && customBorder == null ? const EdgeInsets.all(0.5) : EdgeInsets.zero,
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         border: customBorder,
-        // Gradient simulating specularity (light reflection)
+        // Specular highlight gradient simulating glass edge reflection
         gradient: showBorder && customBorder == null
             ? LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.white.withValues(alpha: borderOpacity),
-                  Colors.white.withValues(alpha: borderOpacity * 0.12),
+                  Colors.white.withValues(alpha: specularOpacity),
+                  Colors.white.withValues(alpha: specularOpacity * 0.05),
                 ],
               )
             : null,
         boxShadow: customBoxShadow ?? [
-          // iOS-style deep ambient shadow
+          // Layer 1: Deep ambient shadow
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-            blurRadius: 28,
-            spreadRadius: -2,
-            offset: const Offset(0, 12),
+            color: Colors.black.withValues(alpha: isDark ? 0.40 : 0.08),
+            blurRadius: GlassTokens.ambientShadowBlur,
+            spreadRadius: -4,
+            offset: const Offset(0, GlassTokens.floatingElevation),
           ),
-          // iOS-style crisp outline shadow
+          // Layer 2: Crisp outline shadow
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: isDark ? 0.20 : 0.04),
+            blurRadius: GlassTokens.crispShadowBlur,
             offset: const Offset(0, 2),
           ),
         ],
@@ -94,17 +99,43 @@ class GlassContainer extends StatelessWidget {
             padding: padding ?? const EdgeInsets.all(18),
             decoration: BoxDecoration(
               borderRadius: borderRadius,
-              // Translucent frosted glass backing tint
+              // Translucent frosted glass tint
               gradient: customGradient ?? LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
                   Colors.white.withValues(alpha: baseOpacity),
-                  Colors.white.withValues(alpha: baseOpacity * 0.35),
+                  Colors.white.withValues(alpha: baseOpacity * 0.30),
                 ],
               ),
             ),
-            child: child,
+            child: Stack(
+              children: [
+                // Inner glow overlay (subtle radial highlight at top-left)
+                if (showInnerGlow)
+                  Positioned(
+                    top: -20,
+                    left: -20,
+                    child: Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white.withValues(
+                              alpha: GlassTokens.getInnerGlowOpacity(context),
+                            ),
+                            Colors.white.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                // The actual content
+                child,
+              ],
+            ),
           ),
         ),
       ),
@@ -114,13 +145,9 @@ class GlassContainer extends StatelessWidget {
       padding: margin ?? EdgeInsets.zero,
       child: onTap == null
           ? content
-          : Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: borderRadius,
-                onTap: onTap,
-                child: content,
-              ),
+          : GestureDetector(
+              onTap: onTap,
+              child: content,
             ),
     );
   }

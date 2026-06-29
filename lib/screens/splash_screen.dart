@@ -91,6 +91,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final accent = theme.colorScheme.primary;
 
     return Scaffold(
       body: AnimatedBuilder(
@@ -113,7 +114,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ',
                         style: TextStyle(
                           fontSize: 18,
-                          color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
+                          color: accent,
                           fontFamily: 'serif',
                           letterSpacing: 2,
                         ),
@@ -132,16 +133,10 @@ class _SplashScreenState extends State<SplashScreen>
                             height: 120,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              gradient: isDark
-                                  ? AppTheme.cyanGradient
-                                  : const LinearGradient(
-                                      colors: [AppTheme.primaryGreen, AppTheme.darkGreen],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
+                              gradient: AppTheme.cyanGradient,
                               boxShadow: [
                                 BoxShadow(
-                                  color: (isDark ? AppTheme.accentTeal : AppTheme.primaryGreen).withValues(
+                                  color: accent.withValues(
                                     alpha: 0.3 * _shieldGlow.value,
                                   ),
                                   blurRadius: 40 * _shieldGlow.value,
@@ -168,7 +163,7 @@ class _SplashScreenState extends State<SplashScreen>
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
-                          color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
+                          color: accent,
                           fontFamily: 'Cairo',
                         ),
                       ),
@@ -182,7 +177,7 @@ class _SplashScreenState extends State<SplashScreen>
                         'طمأنينة وأذكار وحفظ للمسلم',
                         style: TextStyle(
                           fontSize: 14,
-                          color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+                          color: theme.textTheme.bodyMedium?.color,
                           fontFamily: 'Cairo',
                         ),
                       ),

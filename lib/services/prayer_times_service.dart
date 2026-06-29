@@ -2,6 +2,7 @@ import 'package:adhan/adhan.dart';
 import '../models/prayer_time_settings.dart';
 
 /// Class to hold calculated prayer times as DateTimes.
+@pragma('vm:entry-point')
 class CalculatedPrayerTimes {
   final DateTime fajr;
   final DateTime sunrise;
@@ -33,6 +34,7 @@ class CalculatedPrayerTimes {
 }
 
 /// Service that computes prayer times using the adhan library.
+@pragma('vm:entry-point')
 class PrayerTimesService {
   /// Calculate prayer times for a given city and date.
   static CalculatedPrayerTimes calculate(CityConfig city, DateTime date) {

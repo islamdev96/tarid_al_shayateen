@@ -3,6 +3,7 @@ import 'package:just_audio/just_audio.dart';
 
 /// Custom AudioHandler that manages Surah Al-Baqarah playback as a
 /// foreground media service with notification controls.
+@pragma('vm:entry-point')
 class QuranAudioHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer _player = AudioPlayer();
 

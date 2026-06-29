@@ -1,6 +1,7 @@
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'app_theme.dart';
@@ -68,18 +69,29 @@ class TaridApp extends StatelessWidget {
       create: (_) => AppProvider()..init(_audioHandler),
       child: Consumer<AppProvider>(
         builder: (context, provider, _) {
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: MaterialApp(
-              title: 'سَكينة',
-              debugShowCheckedModeBanner: false,
-              theme: AppTheme.lightTheme,
-              darkTheme: AppTheme.darkTheme,
-              themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-              scrollBehavior: const IosScrollBehavior(),
-              locale: const Locale('ar', 'SA'),
-              home: const SplashScreen(),
-            ),
+          return MaterialApp(
+            title: 'سَكينة',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            scrollBehavior: const IosScrollBehavior(),
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('ar', 'SA'),
+            ],
+            locale: const Locale('ar', 'SA'),
+            builder: (context, child) {
+              return Directionality(
+                textDirection: TextDirection.rtl,
+                child: child!,
+              );
+            },
+            home: const SplashScreen(),
           );
         },
       ),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-/// Apple Human Interface Guidelines — iOS System Colors (Dark Mode)
+/// Apple Human Interface Guidelines — iOS 18 System Colors.
 class AppColors {
-  // خلفيات iOS
+  // ─── Dark Mode Backgrounds ───
   static const Color bg = Color(0xFF000000);
   static const Color bgSecondary = Color(0xFF1C1C1E);
   static const Color bgTertiary = Color(0xFF2C2C2E);
 
-  // ألوان النظام (Dark)
+  // ─── Dark Mode System Colors ───
   static const Color blue = Color(0xFF0A84FF);
   static const Color green = Color(0xFF30D158);
   static const Color indigo = Color(0xFF5E5CE6);
@@ -17,8 +17,10 @@ class AppColors {
   static const Color orange = Color(0xFFFF9F0A);
   static const Color yellow = Color(0xFFFFD60A);
   static const Color teal = Color(0xFF40CBE0);
+  static const Color cyan = Color(0xFF5AC8FA);
+  static const Color mint = Color(0xFF63E6E2);
 
-  // ألوان النظام (Light)
+  // ─── Light Mode System Colors ───
   static const Color blueLight = Color(0xFF007AFF);
   static const Color greenLight = Color(0xFF34C759);
   static const Color indigoLight = Color(0xFF5856D6);
@@ -28,14 +30,15 @@ class AppColors {
   static const Color orangeLight = Color(0xFFFF9500);
   static const Color yellowLight = Color(0xFFFFCC00);
   static const Color tealLight = Color(0xFF30B0C7);
+  static const Color cyanLight = Color(0xFF32ADE6);
 
-  // النصوص (Labels — Dark)
+  // ─── Labels (Dark) ───
   static const Color label = Color(0xFFFFFFFF);
-  static const Color labelSecondary = Color(0x99EBEBF5); // 60%
-  static const Color labelTertiary = Color(0x4DEBEBF5);  // 30%
-  static const Color labelQuaternary = Color(0x2EEBEBF5); // 18%
+  static const Color labelSecondary = Color(0x99EBEBF5);   // 60%
+  static const Color labelTertiary = Color(0x4DEBEBF5);     // 30%
+  static const Color labelQuaternary = Color(0x2EEBEBF5);   // 18%
 
-  // الرماديات (System Grays — Dark)
+  // ─── System Grays (Dark) ───
   static const Color gray = Color(0xFF8E8E93);
   static const Color gray2 = Color(0xFF636366);
   static const Color gray3 = Color(0xFF48484A);
@@ -43,13 +46,20 @@ class AppColors {
   static const Color gray5 = Color(0xFF2C2C2E);
   static const Color gray6 = Color(0xFF1C1C1E);
 
-  // ألوان وتسميات الوضع الفاتح (Light Mode iOS System Colors)
+  // ─── Light Mode Backgrounds ───
   static const Color lightBg = Color(0xFFFFFFFF);
   static const Color lightBgSecondary = Color(0xFFF2F2F7);
   static const Color lightBgTertiary = Color(0xFFFFFFFF);
 
+  // ─── Light Mode Labels ───
   static const Color lightLabel = Color(0xFF000000);
-  static const Color lightLabelSecondary = Color(0x993C3C43); // 60%
-  static const Color lightLabelTertiary = Color(0x4D3C3C43);  // 30%
-  static const Color lightSeparator = Color(0x4A3C3C43);      // 29%
+  static const Color lightLabelSecondary = Color(0x993C3C43);  // 60%
+  static const Color lightLabelTertiary = Color(0x4D3C3C43);   // 30%
+  static const Color lightSeparator = Color(0x4A3C3C43);       // 29%
+
+  // ─── Glass-specific Colors ───
+  static const Color glassTintDark = Color(0xFFEBEBF5);
+  static const Color glassTintLight = Color(0xFFFFFFFF);
+  static const Color innerGlow = Color(0xFFFFFFFF);
+  static const Color specularWhite = Color(0xFFFFFFFF);
 }
