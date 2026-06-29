@@ -5,7 +5,6 @@ import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
 import 'audio_category_screen.dart';
 import 'radio_screen.dart';
-import 'almajd_tv_screen.dart';
 
 class AudioLibraryScreen extends StatelessWidget {
   const AudioLibraryScreen({super.key});
@@ -36,8 +35,41 @@ class AudioLibraryScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
+                  const SizedBox(height: 16),
+                  // "الأصوات المحملة" Button
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (_) => const AudioCategoryScreen(
+                              categoryKey: 'downloads',
+                              categoryName: 'الأصوات المحملة',
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(CupertinoIcons.cloud_download, size: 18),
+                      label: const Text(
+                        'الأصوات المحملة',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
-                  // Balanced 2x3 Grid representing categories, radios, and TV channels
+                  // Balanced 2x2 Grid representing categories, radios, and TV channels
                   Expanded(
                     child: GridView.count(
                       crossAxisCount: 2,
@@ -77,57 +109,7 @@ class AudioLibraryScreen extends StatelessWidget {
                             );
                           },
                         ),
-                        _buildCategoryItem(
-                          context,
-                          key: 'radio_majd',
-                          name: 'راديو المجد للقرآن',
-                          icon: CupertinoIcons.music_mic,
-                          color: const Color(0xFFFF453A),
-                          isDark: isDark,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (_) => const RadioScreen(station: RadioStation.majdRadio),
-                              ),
-                            );
-                          },
-                        ),
-                        _buildCategoryItem(
-                          context,
-                          key: 'tv_majd',
-                          name: 'قناة المجد (بث مرئي)',
-                          icon: CupertinoIcons.tv_fill,
-                          color: const Color(0xFFBF5AF2),
-                          isDark: isDark,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (_) => const AlmajdTvScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        _buildCategoryItem(
-                          context,
-                          key: 'downloads',
-                          name: 'الأصوات المحملة',
-                          icon: CupertinoIcons.cloud_download_fill,
-                          color: const Color(0xFF0A84FF),
-                          isDark: isDark,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              CupertinoPageRoute(
-                                builder: (_) => const AudioCategoryScreen(
-                                  categoryKey: 'downloads',
-                                  categoryName: 'الأصوات المحملة',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+
                       ],
                     ),
                   ),

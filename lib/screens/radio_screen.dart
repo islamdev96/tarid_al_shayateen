@@ -26,13 +26,6 @@ class RadioStation {
     url: 'https://stream.radiojar.com/8s5u5tpdtwzuv',
     subtitleAr: 'جمهورية مصر العربية • بث مباشر 24 ساعة',
   );
-
-  static const RadioStation majdRadio = RadioStation(
-    nameAr: 'راديو المجد للقرآن الكريم',
-    nameEn: 'Almajd Quran Radio',
-    url: 'https://qurango.net/radio/tarateel',
-    subtitleAr: 'تلاوات خاشعة ومتجددة على مدار الساعة',
-  );
 }
 
 class RadioScreen extends StatefulWidget {
