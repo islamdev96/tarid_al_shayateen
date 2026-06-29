@@ -4,7 +4,7 @@ import '../ui/glass/glass_bottom_bar.dart';
 import '../ui/app_icons.dart';
 import 'home_screen.dart';
 import 'quran_screen.dart';
-import 'prayer_times_screen.dart';
+import 'audio_library_screen.dart';
 import 'azkar_screen.dart';
 import 'settings_screen.dart';
 
@@ -22,7 +22,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = const [
     HomeScreen(),
     QuranScreen(),
-    PrayerTimesScreen(),
+    AudioLibraryScreen(),
     AzkarScreen(),
     SettingsScreen(),
   ];
@@ -60,7 +60,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         icons: const [
           AppIcons.home,
           AppIcons.quran,
-          AppIcons.prayerTimes,
+          AppIcons.audioLibrary,
           AppIcons.azkar,
           AppIcons.settings,
         ],

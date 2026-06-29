@@ -7,6 +7,7 @@ class AppIcons {
   static const IconData home = CupertinoIcons.house_fill;
   static const IconData quran = CupertinoIcons.book_fill;
   static const IconData prayerTimes = CupertinoIcons.clock_fill;
+  static const IconData audioLibrary = CupertinoIcons.music_note_list;
   static const IconData azkar = CupertinoIcons.shield_fill;
   static const IconData settings = CupertinoIcons.settings_solid;
 

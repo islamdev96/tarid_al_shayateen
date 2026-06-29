@@ -1,73 +1,134 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'dart:math' as math;
-
 import '../app_theme.dart';
-import 'quran_screen.dart';
-import 'radio_screen.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/glassy_background.dart';
+import 'audio_category_screen.dart';
 
 class AudioLibraryScreen extends StatelessWidget {
   const AudioLibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppTheme.darkBackground,
         appBar: AppBar(
-          title: const Text('المكتبة الصوتية', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, color: Colors.white)),
+          title: const Text(
+            'المكتبة الصوتية',
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           backgroundColor: Colors.transparent,
           elevation: 0,
           centerTitle: true,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(left: 16.0),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // Navigate to downloads
-                },
-                icon: const Icon(CupertinoIcons.cloud_download, size: 18),
-                label: const Text('الأصوات المحملة', style: TextStyle(fontFamily: 'Cairo', fontSize: 14)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.secondaryColor,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                ),
-              ),
-            )
-          ],
         ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppTheme.primaryColor.withValues(alpha: 0.8),
-                AppTheme.darkBackground,
-              ],
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildStarButton(
-                  context,
-                  title: 'القرآن الكريم',
-                  icon: CupertinoIcons.book_circle_fill,
-                  onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (_) => const QuranScreen())),
-                ),
-                const SizedBox(height: 60),
-                _buildStarButton(
-                  context,
-                  title: 'إذاعة القرآن',
-                  icon: CupertinoIcons.radiowaves_right,
-                  onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (_) => const RadioScreen())),
-                ),
-              ],
+        body: GlassyBackground(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  // "الأصوات المحملة" Button
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (_) => const AudioCategoryScreen(
+                              categoryKey: 'downloads',
+                              categoryName: 'الأصوات المحملة',
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(CupertinoIcons.cloud_download, size: 18),
+                      label: const Text(
+                        'الأصوات المحملة',
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // 2x3 Grid representing categories
+                  Expanded(
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 1.1,
+                      children: [
+                        _buildCategoryItem(
+                          context,
+                          key: 'adhan',
+                          name: 'أذان',
+                          icon: CupertinoIcons.speaker_3_fill,
+                          color: const Color(0xFF5AC8FA),
+                          isDark: isDark,
+                        ),
+                        _buildCategoryItem(
+                          context,
+                          key: 'iqamah',
+                          name: 'إقامه',
+                          icon: CupertinoIcons.speaker_1_fill,
+                          color: const Color(0xFF30D158),
+                          isDark: isDark,
+                        ),
+                        _buildCategoryItem(
+                          context,
+                          key: 'azkar',
+                          name: 'أذكار',
+                          icon: CupertinoIcons.book_fill,
+                          color: const Color(0xFFFFD60A),
+                          isDark: isDark,
+                        ),
+                        _buildCategoryItem(
+                          context,
+                          key: 'dua',
+                          name: 'أدعيه',
+                          icon: CupertinoIcons.heart_fill,
+                          color: const Color(0xFFFF9F0A),
+                          isDark: isDark,
+                        ),
+                        _buildCategoryItem(
+                          context,
+                          key: 'ramadan',
+                          name: 'رمضانيات',
+                          icon: CupertinoIcons.moon_stars_fill,
+                          color: const Color(0xFFBF5AF2),
+                          isDark: isDark,
+                        ),
+                        _buildCategoryItem(
+                          context,
+                          key: 'eid',
+                          name: 'العيد',
+                          icon: CupertinoIcons.sparkles,
+                          color: const Color(0xFFFF453A),
+                          isDark: isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -75,50 +136,62 @@ class AudioLibraryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStarButton(BuildContext context, {required String title, required IconData icon, required VoidCallback onTap}) {
+  Widget _buildCategoryItem(
+    BuildContext context, {
+    required String key,
+    required String name,
+    required IconData icon,
+    required Color color,
+    required bool isDark,
+  }) {
     return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          SizedBox(
-            width: 140,
-            height: 140,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Transform.rotate(
-                  angle: math.pi / 4,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppTheme.secondaryColor.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white24, width: 2),
-                    ),
-                  ),
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.secondaryColor.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white24, width: 2),
-                  ),
-                ),
-                Icon(icon, size: 60, color: Colors.white),
-              ],
+      onTap: () {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (_) => AudioCategoryScreen(
+              categoryKey: key,
+              categoryName: name,
             ),
           ),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Cairo',
-              shadows: [Shadow(blurRadius: 4, color: Colors.black45, offset: Offset(0, 2))],
+        );
+      },
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        borderRadius: BorderRadius.circular(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: color.withValues(alpha: isDark ? 0.15 : 0.12),
+                border: Border.all(
+                  color: color.withValues(alpha: isDark ? 0.25 : 0.18),
+                  width: 0.5,
+                ),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 26,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              name,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isDark ? AppTheme.textPrimary : AppTheme.lightTextPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Cairo',
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
