@@ -6,6 +6,7 @@ import '../app_theme.dart';
 import '../models/surah.dart';
 import '../models/reciter.dart';
 import '../providers/app_provider.dart';
+import '../providers/download_provider.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
 import 'surah_text_screen.dart';
@@ -32,6 +33,7 @@ class _QuranScreenState extends State<QuranScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final provider = context.watch<AppProvider>();
+    final downloadProvider = context.watch<DownloadProvider>();
 
     // Filter Surahs based on search query
     final filteredSurahs = Surah.allSurahs.where((surah) {
@@ -79,7 +81,7 @@ class _QuranScreenState extends State<QuranScreen> {
                     (context, index) {
                       final surah = filteredSurahs[index];
                       final isPlaying = provider.currentPlayingSurah?.number == surah.number;
-                      return _buildSurahItem(surah, isPlaying, provider, theme);
+                      return _buildSurahItem(surah, isPlaying, provider, downloadProvider, theme);
                     },
                     childCount: filteredSurahs.length,
                   ),
@@ -186,8 +188,13 @@ class _QuranScreenState extends State<QuranScreen> {
     );
   }
 
-  Widget _buildSurahItem(Surah surah, bool isPlaying, AppProvider provider, ThemeData theme) {
+  Widget _buildSurahItem(Surah surah, bool isPlaying, AppProvider provider, DownloadProvider downloadProvider, ThemeData theme) {
     final isDark = theme.brightness == Brightness.dark;
+    
+    final reciter = provider.currentReciter;
+    final cacheKey = downloadProvider.getSurahCacheKey(surah.number, reciter.id);
+    final isDownloading = downloadProvider.isDownloading(cacheKey);
+    final progress = downloadProvider.getProgress(cacheKey);
     return GlassCard(
       margin: const EdgeInsets.only(bottom: 12),
       border: Border.all(
@@ -253,6 +260,39 @@ class _QuranScreenState extends State<QuranScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => SurahTextScreen(surah: surah)),
+                );
+              },
+            ),
+            const SizedBox(width: 8),
+            // Download Button
+            FutureBuilder<bool>(
+              future: downloadProvider.isSurahCached(surah.number, reciter.id),
+              builder: (context, snapshot) {
+                final isCached = snapshot.data ?? false;
+                if (isCached) {
+                  return Icon(CupertinoIcons.checkmark_alt_circle_fill, color: theme.colorScheme.primary, size: 24);
+                }
+
+                if (isDownloading) {
+                  return SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 2.5,
+                      color: theme.colorScheme.primary,
+                    ),
+                  );
+                }
+
+                return IconButton(
+                  icon: const Icon(CupertinoIcons.cloud_download),
+                  color: theme.colorScheme.primary,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    downloadProvider.downloadSurah(surah, reciter);
+                  },
                 );
               },
             ),

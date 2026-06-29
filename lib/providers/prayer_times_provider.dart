@@ -8,9 +8,11 @@ class PrayerTimesProvider extends ChangeNotifier {
 
   CityConfig _selectedCity = CityConfig.defaultCities.first;
   final Map<String, bool> _prayerNotifications = {};
+  String _selectedAdhanId = 'madinah';
 
   CityConfig get selectedCity => _selectedCity;
   Map<String, bool> get prayerNotifications => _prayerNotifications;
+  String get selectedAdhanId => _selectedAdhanId;
 
   Future<void> init() async {
     await _settingsService.init();
@@ -21,6 +23,8 @@ class PrayerTimesProvider extends ChangeNotifier {
     for (final prayerId in ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha']) {
       _prayerNotifications[prayerId] = _settingsService.getPrayerNotification(prayerId);
     }
+    
+    _selectedAdhanId = _settingsService.selectedAdhanId;
 
     _schedulePrayerAlarms();
     notifyListeners();
@@ -38,6 +42,12 @@ class PrayerTimesProvider extends ChangeNotifier {
     _prayerNotifications[prayerId] = !currentVal;
     await _settingsService.setPrayerNotification(prayerId, !currentVal);
     _schedulePrayerAlarms();
+    notifyListeners();
+  }
+
+  Future<void> updateSelectedAdhan(String adhanId) async {
+    _selectedAdhanId = adhanId;
+    await _settingsService.setSelectedAdhanId(adhanId);
     notifyListeners();
   }
 

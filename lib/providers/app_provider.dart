@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import '../models/reciter.dart';
 import '../models/schedule_settings.dart';
 import '../models/surah.dart';
+import '../models/adhan_sound.dart';
 import '../models/prayer_time_settings.dart';
 import '../services/audio_handler.dart';
 import '../services/scheduler_service.dart';
@@ -82,6 +83,7 @@ class AppProvider extends ChangeNotifier {
 
   CityConfig get selectedCity => _selectedCity;
   Map<String, bool> get prayerNotifications => _prayerNotifications;
+  String get selectedAdhanId => _settingsService.selectedAdhanId;
   Surah? get currentPlayingSurah => _currentPlayingSurah;
   Reciter? get currentPlayingReciter => _currentPlayingReciter;
   String get activeAudioTitle => _customTitle ?? (_currentPlayingSurah != null ? 'سورة ${_currentPlayingSurah!.nameAr}' : '');
@@ -531,6 +533,11 @@ class AppProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateSelectedAdhan(String adhanId) async {
+    await _settingsService.setSelectedAdhanId(adhanId);
+    notifyListeners();
+  }
+
   // --- Dynamic Quran Playback methods ---
   Future<void> playSurah(Surah surah, Reciter reciter) async {
     if (_isLoading) return;
@@ -542,10 +549,13 @@ class AppProvider extends ChangeNotifier {
 
     try {
       final surahUrl = '${reciter.serverUrl}${surah.formattedNumber}.mp3';
-      final isBaqarah = surah.number == 2;
-      final cachedPath = await _getCachedFilePath(reciter.id);
+      final dir = await getApplicationDocumentsDirectory();
+      // Maintain backward compat for baqarah if needed
+      final cachedPath = surah.number == 2 
+          ? '${dir.path}/surah_baqarah_${reciter.id}.mp3'
+          : '${dir.path}/surah_${surah.number}_${reciter.id}.mp3';
       
-      if (isBaqarah && await File(cachedPath).exists()) {
+      if (await File(cachedPath).exists()) {
         await _audioHandler.playFromFile(cachedPath, reciter.nameAr, surahName: surah.nameAr);
       } else {
         await _audioHandler.playFromUrl(surahUrl, reciter.nameAr, surahName: surah.nameAr);
@@ -616,11 +626,19 @@ class AppProvider extends ChangeNotifier {
       await stopPlayback();
       _isLoading = true;
       _customTitle = 'أذان صلاة $prayerName';
-      _customSubtitle = 'المسجد النبوي';
+      final adhanId = _settingsService.selectedAdhanId;
+      final adhan = AdhanSound.findById(adhanId);
+      _customSubtitle = adhan.nameAr;
       notifyListeners();
 
-      const adhanUrl = 'https://www.islamcan.com/audio/adhan/azan1.mp3';
-      await _audioHandler.playFromUrl(adhanUrl, 'المسجد النبوي', surahName: 'أذان صلاة $prayerName');
+      final dir = await getApplicationDocumentsDirectory();
+      final path = '${dir.path}/adhan_$adhanId.mp3';
+
+      if (await File(path).exists()) {
+        await _audioHandler.playFromFile(path, adhan.nameAr, surahName: 'أذان صلاة $prayerName');
+      } else {
+        await _audioHandler.playFromUrl(adhan.url, adhan.nameAr, surahName: 'أذان صلاة $prayerName');
+      }
       _isPlaying = true;
     } catch (e) {
       debugPrint('Error playing Adhan in foreground: $e');

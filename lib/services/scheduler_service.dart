@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/reciter.dart';
+import '../models/adhan_sound.dart';
 import '../models/prayer_time_settings.dart';
 import 'audio_handler.dart';
 import 'notification_service.dart';
@@ -200,9 +201,17 @@ Future<void> prayerAlarmCallback() async {
             ),
           );
 
-          // Beautiful Medina Adhan URL
-          const adhanUrl = 'https://www.islamcan.com/audio/adhan/azan1.mp3';
-          await audioHandler.playFromUrl(adhanUrl, 'المسجد النبوي', surahName: 'أذان صلاة $prayerName');
+          // Beautiful Adhan
+          final adhanId = prefs.getString('selected_adhan_id') ?? 'madinah';
+          final adhan = AdhanSound.findById(adhanId);
+          final dir = await getApplicationDocumentsDirectory();
+          final path = '${dir.path}/adhan_$adhanId.mp3';
+
+          if (await File(path).exists()) {
+            await audioHandler.playFromFile(path, adhan.nameAr, surahName: 'أذان صلاة $prayerName');
+          } else {
+            await audioHandler.playFromUrl(adhan.url, adhan.nameAr, surahName: 'أذان صلاة $prayerName');
+          }
         } catch (e) {
           debugPrint('Background playback error: $e');
         }

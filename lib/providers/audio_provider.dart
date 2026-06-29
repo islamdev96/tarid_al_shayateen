@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../models/reciter.dart';
 import '../models/surah.dart';
+import '../models/adhan_sound.dart';
 import '../models/schedule_settings.dart';
 import '../services/audio_handler.dart';
 import '../services/scheduler_service.dart';
@@ -186,10 +187,12 @@ class AudioProvider extends ChangeNotifier {
 
     try {
       final surahUrl = '${reciter.serverUrl}${surah.formattedNumber}.mp3';
-      final isBaqarah = surah.number == 2;
-      final cachedPath = await _getCachedFilePath(reciter.id);
+      final dir = await getApplicationDocumentsDirectory();
+      final cachedPath = surah.number == 2 
+          ? '${dir.path}/surah_baqarah_${reciter.id}.mp3'
+          : '${dir.path}/surah_${surah.number}_${reciter.id}.mp3';
       
-      if (isBaqarah && await File(cachedPath).exists()) {
+      if (await File(cachedPath).exists()) {
         await _audioHandler.playFromFile(cachedPath, reciter.nameAr, surahName: surah.nameAr);
       } else {
         await _audioHandler.playFromUrl(surahUrl, reciter.nameAr, surahName: surah.nameAr);
@@ -266,12 +269,22 @@ class AudioProvider extends ChangeNotifier {
     try {
       await stopPlayback();
       _isLoading = true;
+      final settings = await _settingsService.loadSettings();
+      final adhanId = _settingsService.selectedAdhanId;
+      final adhan = AdhanSound.findById(adhanId);
+      
       _customTitle = 'أذان صلاة $prayerName';
-      _customSubtitle = 'المسجد النبوي';
+      _customSubtitle = adhan.nameAr;
       notifyListeners();
 
-      const adhanUrl = 'https://www.islamcan.com/audio/adhan/azan1.mp3';
-      await _audioHandler.playFromUrl(adhanUrl, 'المسجد النبوي', surahName: 'أذان صلاة $prayerName');
+      final dir = await getApplicationDocumentsDirectory();
+      final path = '${dir.path}/adhan_$adhanId.mp3';
+
+      if (await File(path).exists()) {
+        await _audioHandler.playFromFile(path, adhan.nameAr, surahName: 'أذان صلاة $prayerName');
+      } else {
+        await _audioHandler.playFromUrl(adhan.url, adhan.nameAr, surahName: 'أذان صلاة $prayerName');
+      }
       _isPlaying = true;
     } catch (e) {
       debugPrint('Error playing Adhan: $e');

@@ -4,7 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../models/prayer_time_settings.dart';
+import '../models/adhan_sound.dart';
 import '../providers/app_provider.dart';
+import '../providers/download_provider.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/mosque_header_widget.dart';
 import '../widgets/glass_card.dart';
@@ -79,6 +81,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final provider = context.watch<AppProvider>();
+    final downloadProvider = context.watch<DownloadProvider>();
     
     final city = provider.selectedCity;
     final prayerTimes = PrayerTimesService.calculate(city, DateTime.now());
@@ -112,6 +115,14 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                       child: _buildCitySelectorCard(provider, theme),
+                    ),
+                  ),
+
+                  // Adhan Selector
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      child: _buildAdhanSelectorCard(provider, downloadProvider, theme),
                     ),
                   ),
 
@@ -235,6 +246,86 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             );
           }).toList(),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAdhanSelectorCard(AppProvider provider, DownloadProvider downloadProvider, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final selectedAdhanId = provider.selectedAdhanId;
+    final adhan = AdhanSound.findById(selectedAdhanId);
+    final cacheKey = downloadProvider.getAdhanCacheKey(adhan.id);
+    final isDownloading = downloadProvider.isDownloading(cacheKey);
+    final progress = downloadProvider.getProgress(cacheKey);
+
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      borderRadius: BorderRadius.circular(16),
+      child: Row(
+        children: [
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: selectedAdhanId,
+                icon: Icon(CupertinoIcons.speaker_3_fill, color: theme.colorScheme.primary, size: 20),
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+                dropdownColor: isDark 
+                    ? const Color(0xFF0C1921)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                isExpanded: true,
+                onChanged: (String? newAdhanId) {
+                  if (newAdhanId != null) {
+                    provider.updateSelectedAdhan(newAdhanId);
+                  }
+                },
+                items: AdhanSound.defaultAdhans.map<DropdownMenuItem<String>>((AdhanSound a) {
+                  return DropdownMenuItem<String>(
+                    value: a.id,
+                    child: Text('صوت الأذان: ${a.nameAr}'),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          FutureBuilder<bool>(
+            future: downloadProvider.isAdhanCached(adhan.id),
+            builder: (context, snapshot) {
+              final isCached = snapshot.data ?? false;
+              if (isCached) {
+                return Icon(CupertinoIcons.checkmark_alt_circle_fill, color: theme.colorScheme.primary);
+              }
+
+              if (isDownloading) {
+                return SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 2.5,
+                    color: theme.colorScheme.primary,
+                  ),
+                );
+              }
+
+              return IconButton(
+                icon: const Icon(CupertinoIcons.cloud_download),
+                color: theme.colorScheme.primary,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () {
+                  downloadProvider.downloadAdhan(adhan);
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
