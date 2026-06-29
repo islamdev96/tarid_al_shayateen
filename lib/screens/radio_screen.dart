@@ -179,7 +179,7 @@ class _RadioScreenState extends State<RadioScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
-            icon: Icon(CupertinoIcons.back, color: theme.brightness == Brightness.dark ? cyanAccent : AppTheme.primaryGreen),
+            icon: Icon(Icons.arrow_forward_ios_rounded, color: theme.brightness == Brightness.dark ? cyanAccent : AppTheme.primaryGreen, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           Text(

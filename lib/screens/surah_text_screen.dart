@@ -209,7 +209,7 @@ class _SurahTextScreenState extends State<SurahTextScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(CupertinoIcons.back, color: theme.colorScheme.primary),
+            icon: Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.primary, size: 20),
             onPressed: () => Navigator.pop(context),
           ),
           const Spacer(),

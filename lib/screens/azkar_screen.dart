@@ -22,7 +22,13 @@ class AzkarScreen extends StatelessWidget {
               SliverAppBar(
                 floating: true,
                 backgroundColor: Colors.transparent,
-                title: const Text('أذكار التحصين اليومية'),
+                title: const Text(
+                  'حصن المسلم',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               SliverPadding(
                 padding: const EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 120), // bottom padding for floating mini player

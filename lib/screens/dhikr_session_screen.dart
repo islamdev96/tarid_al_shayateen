@@ -132,7 +132,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
           ),
         ),
         content: Text(
-          'لقد تممت قراءة أذكار التحصين بنجاح. حفظك الله ورعاك.',
+          'لقد تممت قراءة أذكار حصن المسلم بنجاح. حفظك الله ورعاك.',
           textAlign: TextAlign.center,
           style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.8), fontSize: 15, height: 1.5, fontFamily: 'Cairo'),
         ),
@@ -234,7 +234,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                icon: Icon(CupertinoIcons.back, color: theme.colorScheme.primary),
+                icon: Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.primary, size: 20),
                 onPressed: () => Navigator.pop(context),
               ),
               Text(

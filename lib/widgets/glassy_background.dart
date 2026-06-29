@@ -49,7 +49,7 @@ class _GlassyBackgroundState extends State<GlassyBackground>
         ),
 
         // Animated ambient blobs
-        AnimatedBuilder(
+        if (isDark) AnimatedBuilder(
           animation: _breathController,
           builder: (context, _) {
             final t = _breathController.value;

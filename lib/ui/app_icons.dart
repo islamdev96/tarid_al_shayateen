@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 
 /// مصدر واحد لكل أيقونات التطبيق — ممنوع استخدام Icons.* أو CupertinoIcons.* مباشرة في أي شاشة.
 class AppIcons {
@@ -16,7 +17,7 @@ class AppIcons {
   static const IconData prev = CupertinoIcons.backward_fill;
   static const IconData share = CupertinoIcons.share;
   static const IconData search = CupertinoIcons.search;
-  static const IconData back = CupertinoIcons.back;
+  static const IconData back = Icons.arrow_forward_ios_rounded;
   static const IconData close = CupertinoIcons.xmark;
   static const IconData add = CupertinoIcons.add;
   static const IconData more = CupertinoIcons.ellipsis;

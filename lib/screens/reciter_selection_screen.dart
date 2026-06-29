@@ -120,7 +120,7 @@ class _ReciterSelectionScreenState extends State<ReciterSelectionScreen> {
                     floating: true,
                     backgroundColor: Colors.transparent,
                     leading: IconButton(
-                      icon: Icon(CupertinoIcons.back, color: theme.colorScheme.primary),
+                      icon: Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.primary, size: 20),
                       onPressed: () => Navigator.pop(context),
                     ),
                     title: const Text(

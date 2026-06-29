@@ -38,7 +38,7 @@ class MosqueHeaderWidget extends StatelessWidget {
                         AppTheme.deepBackground, // Blend into page background
                       ]
                     : [
-                        const Color(0xFF0D4A2B).withValues(alpha: 0.08),
+                        AppTheme.lightBg,
                         AppTheme.lightBg,
                       ],
               ),
@@ -51,7 +51,7 @@ class MosqueHeaderWidget extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: Opacity(
-              opacity: isDark ? 0.6 : 0.12,
+              opacity: isDark ? 0.6 : 0.0,
               child: Image.asset(
                 'assets/mosque_header.png',
                 fit: BoxFit.cover,

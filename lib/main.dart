@@ -6,6 +6,11 @@ import 'package:provider/provider.dart';
 
 import 'app_theme.dart';
 import 'providers/app_provider.dart';
+import 'providers/settings_provider.dart';
+import 'providers/prayer_times_provider.dart';
+import 'providers/audio_provider.dart';
+import 'providers/quran_provider.dart';
+import 'providers/download_provider.dart';
 import 'screens/splash_screen.dart';
 import 'services/audio_handler.dart';
 import 'services/scheduler_service.dart';
@@ -65,16 +70,23 @@ class TaridApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AppProvider()..init(_audioHandler),
-      child: Consumer<AppProvider>(
-        builder: (context, provider, _) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
+        ChangeNotifierProvider(create: (_) => PrayerTimesProvider()..init()),
+        ChangeNotifierProvider(create: (_) => AudioProvider()..init(_audioHandler)),
+        ChangeNotifierProvider(create: (_) => QuranProvider()),
+        ChangeNotifierProvider(create: (_) => DownloadProvider()..autoDownloadOffline()),
+        ChangeNotifierProvider(create: (_) => AppProvider()..init(_audioHandler)),
+      ],
+      child: Consumer<SettingsProvider>(
+        builder: (context, settingsProvider, _) {
           return MaterialApp(
             title: 'سَكينة',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
-            themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+            themeMode: settingsProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
             scrollBehavior: const IosScrollBehavior(),
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,

@@ -319,7 +319,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         _buildActionItem(
           icon: CupertinoIcons.shield,
-          label: 'أذكار المسلم',
+          label: 'حصن المسلم',
           darkColor: const Color(0xFF30D158),
           lightColor: const Color(0xFF34C759),
           onTap: () {
