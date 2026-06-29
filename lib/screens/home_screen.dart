@@ -9,8 +9,6 @@ import 'package:permission_handler/permission_handler.dart';
 import '../app_theme.dart';
 import '../providers/settings_provider.dart';
 import '../providers/prayer_times_provider.dart';
-import '../providers/download_provider.dart';
-import '../models/adhan_sound.dart';
 import '../models/prayer_time_settings.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
@@ -157,7 +155,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final settingsProvider = context.watch<SettingsProvider>();
     final prayerProvider = context.watch<PrayerTimesProvider>();
-    final downloadProvider = context.watch<DownloadProvider>();
 
     final city = prayerProvider.selectedCity;
     final prayerTimes = PrayerTimesService.calculate(city, DateTime.now());

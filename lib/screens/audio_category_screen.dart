@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,7 +5,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
-import '../app_theme.dart';
 import '../models/library_audio.dart';
 import '../models/adhan_sound.dart';
 import '../providers/app_provider.dart';
@@ -191,7 +189,6 @@ class _AudioCategoryScreenState extends State<AudioCategoryScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final downloadProvider = context.watch<DownloadProvider>();
 
     final items = widget.categoryKey == 'downloads' 

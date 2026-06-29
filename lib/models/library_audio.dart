@@ -63,62 +63,6 @@ class LibraryAudio {
       nameAr: 'إقامة الصلاة - الحرم المدني',
       url: 'https://www.islamcan.com/audio/adhan/azan5.mp3',
     ),
-
-    // 3. أذكار (Azkar)
-    LibraryAudio(
-      id: 'azkar_morning',
-      category: 'azkar',
-      nameAr: 'أذكار الصباح',
-      url: 'https://archive.org/download/way2sona_20160320_2316/athkar_12_Morning.mp3',
-    ),
-    LibraryAudio(
-      id: 'azkar_evening',
-      category: 'azkar',
-      nameAr: 'أذكار المساء',
-      url: 'https://archive.org/download/way2sona_20160320_2316/athkar_12_Evening.mp3',
-    ),
-
-    // 4. أدعية (Dua)
-    LibraryAudio(
-      id: 'dua_qunut',
-      category: 'dua',
-      nameAr: 'دعاء القنوت',
-      url: 'https://archive.org/download/doaa_qunut/doaa_qunut.mp3',
-    ),
-    LibraryAudio(
-      id: 'dua_travel',
-      category: 'dua',
-      nameAr: 'دعاء السفر',
-      url: 'https://www.islamcan.com/audio/dua/dua-for-traveling.mp3',
-    ),
-
-    // 5. رمضانيات (Ramadaniyat)
-    LibraryAudio(
-      id: 'ramadan_tarawih',
-      category: 'ramadan',
-      nameAr: 'تكبيرات التراويح - الحرم المكي',
-      url: 'https://archive.org/download/takbeerat_taraweh/takbeerat_taraweh.mp3',
-    ),
-    LibraryAudio(
-      id: 'ramadan_ibtehal',
-      category: 'ramadan',
-      nameAr: 'ابتهالات رمضانية',
-      url: 'https://archive.org/download/ramadan_ibtehalat/ibtehalat_ramadan.mp3',
-    ),
-
-    // 6. العيد (Eid)
-    LibraryAudio(
-      id: 'eid_takbeerat',
-      category: 'eid',
-      nameAr: 'تكبيرات العيد - الحرم المكي',
-      url: 'https://archive.org/download/EidTakbirBySheikhAliMullah/EidTakbeer.mp3',
-    ),
-    LibraryAudio(
-      id: 'eid_takbeerat_group',
-      category: 'eid',
-      nameAr: 'تكبيرات العيد - جماعية',
-      url: 'https://archive.org/download/eid_takbeer_group/eid_takbeer.mp3',
-    ),
   ];
 
   static List<LibraryAudio> getByCategory(String category) {

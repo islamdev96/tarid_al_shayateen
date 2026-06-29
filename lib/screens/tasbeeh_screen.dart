@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -20,17 +21,19 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
   int _target = 33;
   int _totalDhikrToday = 0;
   int _selectedDhikrIndex = 0;
-  
-  final List<String> _defaultDhikrs = [
-    'سُبْحَانَ اللَّهِ',
-    'الْحَمْدُ لِلَّهِ',
-    'لَا إِلَهَ إِلَّا اللَّهُ',
-    'اللَّهُ أَكْبَرُ',
-    'أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ',
-    'اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ',
-  ];
-
   final AudioPlayer _soundPlayer = AudioPlayer();
+
+  final List<String> _dhikrs = [
+    'سبحان الله',
+    'الحمد لله',
+    'لا إله إلا الله',
+    'الله أكبر',
+    'أستغفر الله',
+    'لا حول ولا قوة إلا بالله',
+    'اللهم صلِّ وسلم على نبينا محمد',
+    'سبحان الله وبحمده، سبحان الله العظيم',
+    'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير',
+  ];
 
   @override
   void initState() {
@@ -43,7 +46,7 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _counter = prefs.getInt('tasbeeh_counter') ?? 0;
-      _target = prefs.getInt('tasbeeh_target') ?? 33;
+      _target = prefs.getInt('prefs_target') ?? 33;
       _totalDhikrToday = prefs.getInt('tasbeeh_total_today') ?? 0;
       _selectedDhikrIndex = prefs.getInt('tasbeeh_selected_index') ?? 0;
     });
@@ -52,12 +55,13 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
   Future<void> _saveState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('tasbeeh_counter', _counter);
-    await prefs.setInt('tasbeeh_target', _target);
+    await prefs.setInt('prefs_target', _target);
     await prefs.setInt('tasbeeh_total_today', _totalDhikrToday);
     await prefs.setInt('tasbeeh_selected_index', _selectedDhikrIndex);
   }
 
   Future<void> _loadSound() async {
+    if (kIsWeb) return;
     try {
       await _soundPlayer.setAsset('assets/transition.mp3');
     } catch (e) {
@@ -90,6 +94,7 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
   }
 
   Future<void> _playChimeSound() async {
+    if (kIsWeb) return;
     try {
       await _soundPlayer.seek(Duration.zero);
       _soundPlayer.play();
@@ -218,12 +223,12 @@ class _TasbeehScreenState extends State<TasbeehScreen> {
               dropdownColor: isDark ? const Color(0xFF0C1921) : Colors.white,
               borderRadius: BorderRadius.circular(16),
               alignment: AlignmentDirectional.centerEnd,
-              items: List.generate(_defaultDhikrs.length, (index) {
+              items: List.generate(_dhikrs.length, (index) {
                 return DropdownMenuItem(
                   value: index,
                   alignment: AlignmentDirectional.centerEnd,
                   child: Text(
-                    _defaultDhikrs[index],
+                    _dhikrs[index],
                     textDirection: TextDirection.rtl,
                     style: TextStyle(
                       color: theme.colorScheme.onSurface,

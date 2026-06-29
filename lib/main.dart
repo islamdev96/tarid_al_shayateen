@@ -8,7 +8,6 @@ import 'app_theme.dart';
 import 'providers/app_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/prayer_times_provider.dart';
-import 'providers/audio_provider.dart';
 import 'providers/quran_provider.dart';
 import 'providers/download_provider.dart';
 import 'screens/splash_screen.dart';
@@ -74,7 +73,6 @@ class TaridApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
         ChangeNotifierProvider(create: (_) => PrayerTimesProvider()..init()),
-        ChangeNotifierProvider(create: (_) => AudioProvider()..init(_audioHandler)),
         ChangeNotifierProvider(create: (_) => QuranProvider()),
         ChangeNotifierProvider(create: (_) => DownloadProvider()..autoDownloadOffline()),
         ChangeNotifierProvider(create: (_) => AppProvider()..init(_audioHandler)),

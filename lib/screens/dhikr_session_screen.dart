@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -39,6 +40,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
   }
 
   Future<void> _loadSoundEffect() async {
+    if (kIsWeb) return;
     try {
       await _soundPlayer.setAsset('assets/transition.mp3');
     } catch (e) {
@@ -77,6 +79,7 @@ class _DhikrSessionScreenState extends State<DhikrSessionScreen> {
   }
 
   Future<void> _playTransitionSound() async {
+    if (kIsWeb) return;
     try {
       await _soundPlayer.seek(Duration.zero);
       _soundPlayer.play();
