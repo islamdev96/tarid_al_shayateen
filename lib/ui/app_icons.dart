@@ -24,4 +24,6 @@ class AppIcons {
   static const IconData bookmark = CupertinoIcons.bookmark_fill;
   static const IconData moon = CupertinoIcons.moon_fill;
   static const IconData sun = CupertinoIcons.sun_max_fill;
+  static const IconData ai = CupertinoIcons.sparkles;
+  static const IconData mic = CupertinoIcons.mic_fill;
 }

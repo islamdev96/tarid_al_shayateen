@@ -29,6 +29,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final safeBottom = MediaQuery.of(context).padding.bottom;
+    final double paddingBottom = safeBottom > 0 ? safeBottom + 6 : 18;
+    final double miniPlayerBottom = 86 + paddingBottom;
+
     return Scaffold(
       extendBody:
           true, // Allows the screens to scroll behind the navigation bar and mini player
@@ -41,8 +45,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           Positioned(
             left: 0,
             right: 0,
-            bottom:
-                104, // Perfectly positioned above the floating GlassBottomBar
+            bottom: miniPlayerBottom,
             child: const MiniPlayerWidget(),
           ),
         ],

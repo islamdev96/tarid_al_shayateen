@@ -68,21 +68,18 @@ class TaridApp extends StatelessWidget {
       create: (_) => AppProvider()..init(_audioHandler),
       child: Consumer<AppProvider>(
         builder: (context, provider, _) {
-          return MaterialApp(
-            title: 'سَكينة',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            scrollBehavior: const IosScrollBehavior(),
-            locale: const Locale('ar', 'SA'),
-            builder: (context, child) {
-              return Directionality(
-                textDirection: TextDirection.rtl,
-                child: child!,
-              );
-            },
-            home: const SplashScreen(),
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: MaterialApp(
+              title: 'سَكينة',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: provider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              scrollBehavior: const IosScrollBehavior(),
+              locale: const Locale('ar', 'SA'),
+              home: const SplashScreen(),
+            ),
           );
         },
       ),

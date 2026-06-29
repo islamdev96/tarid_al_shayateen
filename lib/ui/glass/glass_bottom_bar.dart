@@ -23,8 +23,11 @@ class GlassBottomBar extends StatelessWidget {
         ? Colors.white.withValues(alpha: 0.20) 
         : Colors.black.withValues(alpha: 0.08);
 
+    final safeBottom = MediaQuery.of(context).padding.bottom;
+    final double paddingBottom = safeBottom > 0 ? safeBottom + 6 : 18;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, paddingBottom),
       child: GlassContainer(
         blur: GlassTokens.getStrongBlur(context),
         opacity: GlassTokens.getBarOpacity(context),

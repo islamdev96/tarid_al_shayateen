@@ -214,6 +214,7 @@ Future<void> prayerAlarmCallback() async {
 }
 
 /// Manages scheduling periodic alarms to trigger Surah Al-Baqarah playback.
+@pragma('vm:entry-point')
 class SchedulerService {
   static const int _alarmId = 111; // Non-zero ID to prevent OEM ignorance
   static const int _morningAlarmId = 222;
@@ -270,16 +271,6 @@ class SchedulerService {
     if (triggered) {
       await prefs.setBool('alarm_triggered', false);
       return true;
-    }
-
-    // Also check if scheduled time has passed (fallback)
-    final scheduledStr = prefs.getString('next_scheduled_time');
-    if (scheduledStr != null) {
-      final scheduled = DateTime.parse(scheduledStr);
-      if (DateTime.now().isAfter(scheduled)) {
-        await prefs.remove('next_scheduled_time');
-        return true;
-      }
     }
 
     return false;

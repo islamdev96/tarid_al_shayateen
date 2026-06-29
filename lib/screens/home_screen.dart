@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../app_theme.dart';
+import '../ui/app_icons.dart';
 import '../providers/app_provider.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
@@ -19,7 +20,7 @@ import 'baqarah_fortification_screen.dart';
 import 'tasbeeh_screen.dart';
 import 'prayer_times_screen.dart';
 import 'radio_screen.dart';
-import 'settings_screen.dart';
+import 'ai_assistant_screen.dart';
 
 /// The redesigned Home screen displaying a premium dashboard.
 class HomeScreen extends StatefulWidget {
@@ -202,6 +203,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildNextPrayerCard(theme, provider),
                         const SizedBox(height: 20),
 
+                        // Premium AI Banner Card
+                        _buildAiBannerCard(context, theme),
+                        const SizedBox(height: 20),
+
                         // Quick Actions Grid (2x2)
                         _buildQuickActionsGrid(context, theme),
                         const SizedBox(height: 20),
@@ -294,6 +299,132 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildAiBannerCard(BuildContext context, ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      borderRadius: BorderRadius.circular(24),
+      border: Border.all(
+        color: isDark 
+            ? AppTheme.accentTeal.withValues(alpha: 0.35) 
+            : AppTheme.lightGold.withValues(alpha: 0.35),
+        width: 1.2,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: (isDark ? AppTheme.accentTeal : AppTheme.gold).withValues(alpha: 0.08),
+          blurRadius: 16,
+          spreadRadius: 1,
+        ),
+      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: (isDark ? AppTheme.accentTeal : AppTheme.primaryGreen).withValues(alpha: 0.15),
+                ),
+                child: Icon(
+                  AppIcons.ai,
+                  color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'الرفيق الروحي الذكي (AI)',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text(
+                  'جديد',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Cairo',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'محاور حواري ذكي للإجابة عن تساؤلاتك الروحية، تدبر الآيات القرآنية، وتقديم الدعم الإرشادي بخصوصية تامة وفق منهج علمي رصين.',
+            style: TextStyle(
+              color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary,
+              fontSize: 12.5,
+              height: 1.55,
+              fontFamily: 'Cairo',
+            ),
+          ),
+          const SizedBox(height: 16),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiAssistantScreen()),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: isDark 
+                    ? AppTheme.accentTeal.withValues(alpha: 0.12)
+                    : AppTheme.primaryGreen.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: isDark 
+                      ? AppTheme.accentTeal.withValues(alpha: 0.35) 
+                      : AppTheme.primaryGreen.withValues(alpha: 0.3),
+                  width: 0.8,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'ابدأ حواراً مع الرفيق الذكي',
+                    style: TextStyle(
+                      color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      fontFamily: 'Cairo',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    AppIcons.ai,
+                    color: isDark ? AppTheme.accentTeal : AppTheme.primaryGreen,
+                    size: 14,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQuickActionsGrid(BuildContext context, ThemeData theme) {
     return GridView.count(
       crossAxisCount: 2,
@@ -374,12 +505,12 @@ class _HomeScreenState extends State<HomeScreen> {
           theme: theme,
         ),
         _buildActionItem(
-          icon: CupertinoIcons.settings,
-          label: 'الإعدادات',
-          darkColor: AppTheme.accentTealDark,
-          lightColor: Colors.blueGrey,
+          icon: AppIcons.ai,
+          label: 'الرفيق الذكي AI',
+          darkColor: AppTheme.accentTeal,
+          lightColor: AppTheme.primaryGreen,
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AiAssistantScreen()));
           },
           theme: theme,
         ),

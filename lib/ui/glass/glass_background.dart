@@ -32,7 +32,7 @@ class GlassScaffold extends StatelessWidget {
               gradient: AppTheme.backgroundGradient(context),
             ),
           ),
-          // Ambient glowing blobs (iOS-style Indigo + Orange)
+          // Ambient glowing blobs (Lavender, Pink, Cyan, Orange)
           Positioned(
             top: -120,
             left: -80,
@@ -42,8 +42,8 @@ class GlassScaffold extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isDark
-                    ? const Color(0xFF5E5CE6).withValues(alpha: 0.15) // iOS Indigo
-                    : const Color(0xFF5856D6).withValues(alpha: 0.10),
+                    ? const Color(0xFF7877C6).withValues(alpha: 0.22) // Lavender
+                    : const Color(0xFF7877C6).withValues(alpha: 0.10),
               ),
             ),
           ),
@@ -56,8 +56,8 @@ class GlassScaffold extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isDark
-                    ? const Color(0xFFFF9F0A).withValues(alpha: 0.10) // iOS Orange
-                    : const Color(0xFFFF9500).withValues(alpha: 0.07),
+                    ? const Color(0xFFFD9644).withValues(alpha: 0.18) // Orange
+                    : const Color(0xFFFD9644).withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -70,8 +70,8 @@ class GlassScaffold extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isDark
-                    ? const Color(0xFF0A84FF).withValues(alpha: 0.10) // iOS Blue
-                    : const Color(0xFF007AFF).withValues(alpha: 0.06),
+                    ? const Color(0xFF48DBFB).withValues(alpha: 0.18) // Cyan
+                    : const Color(0xFF48DBFB).withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -84,8 +84,8 @@ class GlassScaffold extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: isDark
-                    ? const Color(0xFFBF5AF2).withValues(alpha: 0.10) // iOS Purple
-                    : const Color(0xFFAF52DE).withValues(alpha: 0.07),
+                    ? const Color(0xFFFF9FF3).withValues(alpha: 0.15) // Pink
+                    : const Color(0xFFFF9FF3).withValues(alpha: 0.06),
               ),
             ),
           ),

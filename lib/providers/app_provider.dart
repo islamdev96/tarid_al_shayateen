@@ -24,6 +24,7 @@ class AppProvider extends ChangeNotifier {
   bool _isPlaying = false;
   bool _isDarkMode = true;
   bool _isLoading = false;
+  bool _isInitializing = true;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
   String? _errorMessage;
@@ -133,20 +134,20 @@ class AppProvider extends ChangeNotifier {
           );
         }
         _isPlaying = _audioHandler.isPlaying;
-        notifyListeners();
+        if (!_isInitializing) notifyListeners();
       } else {
         _currentPlayingSurah = null;
         _currentPlayingReciter = null;
         _customTitle = null;
         _customSubtitle = null;
-        notifyListeners();
+        if (!_isInitializing) notifyListeners();
       }
     });
 
     // Listen to audio position updates
     _positionSub = _audioHandler.positionStream.listen((pos) {
       _currentPosition = pos;
-      notifyListeners();
+      if (!_isInitializing) notifyListeners();
     });
 
     // Listen to processing state (for completion detection)
@@ -156,7 +157,7 @@ class AppProvider extends ChangeNotifier {
       } else if (state == ProcessingState.ready) {
         _totalDuration = _audioHandler.duration ?? _totalDuration;
         _isLoading = false;
-        notifyListeners();
+        if (!_isInitializing) notifyListeners();
       }
     });
 
@@ -190,7 +191,10 @@ class AppProvider extends ChangeNotifier {
       _scheduleAzkarReminders();
     }
 
-    notifyListeners();
+    _isInitializing = false;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
 
     // Check if an alarm was missed while app was closed
     final hasPending = await SchedulerService.checkPendingAlarm();

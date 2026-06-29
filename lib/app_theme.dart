@@ -249,9 +249,9 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFF181B24), // Dark Slate
-          Color(0xFF0F1116), // Deep Dark Slate (transitional)
-          Color(0xFF181B24), // Dark Slate
+          Color(0xFF232D42), // Slate Navy Blue
+          Color(0xFF161C2A), // Deep Slate Navy Blue
+          Color(0xFF10141D), // Very Deep Slate Navy Blue
         ],
       );
     } else {
@@ -259,9 +259,9 @@ class AppTheme {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Color(0xFFFFFFFF), // Pure White
-          Color(0xFFFFFFFF), // Pure White
-          Color(0xFFFFFFFF), // Pure White
+          Color(0xFFEBF0FA), // Light Blue-Grey
+          Color(0xFFF3F6FC), // Soft White-Blue
+          Color(0xFFEBF0FA), // Light Blue-Grey
         ],
       );
     }

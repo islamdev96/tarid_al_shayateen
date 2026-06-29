@@ -44,47 +44,68 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Resolve tint/overlay color and opacity dynamically based on current theme if not overridden
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final resolvedBlur = blur ?? GlassTokens.getSoftBlur(context);
-    final resolvedOpacity = opacity ?? GlassTokens.getCardOpacity(context);
-    final Color tintColor = color ?? tint ?? GlassTokens.getTint(context);
-    final borderAlpha = GlassTokens.getBorderOpacity(context);
-
-    final content = ClipRRect(
-      borderRadius: borderRadius,
-      clipBehavior: clipBehavior,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: resolvedBlur, sigmaY: resolvedBlur),
-        child: Container(
-          width: width,
-          height: height,
-          padding: padding ?? const EdgeInsets.all(18),
-          decoration: BoxDecoration(
-            borderRadius: borderRadius,
-            // تدرّج خفيف يدّي إحساس انعكاس الضوء على الزجاج
-            gradient: customGradient ?? LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                tintColor.withValues(alpha: (resolvedOpacity + 0.06).clamp(0.0, 1.0)),
-                tintColor.withValues(alpha: (resolvedOpacity * 0.5).clamp(0.0, 1.0)),
-              ],
-            ),
-            border: customBorder ?? (showBorder
-                ? Border.all(
-                    color: tintColor.withValues(alpha: borderAlpha),
-                    width: 0.5,
-                  )
-                : null),
-            boxShadow: customBoxShadow ?? [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.12),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-            ],
+    
+    // Specular border opacity (fades out at bottom-right)
+    final double borderOpacity = isDark ? 0.22 : 0.40;
+    final double baseOpacity = opacity ?? (isDark ? 0.11 : 0.26);
+    
+    final content = Container(
+      width: width,
+      height: height,
+      padding: showBorder && customBorder == null ? const EdgeInsets.all(0.8) : EdgeInsets.zero, // Outer border gap
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
+        border: customBorder,
+        // Gradient simulating specularity (light reflection)
+        gradient: showBorder && customBorder == null
+            ? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: borderOpacity),
+                  Colors.white.withValues(alpha: borderOpacity * 0.12),
+                ],
+              )
+            : null,
+        boxShadow: customBoxShadow ?? [
+          // iOS-style deep ambient shadow
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
+            blurRadius: 28,
+            spreadRadius: -2,
+            offset: const Offset(0, 12),
           ),
-          child: child,
+          // iOS-style crisp outline shadow
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: borderRadius,
+        clipBehavior: clipBehavior,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: resolvedBlur, sigmaY: resolvedBlur),
+          child: Container(
+            padding: padding ?? const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              borderRadius: borderRadius,
+              // Translucent frosted glass backing tint
+              gradient: customGradient ?? LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white.withValues(alpha: baseOpacity),
+                  Colors.white.withValues(alpha: baseOpacity * 0.35),
+                ],
+              ),
+            ),
+            child: child,
+          ),
         ),
       ),
     );
