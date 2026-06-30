@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.islamglab.tarid_al_shayateen"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -23,7 +23,7 @@ android {
     defaultConfig {
         applicationId = "com.islamglab.tarid_al_shayateen"
         minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+        targetSdk = 34
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true

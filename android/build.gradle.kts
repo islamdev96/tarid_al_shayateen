@@ -19,25 +19,41 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 subprojects {
-    plugins.withId("com.android.library") {
-        val android = project.extensions.findByName("android")
-        if (android != null) {
-            try {
-                val getNamespace = android.javaClass.getMethod("getNamespace")
-                val currentNamespace = getNamespace.invoke(android)
-                if (currentNamespace == null) {
-                    val setNamespace = android.javaClass.getMethod("setNamespace", String::class.java)
-                    val cleanName = project.name.replace(Regex("[^a-zA-Z0-9_]"), "_")
-                    val nameSpace = "com.hestandard.$cleanName"
-                    setNamespace.invoke(android, nameSpace)
-                    println("Injected namespace $nameSpace for project ${project.name}")
+    val forceSdkVersion = {
+        plugins.withId("com.android.library") {
+            val android = project.extensions.findByName("android")
+            if (android != null) {
+                try {
+                    val compileSdkVersionMethod = android.javaClass.getMethod("compileSdkVersion", Int::class.javaPrimitiveType)
+                    compileSdkVersionMethod.invoke(android, 36)
+                    println("Forced compileSdkVersion 36 for project ${project.name}")
+                } catch (e: Exception) {
+                    println("Failed to force compileSdkVersion via method for ${project.name}: ${e.message}")
                 }
-            } catch (e: Exception) {
-                println("Failed to inject namespace for ${project.name}: ${e.message}")
+                try {
+                    val getNamespace = android.javaClass.getMethod("getNamespace")
+                    val currentNamespace = getNamespace.invoke(android)
+                    if (currentNamespace == null) {
+                        val setNamespace = android.javaClass.getMethod("setNamespace", String::class.java)
+                        val cleanName = project.name.replace(Regex("[^a-zA-Z0-9_]"), "_")
+                        val nameSpace = "com.hestandard.$cleanName"
+                        setNamespace.invoke(android, nameSpace)
+                        println("Injected namespace $nameSpace for project ${project.name}")
+                    }
+                } catch (e: Exception) {
+                    println("Failed to inject namespace for ${project.name}: ${e.message}")
+                }
             }
         }
     }
 
+    if (project.state.executed) {
+        forceSdkVersion()
+    } else {
+        project.afterEvaluate {
+            forceSdkVersion()
+        }
+    }
     tasks.whenTaskAdded {
         if (name.contains("processDebugManifest") || name.contains("processReleaseManifest")) {
             doFirst {
