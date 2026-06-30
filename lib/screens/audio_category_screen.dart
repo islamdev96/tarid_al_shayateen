@@ -83,6 +83,7 @@ class _AudioCategoryScreenState extends State<AudioCategoryScreen> {
   Future<void> _togglePreview(LibraryAudio item) async {
     // Stop main background player if playing
     final appProvider = context.read<AppProvider>();
+    final downloadProvider = context.read<DownloadProvider>();
     if (appProvider.isPlaying) {
       await appProvider.stopPlayback();
     }
@@ -97,7 +98,6 @@ class _AudioCategoryScreenState extends State<AudioCategoryScreen> {
         
         if (!kIsWeb) {
           // If cached, play local file to save bandwidth
-          final downloadProvider = context.read<DownloadProvider>();
           final isCached = await downloadProvider.isAdhanCached(item.id);
           if (isCached) {
             final dir = await getApplicationDocumentsDirectory();
@@ -156,26 +156,29 @@ class _AudioCategoryScreenState extends State<AudioCategoryScreen> {
     final isCached = await downloadProvider.isAdhanCached(item.id);
 
     if (!isCached) {
-      // Auto download in background first
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('جاري تحميل "${item.nameAr}" لتعيينه كافتراضي...', style: const TextStyle(fontFamily: 'Cairo')),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('جاري تحميل "${item.nameAr}" لتعيينه كافتراضي...', style: const TextStyle(fontFamily: 'Cairo')),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
       final adhanSound = AdhanSound(id: item.id, nameAr: item.nameAr, url: item.url);
       await downloadProvider.downloadAdhan(adhanSound);
     }
 
-    if (widget.categoryKey == 'adhan') {
-      final prayerProvider = context.read<PrayerTimesProvider>();
-      await prayerProvider.updateSelectedAdhan(item.id);
-    } else {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('selected_${widget.categoryKey}_id', item.id);
-    }
+    if (mounted) {
+      if (widget.categoryKey == 'adhan') {
+        final prayerProvider = context.read<PrayerTimesProvider>();
+        await prayerProvider.updateSelectedAdhan(item.id);
+      } else {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('selected_${widget.categoryKey}_id', item.id);
+      }
 
-    setState(() => _selectedId = item.id);
+      setState(() => _selectedId = item.id);
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

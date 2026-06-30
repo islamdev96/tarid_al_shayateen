@@ -15,6 +15,10 @@ import 'services/audio_handler.dart';
 import 'services/scheduler_service.dart';
 import 'services/notification_service.dart';
 
+import 'providers/audio_playback_provider.dart';
+import 'providers/schedule_provider.dart';
+import 'providers/surah_text_provider.dart';
+
 late QuranAudioHandler _audioHandler;
 
 Future<void> main() async {
@@ -75,7 +79,13 @@ class TaridApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PrayerTimesProvider()..init()),
         ChangeNotifierProvider(create: (_) => QuranProvider()),
         ChangeNotifierProvider(create: (_) => DownloadProvider()..autoDownloadOffline()),
-        ChangeNotifierProvider(create: (_) => AppProvider()..init(_audioHandler)),
+        ChangeNotifierProxyProvider<DownloadProvider, AppProvider>(
+          create: (_) => AppProvider(),
+          update: (_, download, app) => app!..init(_audioHandler, download),
+        ),
+        ChangeNotifierProvider(create: (_) => AudioPlaybackProvider()..init(_audioHandler)),
+        ChangeNotifierProvider(create: (_) => ScheduleProvider()..init()),
+        ChangeNotifierProvider(create: (_) => SurahTextProvider()),
       ],
       child: Consumer<SettingsProvider>(
         builder: (context, settingsProvider, _) {

@@ -1,3 +1,5 @@
+import '../constants/api_urls.dart';
+
 /// Represents a Quran reciter with their audio server details.
 class Reciter {
   final String id;
@@ -21,69 +23,69 @@ class Reciter {
     Reciter(
       id: 'husr',
       nameAr: 'محمود خليل الحصري',
-      serverUrl: 'https://server13.mp3quran.net/husr/',
+      serverUrl: ApiUrls.husaryServer,
       isOffline: true,
     ),
     // القراء أونلاين
     Reciter(
       id: 'bna',
       nameAr: 'محمود علي البنا',
-      serverUrl: 'https://server8.mp3quran.net/bna/',
+      serverUrl: ApiUrls.banaServer,
     ),
     Reciter(
       id: 'minsh',
       nameAr: 'محمد صديق المنشاوي',
-      serverUrl: 'https://server10.mp3quran.net/minsh/',
+      serverUrl: ApiUrls.minshawiServer,
     ),
     Reciter(
       id: 'tblawi',
       nameAr: 'محمد الطبلاوي',
-      serverUrl: 'https://server12.mp3quran.net/tblawi/',
+      serverUrl: ApiUrls.tablawiServer,
     ),
     Reciter(
       id: 'basit',
       nameAr: 'عبدالباسط عبدالصمد',
-      serverUrl: 'https://server7.mp3quran.net/basit/',
+      serverUrl: ApiUrls.abdulbasitServer,
     ),
     Reciter(
       id: 'shur',
       nameAr: 'سعود الشريم',
-      serverUrl: 'https://server7.mp3quran.net/shur/',
+      serverUrl: ApiUrls.shuraimServer,
     ),
     Reciter(
       id: 'maher',
       nameAr: 'ماهر المعيقلي',
-      serverUrl: 'https://server12.mp3quran.net/maher/',
+      serverUrl: ApiUrls.maherServer,
     ),
     Reciter(
       id: 'ajm',
       nameAr: 'أحمد بن علي العجمي',
-      serverUrl: 'https://server10.mp3quran.net/ajm/',
+      serverUrl: ApiUrls.ajmiServer,
     ),
     Reciter(
       id: 'jleel',
       nameAr: 'خالد الجليل',
-      serverUrl: 'https://server10.mp3quran.net/jleel/',
+      serverUrl: ApiUrls.jaleelServer,
     ),
     Reciter(
       id: 's_gmd',
       nameAr: 'سعد الغامدي',
-      serverUrl: 'https://server7.mp3quran.net/s_gmd/',
+      serverUrl: ApiUrls.ghamdiServer,
     ),
     Reciter(
       id: 'shatri',
       nameAr: 'أبو بكر الشاطري',
-      serverUrl: 'https://server11.mp3quran.net/shatri/',
+      serverUrl: ApiUrls.shatriServer,
     ),
     Reciter(
       id: 'mustafa',
       nameAr: 'مصطفى إسماعيل',
-      serverUrl: 'https://server8.mp3quran.net/mustafa/',
+      serverUrl: ApiUrls.mustafaServer,
     ),
     Reciter(
       id: 'ayyub',
       nameAr: 'محمد أيوب',
-      serverUrl: 'https://server8.mp3quran.net/ayyub/',
+      serverUrl: ApiUrls.ayyoubServer,
     ),
   ];
 

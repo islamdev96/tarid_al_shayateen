@@ -71,10 +71,8 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     // Build custom shadows for glow/elevated variants
-    List<BoxShadow>? resolvedShadows = null;
+    List<BoxShadow>? resolvedShadows;
 
     return GlassContainer(
       borderRadius: borderRadius ?? BorderRadius.circular(GlassTokens.radius),
