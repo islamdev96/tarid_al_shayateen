@@ -186,7 +186,7 @@ class _TafseerBottomSheetState extends State<TafseerBottomSheet> {
                   )
                 else
                   Text(
-                    _tafseerData?.text ?? '',
+                    (_tafseerData?.text ?? '').replaceAll(RegExp(r'<[^>]*>'), ''),
                     style: const TextStyle(
                       fontFamily: 'Cairo',
                       fontSize: 16,

@@ -12,6 +12,7 @@ import '../widgets/glassy_background.dart';
 import 'surah_text_screen.dart';
 import 'mushaf_pages_screen.dart';
 import 'written_quran_screen.dart';
+import 'paper_mushaf_screen.dart';
 
 /// Screen allowing browsing, searching, and playing the 114 Surahs of the Holy Quran.
 class QuranScreen extends StatefulWidget {
@@ -64,6 +65,57 @@ class _QuranScreenState extends State<QuranScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   child: _buildReciterCard(context, provider, theme),
+                ),
+              ),
+
+              // Paper Mushaf Card Button
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const PaperMushafScreen()),
+                      );
+                    },
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      borderRadius: BorderRadius.circular(20),
+                      color: Colors.brown.withValues(alpha: 0.15),
+                      border: Border.all(color: Colors.brown.withValues(alpha: 0.3)),
+                      child: Row(
+                        children: [
+                          const Icon(CupertinoIcons.book_fill, color: Colors.brown, size: 28),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'المصحف الورقي (مصحف المدينة)',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Cairo',
+                                  ),
+                                ),
+                                Text(
+                                  'تصفح المصحف وكأنك تمسك بكتاب حقيقي، مع تأثيرات الورق الطبيعي للراحة البصرية',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'Cairo',
+                                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.brown, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
 
