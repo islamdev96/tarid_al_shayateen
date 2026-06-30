@@ -10,6 +10,7 @@ import '../providers/download_provider.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
 import 'surah_text_screen.dart';
+import 'mushaf_pages_screen.dart';
 
 /// Screen allowing browsing, searching, and playing the 114 Surahs of the Holy Quran.
 class QuranScreen extends StatefulWidget {
@@ -62,6 +63,57 @@ class _QuranScreenState extends State<QuranScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                   child: _buildReciterCard(context, provider, theme),
+                ),
+              ),
+
+              // Read Mushaf Card Button
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const MushafPagesScreen()),
+                      );
+                    },
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      borderRadius: BorderRadius.circular(20),
+                      color: theme.colorScheme.secondary.withValues(alpha: 0.15),
+                      border: Border.all(color: theme.colorScheme.secondary.withValues(alpha: 0.3)),
+                      child: Row(
+                        children: [
+                          Icon(CupertinoIcons.book_solid, color: theme.colorScheme.secondary, size: 28),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'المصحف المقروء بالصفحات',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Cairo',
+                                  ),
+                                ),
+                                Text(
+                                  'تصفح وقراءة المصحف الحقيقي (604 صفحة) مع التكبير وحفظ العلامات',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'Cairo',
+                                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.secondary, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
 

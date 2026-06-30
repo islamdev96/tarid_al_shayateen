@@ -4,9 +4,13 @@ import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../models/schedule_settings.dart';
 import '../providers/settings_provider.dart';
+import '../providers/app_provider.dart';
+import '../models/prayer_time_settings.dart';
+import '../models/adhan_sound.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -119,6 +123,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const SizedBox(height: 16),
                       _buildAzkarEveningTimePicker(theme),
                     ],
+                    const Divider(height: 40),
+                    _buildSectionHeader('إعدادات الموقع ومواقيت الصلاة', theme),
+                    const SizedBox(height: 8),
+                    _buildLocationSettingsCard(theme),
+                    const SizedBox(height: 16),
+                    _buildPrePrayerReminderCard(theme),
+                    const SizedBox(height: 16),
+                    _buildFlipToMuteCard(theme),
+                    const SizedBox(height: 16),
+                    _buildAdhanPerPrayerCard(theme),
                     const Divider(height: 40),
                     _buildSectionHeader('تحسين العمل في الخلفية', theme),
                     const SizedBox(height: 8),
@@ -648,6 +662,493 @@ class _SettingsScreenState extends State<SettingsScreen> {
               style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 13),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationSettingsCard(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final appProvider = context.watch<AppProvider>();
+    final isAutomatic = appProvider.locationMode == 'automatic';
+
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(CupertinoIcons.location_solid, color: theme.colorScheme.secondary, size: 24),
+              const SizedBox(width: 10),
+              Text(
+                'تحديد الموقع الجغرافي',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Switch between Manual and Automatic
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    await appProvider.setLocationMode('manual');
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: !isAutomatic
+                          ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: !isAutomatic
+                            ? theme.colorScheme.primary
+                            : (isDark ? Colors.white12 : Colors.black12),
+                      ),
+                    ),
+                    child: Text(
+                      'يدوي (مدينة)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: !isAutomatic ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    await _updateGpsLocation(appProvider);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: BoxDecoration(
+                      color: isAutomatic
+                          ? theme.colorScheme.primary.withValues(alpha: 0.2)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isAutomatic
+                            ? theme.colorScheme.primary
+                            : (isDark ? Colors.white12 : Colors.black12),
+                      ),
+                    ),
+                    child: Text(
+                      'تلقائي (GPS)',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Cairo',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: isAutomatic ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          if (isAutomatic) ...[
+            Text(
+              'الموقع الحالي المحدد بالـ GPS:\nخط العرض: ${appProvider.gpsLatitude.toStringAsFixed(4)}\nخط الطول: ${appProvider.gpsLongitude.toStringAsFixed(4)}',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 12,
+                height: 1.6,
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.15),
+                foregroundColor: theme.colorScheme.primary,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => _updateGpsLocation(appProvider),
+              icon: const Icon(CupertinoIcons.location_circle, size: 18),
+              label: const Text(
+                'تحديث الموقع الحالي (GPS)',
+                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+            ),
+          ] else ...[
+            Text(
+              'اختر المدينة لحساب مواقيت الصلاة يدوياً:',
+              style: TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 12,
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: appProvider.selectedCity.id == 'gps' ? 'cairo' : appProvider.selectedCity.id,
+                  isExpanded: true,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontFamily: 'Cairo',
+                    fontSize: 14,
+                  ),
+                  dropdownColor: isDark ? const Color(0xFF0C1921) : Colors.white,
+                  onChanged: (String? newCityId) {
+                    if (newCityId != null) {
+                      final city = CityConfig.defaultCities.firstWhere((c) => c.id == newCityId);
+                      appProvider.updateSelectedCity(city);
+                    }
+                  },
+                  items: CityConfig.defaultCities.map<DropdownMenuItem<String>>((CityConfig city) {
+                    return DropdownMenuItem<String>(
+                      value: city.id,
+                      child: Text('المدينة: ${city.nameAr}'),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _updateGpsLocation(AppProvider provider) async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('الرجاء تفعيل خدمات الموقع (GPS) في الهاتف', style: TextStyle(fontFamily: 'Cairo'))),
+          );
+        }
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('تم رفض صلاحيات الوصول للموقع', style: TextStyle(fontFamily: 'Cairo'))),
+            );
+          }
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('صلاحيات الموقع مرفوضة دائماً، الرجاء تفعيلها من إعدادات الهاتف', style: TextStyle(fontFamily: 'Cairo'))),
+          );
+        }
+        return;
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('جاري جلب إحداثيات الموقع الحالي...', style: TextStyle(fontFamily: 'Cairo')), duration: Duration(seconds: 1)),
+        );
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      await provider.updateGpsCoordinates(position.latitude, position.longitude);
+      await provider.setLocationMode('automatic');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم تحديث الموقع الجغرافي وحساب المواقيت بدقة ✅', style: TextStyle(fontFamily: 'Cairo')), backgroundColor: AppTheme.successGreen),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في جلب الموقع: $e', style: const TextStyle(fontFamily: 'Cairo'))),
+        );
+      }
+    }
+  }
+
+  Widget _buildPrePrayerReminderCard(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final appProvider = context.watch<AppProvider>();
+    final offset = appProvider.prePrayerReminderOffset;
+    final type = appProvider.prePrayerReminderType;
+
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(CupertinoIcons.bell_circle_fill, color: theme.colorScheme.secondary, size: 24),
+              const SizedBox(width: 10),
+              Text(
+                'التذكير قبل وقت الصلاة',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Dropdown for offset time
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'تنبيه مسبق بـ:',
+                style: TextStyle(fontFamily: 'Cairo', fontSize: 14),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: offset,
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontFamily: 'Cairo',
+                      fontSize: 13,
+                    ),
+                    dropdownColor: isDark ? const Color(0xFF0C1921) : Colors.white,
+                    onChanged: (int? newOffset) {
+                      if (newOffset != null) {
+                        appProvider.updatePrePrayerReminder(newOffset, type);
+                      }
+                    },
+                    items: const [
+                      DropdownMenuItem(value: 0, child: Text('إيقاف التنبيه المسبق')),
+                      DropdownMenuItem(value: 5, child: Text('5 دقائق')),
+                      DropdownMenuItem(value: 10, child: Text('10 دقائق')),
+                      DropdownMenuItem(value: 15, child: Text('15 دقيقة')),
+                      DropdownMenuItem(value: 20, child: Text('20 دقيقة')),
+                      DropdownMenuItem(value: 30, child: Text('30 دقيقة')),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          if (offset > 0) ...[
+            const SizedBox(height: 16),
+            // Dropdown for alert type
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'نوع التنبيه المسبق:',
+                  style: TextStyle(fontFamily: 'Cairo', fontSize: 14),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: type,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurface,
+                        fontFamily: 'Cairo',
+                        fontSize: 13,
+                      ),
+                      dropdownColor: isDark ? const Color(0xFF0C1921) : Colors.white,
+                      onChanged: (String? newType) {
+                        if (newType != null) {
+                          appProvider.updatePrePrayerReminder(offset, newType);
+                        }
+                      },
+                      items: const [
+                        DropdownMenuItem(value: 'notification_only', child: Text('إشعار فقط')),
+                        DropdownMenuItem(value: 'sound', child: Text('رنة تنبيه قصيرة')),
+                        DropdownMenuItem(value: 'voice_alert', child: Text('نطق صوتي (اقتربت الصلاة)')),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlipToMuteCard(ThemeData theme) {
+    final appProvider = context.watch<AppProvider>();
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(20),
+      child: Row(
+        children: [
+          Icon(CupertinoIcons.device_phone_portrait, color: theme.colorScheme.secondary, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'إيقاف الأذان عند قلب الهاتف',
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Cairo',
+                  ),
+                ),
+                Text(
+                  'اقلب الهاتف وجهاً لأسفل لكتم الأذان فوراً عند تشغيله',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                    fontSize: 12,
+                    fontFamily: 'Cairo',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: appProvider.flipToMuteEnabled,
+            onChanged: (val) {
+              appProvider.updateFlipToMute(val);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdhanPerPrayerCard(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final appProvider = context.watch<AppProvider>();
+    
+    final prayers = [
+      {'id': 'fajr', 'name': 'صلاة الفجر'},
+      {'id': 'dhuhr', 'name': 'صلاة الظهر'},
+      {'id': 'asr', 'name': 'صلاة العصر'},
+      {'id': 'maghrib', 'name': 'صلاة المغرب'},
+      {'id': 'isha', 'name': 'صلاة العشاء'},
+    ];
+
+    return GlassCard(
+      padding: const EdgeInsets.all(16),
+      borderRadius: BorderRadius.circular(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(CupertinoIcons.music_mic, color: theme.colorScheme.secondary, size: 24),
+              const SizedBox(width: 10),
+              Text(
+                'تخصيص الأذان لكل صلاة',
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Cairo',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'اختر صوت مؤذن مختلف لكل صلاة بشكل مستقل:',
+            style: TextStyle(
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              fontSize: 12,
+              fontFamily: 'Cairo',
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...prayers.map((prayer) {
+            final prayerId = prayer['id']!;
+            final prayerName = prayer['name']!;
+            final currentAdhanId = appProvider.getPrayerAdhanId(prayerId);
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    prayerName,
+                    style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: isDark ? Colors.white12 : Colors.black12),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: currentAdhanId,
+                        style: TextStyle(
+                          color: theme.colorScheme.onSurface,
+                          fontFamily: 'Cairo',
+                          fontSize: 12,
+                        ),
+                        dropdownColor: isDark ? const Color(0xFF0C1921) : Colors.white,
+                        onChanged: (String? newAdhanId) {
+                          if (newAdhanId != null) {
+                            appProvider.updatePrayerAdhanId(prayerId, newAdhanId);
+                          }
+                        },
+                        items: AdhanSound.defaultAdhans.map((AdhanSound adhan) {
+                          return DropdownMenuItem(
+                            value: adhan.id,
+                            child: Text(adhan.nameAr),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );

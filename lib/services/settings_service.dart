@@ -174,4 +174,63 @@ class SettingsService {
   Future<void> setSelectedAdhanId(String adhanId) async {
     await _prefs.setString(_keySelectedAdhanId, adhanId);
   }
+
+  /// Get location mode ('manual' or 'automatic', defaults to 'manual')
+  String get locationMode => _prefs.getString('location_mode') ?? 'manual';
+
+  /// Save location mode
+  Future<void> setLocationMode(String mode) async {
+    await _prefs.setString('location_mode', mode);
+  }
+
+  /// Get GPS latitude (defaults to Cairo: 30.0444)
+  double get gpsLatitude => _prefs.getDouble('gps_latitude') ?? 30.0444;
+
+  /// Save GPS latitude
+  Future<void> setGpsLatitude(double lat) async {
+    await _prefs.setDouble('gps_latitude', lat);
+  }
+
+  /// Get GPS longitude (defaults to Cairo: 31.2357)
+  double get gpsLongitude => _prefs.getDouble('gps_longitude') ?? 31.2357;
+
+  /// Save GPS longitude
+  Future<void> setGpsLongitude(double lng) async {
+    await _prefs.setDouble('gps_longitude', lng);
+  }
+
+  /// Get pre-prayer reminder offset in minutes (0 means disabled, defaults to 0)
+  int get prePrayerReminderOffset => _prefs.getInt('pre_prayer_reminder_offset') ?? 0;
+
+  /// Save pre-prayer reminder offset
+  Future<void> setPrePrayerReminderOffset(int val) async {
+    await _prefs.setInt('pre_prayer_reminder_offset', val);
+  }
+
+  /// Get pre-prayer reminder alert type ('notification_only', 'sound', 'voice_alert', defaults to 'notification_only')
+  String get prePrayerReminderType => _prefs.getString('pre_prayer_reminder_type') ?? 'notification_only';
+
+  /// Save pre-prayer reminder alert type
+  Future<void> setPrePrayerReminderType(String type) async {
+    await _prefs.setString('pre_prayer_reminder_type', type);
+  }
+
+  /// Get custom Adhan ID for a specific prayer, fallbacks to general selectedAdhanId
+  String getPrayerAdhanId(String prayerId) {
+    final fallback = prayerId == 'fajr' ? 'abdulbasit' : selectedAdhanId;
+    return _prefs.getString('adhan_sound_$prayerId') ?? fallback;
+  }
+
+  /// Save custom Adhan ID for a specific prayer
+  Future<void> setPrayerAdhanId(String prayerId, String adhanId) async {
+    await _prefs.setString('adhan_sound_$prayerId', adhanId);
+  }
+
+  /// Get whether "Flip to Mute" is enabled (defaults to false)
+  bool get isFlipToMuteEnabled => _prefs.getBool('flip_to_mute_enabled') ?? false;
+
+  /// Save whether "Flip to Mute" is enabled
+  Future<void> setFlipToMuteEnabled(bool val) async {
+    await _prefs.setBool('flip_to_mute_enabled', val);
+  }
 }

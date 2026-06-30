@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 import '../models/reciter.dart';
 import '../models/surah.dart';
@@ -30,6 +31,7 @@ class AudioPlaybackProvider extends ChangeNotifier {
   StreamSubscription? _mediaItemSub;
   StreamSubscription? _positionSub;
   StreamSubscription? _stateSub;
+  StreamSubscription? _accelerometerSub;
 
   // Getters
   bool get isPlaying => _isPlaying;
@@ -177,7 +179,7 @@ class AudioPlaybackProvider extends ChangeNotifier {
       await stopPlayback();
       _isLoading = true;
       _customTitle = 'أذان صلاة $prayerName';
-      final adhanId = _settingsService.selectedAdhanId;
+      final adhanId = _settingsService.getPrayerAdhanId(prayerId);
       final adhan = AdhanSound.findById(adhanId);
       _customSubtitle = adhan.nameAr;
       notifyListeners();
@@ -195,6 +197,7 @@ class AudioPlaybackProvider extends ChangeNotifier {
         }
       }
       _isPlaying = true;
+      _startAccelerometerListener();
     } catch (e) {
       debugPrint('Error playing Adhan in foreground: $e');
     } finally {
@@ -238,13 +241,35 @@ class AudioPlaybackProvider extends ChangeNotifier {
     _customTitle = null;
     _customSubtitle = null;
     _currentPosition = Duration.zero;
+    _stopAccelerometerListener();
     notifyListeners();
   }
 
   void _onPlaybackCompleted() {
     _isPlaying = false;
     _currentPosition = Duration.zero;
+    _stopAccelerometerListener();
     notifyListeners();
+  }
+
+  void _startAccelerometerListener() {
+    _accelerometerSub?.cancel();
+    if (kIsWeb) return;
+    
+    final flipToMuteEnabled = _settingsService.isFlipToMuteEnabled;
+    if (!flipToMuteEnabled) return;
+
+    _accelerometerSub = accelerometerEventStream().listen((event) {
+      if (event.z < -8.0) {
+        debugPrint('Device flipped face down! Muting Adhan.');
+        stopPlayback();
+      }
+    });
+  }
+
+  void _stopAccelerometerListener() {
+    _accelerometerSub?.cancel();
+    _accelerometerSub = null;
   }
 
   @override
@@ -252,6 +277,7 @@ class AudioPlaybackProvider extends ChangeNotifier {
     _mediaItemSub?.cancel();
     _positionSub?.cancel();
     _stateSub?.cancel();
+    _stopAccelerometerListener();
     super.dispose();
   }
 }

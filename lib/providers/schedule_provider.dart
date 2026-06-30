@@ -123,8 +123,19 @@ class ScheduleProvider extends ChangeNotifier {
   }
 
   void _schedulePrayerAlarms({String? selectedCityId}) {
-    final cityId = selectedCityId ?? _settingsService.selectedCityId;
-    final city = CityConfig.findById(cityId);
+    CityConfig city;
+    if (_settingsService.locationMode == 'automatic') {
+      city = CityConfig(
+        id: 'gps',
+        nameAr: 'الموقع الحالي',
+        nameEn: 'Current Location',
+        latitude: _settingsService.gpsLatitude,
+        longitude: _settingsService.gpsLongitude,
+      );
+    } else {
+      final cityId = selectedCityId ?? _settingsService.selectedCityId;
+      city = CityConfig.findById(cityId);
+    }
     SchedulerService.scheduleNextPrayer(city);
   }
 

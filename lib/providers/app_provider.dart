@@ -35,9 +35,26 @@ class AppProvider extends ChangeNotifier {
 
   // General Config Getters
   bool get isDarkMode => _isDarkMode;
-  CityConfig get selectedCity => _selectedCity;
+  String get locationMode => _settingsService.locationMode;
+  double get gpsLatitude => _settingsService.gpsLatitude;
+  double get gpsLongitude => _settingsService.gpsLongitude;
+  CityConfig get selectedCity {
+    if (locationMode == 'automatic') {
+      return CityConfig(
+        id: 'gps',
+        nameAr: 'الموقع التلقائي (GPS)',
+        nameEn: 'Automatic GPS',
+        latitude: gpsLatitude,
+        longitude: gpsLongitude,
+      );
+    }
+    return _selectedCity;
+  }
   Map<String, bool> get prayerNotifications => _prayerNotifications;
   String get selectedAdhanId => _settingsService.selectedAdhanId;
+  int get prePrayerReminderOffset => _settingsService.prePrayerReminderOffset;
+  String get prePrayerReminderType => _settingsService.prePrayerReminderType;
+  bool get flipToMuteEnabled => _settingsService.isFlipToMuteEnabled;
 
   // Audio Playback Delegation Getters
   bool get isPlaying => _audioPlayback.isPlaying;
@@ -114,7 +131,46 @@ class AppProvider extends ChangeNotifier {
   Future<void> updateSelectedCity(CityConfig city) async {
     _selectedCity = city;
     await _settingsService.setSelectedCityId(city.id);
+    await _settingsService.setLocationMode('manual');
     _schedule.reschedulePrayersForCity(city.id);
+    notifyListeners();
+  }
+
+  /// Update location mode (automatic vs manual)
+  Future<void> setLocationMode(String mode) async {
+    await _settingsService.setLocationMode(mode);
+    _schedule.reschedulePrayersForCity(selectedCity.id);
+    notifyListeners();
+  }
+
+  /// Update GPS coordinates and trigger alarm rescheduling
+  Future<void> updateGpsCoordinates(double lat, double lng) async {
+    await _settingsService.setGpsLatitude(lat);
+    await _settingsService.setGpsLongitude(lng);
+    _schedule.reschedulePrayersForCity(selectedCity.id);
+    notifyListeners();
+  }
+
+  /// Update pre-prayer reminder offset and alert type
+  Future<void> updatePrePrayerReminder(int offset, String type) async {
+    await _settingsService.setPrePrayerReminderOffset(offset);
+    await _settingsService.setPrePrayerReminderType(type);
+    _schedule.reschedulePrayersForCity(selectedCity.id);
+    notifyListeners();
+  }
+
+  /// Update flip to mute status
+  Future<void> updateFlipToMute(bool enabled) async {
+    await _settingsService.setFlipToMuteEnabled(enabled);
+    notifyListeners();
+  }
+
+  /// Get custom Adhan ID for a specific prayer
+  String getPrayerAdhanId(String prayerId) => _settingsService.getPrayerAdhanId(prayerId);
+
+  /// Update custom Adhan ID for a specific prayer
+  Future<void> updatePrayerAdhanId(String prayerId, String adhanId) async {
+    await _settingsService.setPrayerAdhanId(prayerId, adhanId);
     notifyListeners();
   }
 

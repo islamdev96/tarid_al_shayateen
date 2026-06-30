@@ -14,6 +14,7 @@ import 'screens/splash_screen.dart';
 import 'services/audio_handler.dart';
 import 'services/scheduler_service.dart';
 import 'services/notification_service.dart';
+import 'services/settings_service.dart';
 
 import 'providers/audio_playback_provider.dart';
 import 'providers/schedule_provider.dart';
@@ -55,6 +56,9 @@ Future<void> main() async {
 
   // Initialize notification service
   await NotificationService.init();
+
+  // Initialize SettingsService globally before runApp
+  await SettingsService().init();
 
   runApp(const TaridApp());
 }

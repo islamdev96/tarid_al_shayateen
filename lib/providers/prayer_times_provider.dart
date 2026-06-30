@@ -10,7 +10,18 @@ class PrayerTimesProvider extends ChangeNotifier {
   final Map<String, bool> _prayerNotifications = {};
   String _selectedAdhanId = 'madinah';
 
-  CityConfig get selectedCity => _selectedCity;
+  CityConfig get selectedCity {
+    if (_settingsService.locationMode == 'automatic') {
+      return CityConfig(
+        id: 'gps',
+        nameAr: 'الموقع التلقائي (GPS)',
+        nameEn: 'Automatic GPS',
+        latitude: _settingsService.gpsLatitude,
+        longitude: _settingsService.gpsLongitude,
+      );
+    }
+    return _selectedCity;
+  }
   Map<String, bool> get prayerNotifications => _prayerNotifications;
   String get selectedAdhanId => _selectedAdhanId;
 
@@ -33,6 +44,7 @@ class PrayerTimesProvider extends ChangeNotifier {
   Future<void> updateSelectedCity(String cityId) async {
     _selectedCity = CityConfig.findById(cityId);
     await _settingsService.setSelectedCityId(cityId);
+    await _settingsService.setLocationMode('manual');
     _schedulePrayerAlarms();
     notifyListeners();
   }

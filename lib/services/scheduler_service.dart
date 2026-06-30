@@ -15,6 +15,7 @@ import '../models/prayer_time_settings.dart';
 import 'audio_handler.dart';
 import 'notification_service.dart';
 import 'prayer_times_service.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 const String _portName = 'tarid_alarm_port';
 
@@ -209,8 +210,9 @@ Future<void> prayerAlarmCallback() async {
             ),
           );
 
-          // Beautiful Adhan
-          final adhanId = prefs.getString('selected_adhan_id') ?? 'madinah';
+          // Beautiful Adhan per prayer
+          final adhanId = prefs.getString('adhan_sound_$prayerId') ?? 
+                          (prayerId == 'fajr' ? 'abdulbasit' : (prefs.getString('selected_adhan_id') ?? 'madinah'));
           final adhan = AdhanSound.findById(adhanId);
           final dir = await getApplicationDocumentsDirectory();
           final path = '${dir.path}/adhan_$adhanId.mp3';
@@ -229,6 +231,83 @@ Future<void> prayerAlarmCallback() async {
 
   // Reschedule next prayer alarm
   await SchedulerService.scheduleNextPrayer(city, isBackground: true);
+}
+
+/// Callback that fires when pre-prayer alarm triggers.
+@pragma('vm:entry-point')
+Future<void> prePrayerAlarmCallback() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+  
+  final prefs = await SharedPreferences.getInstance();
+  final offset = prefs.getInt('pre_prayer_reminder_offset') ?? 0;
+  final type = prefs.getString('pre_prayer_reminder_type') ?? 'notification_only';
+  
+  // Find out what is the next prayer time (since it's roughly offset minutes away)
+  final cityId = prefs.getString('selected_city_id') ?? 'cairo';
+  final locationMode = prefs.getString('location_mode') ?? 'manual';
+  CityConfig city;
+  if (locationMode == 'automatic') {
+    final lat = prefs.getDouble('gps_latitude') ?? 30.0444;
+    final lng = prefs.getDouble('gps_longitude') ?? 31.2357;
+    city = CityConfig(id: 'gps', nameAr: 'الموقع الحالي', nameEn: 'Current Location', latitude: lat, longitude: lng);
+  } else {
+    city = CityConfig.findById(cityId);
+  }
+
+  final nextPrayer = PrayerTimesService.getNextPrayer(city);
+  if (nextPrayer != null) {
+    final prayerName = nextPrayer['name'] as String;
+    final prayerId = nextPrayer['id'] as String;
+
+    final bodyText = 'باقي $offset دقيقة على صلاة $prayerName. تهيأ للوضوء والصلاة.';
+    
+    // 1. Show notification
+    await NotificationService.showNotification(
+      id: 555,
+      title: 'اقتربت صلاة $prayerName 🕌',
+      body: bodyText,
+      payload: 'pre_prayer_$prayerId',
+    );
+
+    // 2. Play Sound / Speak TTS if requested
+    if (type == 'voice_alert') {
+      try {
+        final SendPort? sendPort = IsolateNameServer.lookupPortByName('tarid_pre_prayer_port');
+        if (sendPort != null) {
+          sendPort.send('speak_${prayerId}_$offset');
+        } else {
+          final FlutterTts flutterTts = FlutterTts();
+          await flutterTts.setLanguage("ar");
+          await flutterTts.setSpeechRate(0.5);
+          await flutterTts.speak("اقتربت صلاة $prayerName. باقي $offset دقيقة.");
+        }
+      } catch (e) {
+        debugPrint('Background TTS error: $e');
+      }
+    } else if (type == 'sound') {
+      try {
+        final SendPort? sendPort = IsolateNameServer.lookupPortByName('tarid_pre_prayer_port');
+        if (sendPort != null) {
+          sendPort.send('play_beep');
+        } else {
+          final audioHandler = await AudioService.init(
+            builder: () => QuranAudioHandler(),
+            config: const AudioServiceConfig(
+              androidNotificationChannelId: 'com.islamglab.tarid_al_shayateen.audio',
+              androidNotificationChannelName: 'التنبيهات',
+              androidNotificationChannelDescription: 'تنبيهات مواقيت الصلاة',
+              androidNotificationOngoing: false,
+              androidStopForegroundOnPause: true,
+            ),
+          );
+          await audioHandler.playFromUrl('asset:///assets/transition.mp3', 'تنبيه اقتراب الصلاة', surahName: 'تنبيه');
+        }
+      } catch (e) {
+        debugPrint('Background reminder sound error: $e');
+      }
+    }
+  }
 }
 
 /// Manages scheduling periodic alarms to trigger Surah Al-Baqarah playback.
@@ -362,6 +441,7 @@ class SchedulerService {
   }
 
   static const int _prayerAlarmId = 444;
+  static const int _prePrayerAlarmId = 555;
   static const String _prayerPortName = 'tarid_prayer_port';
 
   /// Schedule the next upcoming prayer time alarm.
@@ -375,6 +455,7 @@ class SchedulerService {
     }
     // Cancel any existing prayer alarms
     await AndroidAlarmManager.cancel(_prayerAlarmId);
+    await AndroidAlarmManager.cancel(_prePrayerAlarmId);
 
     final nextPrayer = PrayerTimesService.getNextPrayer(city);
     if (nextPrayer != null) {
@@ -390,6 +471,25 @@ class SchedulerService {
         rescheduleOnReboot: true,
         allowWhileIdle: true,
       );
+
+      // Schedule pre-prayer alarm
+      final prefs = await SharedPreferences.getInstance();
+      final offset = prefs.getInt('pre_prayer_reminder_offset') ?? 0;
+      if (offset > 0) {
+        final preTime = nextTime.subtract(Duration(minutes: offset));
+        if (preTime.isAfter(DateTime.now())) {
+          debugPrint('Scheduling pre-prayer alarm for: ${nextPrayer['name']} at $preTime ($offset mins before)');
+          await AndroidAlarmManager.oneShotAt(
+            preTime,
+            _prePrayerAlarmId,
+            prePrayerAlarmCallback,
+            exact: true,
+            wakeup: true,
+            rescheduleOnReboot: true,
+            allowWhileIdle: true,
+          );
+        }
+      }
     }
   }
 
@@ -397,6 +497,7 @@ class SchedulerService {
   static Future<void> cancelPrayerAlarms() async {
     if (kIsWeb || !Platform.isAndroid) return;
     await AndroidAlarmManager.cancel(_prayerAlarmId);
+    await AndroidAlarmManager.cancel(_prePrayerAlarmId);
   }
 
   /// Register a port to listen for prayer alarm callbacks from the background isolate.

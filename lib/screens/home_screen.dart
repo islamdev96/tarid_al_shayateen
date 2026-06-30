@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../app_theme.dart';
 import '../providers/settings_provider.dart';
 import '../providers/prayer_times_provider.dart';
+import '../providers/app_provider.dart';
 import '../models/prayer_time_settings.dart';
 import '../services/prayer_times_service.dart';
 import '../widgets/hadith_card.dart';
@@ -155,6 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
     final settingsProvider = context.watch<SettingsProvider>();
     final prayerProvider = context.watch<PrayerTimesProvider>();
+    final appProvider = context.watch<AppProvider>();
 
     final city = prayerProvider.selectedCity;
     final prayerTimes = PrayerTimesService.calculate(city, DateTime.now());
@@ -209,6 +211,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         // Bismillah Header
                         _buildBismillahHeader(theme),
                         const SizedBox(height: 16),
+
+                        if (appProvider.isPlaying && appProvider.activeAudioTitle.startsWith('أذان'))
+                          _buildAdhanPlayingBanner(theme, appProvider),
 
                         // Countdown Dashboard Card
                         _buildCountdownCard(theme, prayerProvider),
@@ -612,6 +617,59 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Cairo',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdhanPlayingBanner(ThemeData theme, AppProvider provider) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        borderRadius: BorderRadius.circular(20),
+        color: AppTheme.successGreen.withValues(alpha: 0.15),
+        border: Border.all(color: AppTheme.successGreen.withValues(alpha: 0.3)),
+        child: Row(
+          children: [
+            const Icon(CupertinoIcons.bell_fill, color: AppTheme.successGreen, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    provider.activeAudioTitle,
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Text(
+                    'يجري تشغيل الأذان الآن بصوت نقي...',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.errorRed,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => provider.stopQuranPlayback(), // stops the playback
+              child: const Text(
+                'إغلاق الأذان',
+                style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold, fontSize: 11),
               ),
             ),
           ],
