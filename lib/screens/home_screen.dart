@@ -12,6 +12,7 @@ import '../providers/prayer_times_provider.dart';
 import '../providers/app_provider.dart';
 import '../models/prayer_time_settings.dart';
 import '../services/prayer_times_service.dart';
+import '../services/hijri_service.dart';
 import '../widgets/hadith_card.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
@@ -143,13 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _formatTime(DateTime dateTime) {
-    final hour = dateTime.hour;
-    final minute = dateTime.minute.toString().padLeft(2, '0');
-    final period = hour >= 12 ? 'م' : 'ص';
-    final formattedHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
-    return '$formattedHour:$minute $period';
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -223,32 +218,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildCitySelectorCard(prayerProvider, theme),
                         const SizedBox(height: 16),
 
-                        // Daily Prayer Times Section
-                        Text(
-                          'مواقيت الصلاة اليوم',
-                          style: TextStyle(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            fontFamily: 'Cairo',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        // List of daily prayer times
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: list.map((item) {
-                            final prayerId = item['id'] as String;
-                            final prayerName = item['name'] as String;
-                            final prayerTime = item['time'] as DateTime;
-                            
-                            final isNext = _nextPrayer != null && _nextPrayer!['id'] == prayerId && _nextPrayer!['isTomorrow'] != true;
-                            final isNotified = prayerProvider.prayerNotifications[prayerId] ?? (prayerId != 'sunrise');
-
-                            return _buildPrayerTimeItem(prayerId, prayerName, prayerTime, isNext, isNotified, prayerProvider, theme);
-                          }).toList(),
-                        ),
+                        // Daily Prayer Times Section (Circular Bubbles Layout)
+                        _buildCircularPrayerTimes(list, prayerProvider, theme),
                         const SizedBox(height: 20),
 
                         // Quick Actions Grid (2x2)
@@ -375,123 +346,281 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-
-  Widget _buildPrayerTimeItem(
-    String id,
-    String name,
-    DateTime time,
-    bool isNext,
-    bool isNotified,
-    PrayerTimesProvider provider,
+  Widget _buildCircularPrayerTimes(
+    List<Map<String, dynamic>> list,
+    PrayerTimesProvider prayerProvider,
     ThemeData theme,
   ) {
     final isDark = theme.brightness == Brightness.dark;
-    
+    final now = DateTime.now();
+    final hijri = HijriDate.fromDate(now);
+
     return GlassCard(
-      margin: const EdgeInsets.only(bottom: 12),
-      border: Border.all(
-        color: isNext
-            ? theme.colorScheme.primary.withValues(alpha: 0.6)
-            : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.25)),
-        width: isNext ? 1.5 : 0.5,
-      ),
-      color: isNext
-          ? theme.colorScheme.primary.withValues(alpha: 0.12)
-          : null,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isNext
-                ? theme.colorScheme.primary.withValues(alpha: 0.25)
-                : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)),
-            border: Border.all(
-              color: isNext
-                  ? theme.colorScheme.primary.withValues(alpha: 0.3)
-                  : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
-              width: 0.5,
-            ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 18),
+      borderRadius: BorderRadius.circular(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Top Row: Dates on the sides
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Hijri Date Box (Left)
+              _buildDateCard(
+                hijri.monthNameAr,
+                hijri.day.toString(),
+                hijri.year.toString(),
+                theme,
+                isDark,
+              ),
+              
+              // Title text in the center
+              Column(
+                children: [
+                  Text(
+                    'مواقيت الصلاة',
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  Text(
+                    prayerProvider.selectedCity.nameAr,
+                    style: TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 11,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Gregorian Date Box (Right)
+              _buildDateCard(
+                HijriDate.getGregorianMonthAr(now),
+                now.day.toString(),
+                HijriDate.getWeekdayAr(now),
+                theme,
+                isDark,
+              ),
+            ],
           ),
-          child: Center(
-            child: Icon(
-              _getPrayerIcon(id),
-              color: isNext ? theme.colorScheme.primary : theme.colorScheme.onSurface,
-              size: 18,
-            ),
-          ),
-        ),
-        title: Text(
-          name,
-          style: TextStyle(
-            color: isNext ? theme.colorScheme.primary : theme.colorScheme.onSurface,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-            fontFamily: 'Cairo',
-          ),
-        ),
-        subtitle: isNext
-            ? const Text(
-                'الصلاة القادمة',
-                style: TextStyle(
-                  color: Colors.green,
-                  fontSize: 11,
-                  fontFamily: 'Cairo',
-                  fontWeight: FontWeight.bold,
-                ),
-              )
-            : null,
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _formatTime(time),
-              style: TextStyle(
-                color: theme.colorScheme.onSurface,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
+          
+          const SizedBox(height: 24),
+
+          // Staggered Constellation Stack
+          Center(
+            child: SizedBox(
+              width: 320,
+              height: 182, // height matches the bottom-most circle (110 + 72)
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: list.map((item) {
+                  final prayerId = item['id'] as String;
+                  final prayerName = item['name'] as String;
+                  final prayerTime = item['time'] as DateTime;
+                  
+                  final isNext = _nextPrayer != null && _nextPrayer!['id'] == prayerId && _nextPrayer!['isTomorrow'] != true;
+
+                  // Find coordinates for each prayer (symmetrical overlapping)
+                  double top = 0;
+                  double left = 0;
+
+                  switch (prayerId) {
+                    case 'fajr':
+                      top = 110;
+                      left = 238;
+                      break;
+                    case 'sunrise':
+                      top = 110;
+                      left = 124;
+                      break;
+                    case 'dhuhr':
+                      top = 50;
+                      left = 195;
+                      break;
+                    case 'asr':
+                      top = 0;
+                      left = 124;
+                      break;
+                    case 'maghrib':
+                      top = 50;
+                      left = 53;
+                      break;
+                    case 'isha':
+                      top = 110;
+                      left = 10;
+                      break;
+                  }
+
+                  return Positioned(
+                    top: top,
+                    left: left,
+                    child: _buildPrayerCircle(
+                      prayerName,
+                      prayerTime,
+                      isNext,
+                      theme,
+                      isDark,
+                    ),
+                  );
+                }).toList(),
               ),
             ),
-            const SizedBox(width: 8),
-            // Hide notification switch for Sunrise since it has no Adhan
-            if (id != 'sunrise')
-              IconButton(
-                icon: Icon(
-                  isNotified
-                      ? CupertinoIcons.bell_fill
-                      : CupertinoIcons.bell_slash,
-                  color: isNotified ? theme.colorScheme.primary : theme.disabledColor,
-                  size: 18,
-                ),
-                onPressed: () => provider.togglePrayerNotification(id),
-              ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  IconData _getPrayerIcon(String id) {
-    switch (id) {
-      case 'fajr':
-        return CupertinoIcons.sunrise;
-      case 'sunrise':
-        return CupertinoIcons.sun_min;
-      case 'dhuhr':
-        return CupertinoIcons.sun_max_fill;
-      case 'asr':
-        return CupertinoIcons.cloud_sun_fill;
-      case 'maghrib':
-        return CupertinoIcons.sunset_fill;
-      case 'isha':
-        return CupertinoIcons.moon_stars_fill;
-      default:
-        return CupertinoIcons.clock;
-    }
+  Widget _buildDateCard(
+    String headerText,
+    String bodyLine1,
+    String bodyLine2,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    final headerBgColor = theme.colorScheme.primary;
+    final bodyBgColor = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.7);
+    final borderColor = isDark ? Colors.white12 : Colors.black12;
+
+    return Container(
+      width: 80,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor, width: 0.8),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            color: headerBgColor,
+            alignment: Alignment.center,
+            child: Text(
+              headerText,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontFamily: 'Cairo',
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          // Body
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            color: bodyBgColor,
+            child: Column(
+              children: [
+                Text(
+                  bodyLine1,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  bodyLine2,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 10,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
+
+  Widget _buildPrayerCircle(
+    String name,
+    DateTime time,
+    bool isNext,
+    ThemeData theme,
+    bool isDark,
+  ) {
+    // Colors matching the screenshot design style
+    final bgColor = isNext 
+        ? const Color(0xFFE6A100) // Solid dark-amber/yellow for upcoming prayer
+        : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.03));
+    final borderColor = isNext 
+        ? const Color(0xFFCC8F00)
+        : (isDark ? Colors.white24 : Colors.black12);
+    final textColor = isNext 
+        ? Colors.white 
+        : (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black.withValues(alpha: 0.8));
+    final timeColor = isNext
+        ? Colors.white.withValues(alpha: 0.9)
+        : (isDark ? Colors.white.withValues(alpha: 0.6) : Colors.black.withValues(alpha: 0.6));
+
+    final timeStr = _formatTimeOnly(time);
+
+    return Container(
+      width: 72,
+      height: 72,
+      decoration: BoxDecoration(
+        color: bgColor,
+        shape: BoxShape.circle,
+        border: Border.all(color: borderColor, width: 2),
+        boxShadow: isNext ? [
+          BoxShadow(
+            color: const Color(0xFFE6A100).withValues(alpha: 0.4),
+            blurRadius: 10,
+            spreadRadius: 2,
+          )
+        ] : [],
+      ),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            name,
+            style: TextStyle(
+              fontFamily: 'Cairo',
+              fontSize: 12,
+              fontWeight: isNext ? FontWeight.bold : FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            timeStr,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
+              color: timeColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatTimeOnly(DateTime dateTime) {
+    final hour = dateTime.hour;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final formattedHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour);
+    return '$formattedHour:$minute';
+  }
+
+
 
   Widget _buildQuickActionsGrid(BuildContext context, ThemeData theme) {
     return GridView.count(
@@ -534,7 +663,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         _buildActionItem(
           icon: CupertinoIcons.shield_fill,
-          label: 'حصن البيت',
+          label: 'طارد الشياطين',
           darkColor: const Color(0xFFFFD60A),
           lightColor: const Color(0xFFFF9500),
           onTap: () {

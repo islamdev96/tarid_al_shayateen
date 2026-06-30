@@ -36,7 +36,7 @@ class BaqarahFortificationScreen extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                 ),
                 title: const Text(
-                  'حصن البيت (سورة البقرة)',
+                  'طارد الشياطين (سورة البقرة)',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,

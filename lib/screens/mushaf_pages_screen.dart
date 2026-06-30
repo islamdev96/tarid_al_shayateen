@@ -99,6 +99,7 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
           minScale: 1.0,
           maxScale: 4.0,
           child: PageImageLoader(
+            pageNum: pageNum,
             urls: [
               '${_cdns[0]}/$pageNum.jpg',
               '${_cdns[1]}/$pageNum.jpg',
@@ -394,8 +395,9 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
 /// Helper image widget that manages fallback URLs cleanly
 class PageImageLoader extends StatefulWidget {
   final List<String> urls;
+  final int pageNum;
 
-  const PageImageLoader({super.key, required this.urls});
+  const PageImageLoader({super.key, required this.urls, required this.pageNum});
 
   @override
   State<PageImageLoader> createState() => _PageImageLoaderState();
@@ -403,20 +405,104 @@ class PageImageLoader extends StatefulWidget {
 
 class _PageImageLoaderState extends State<PageImageLoader> {
   int _currentUrlIndex = 0;
+  String? _localFilePath;
+  bool _isDownloading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initLocalCache();
+  }
 
   @override
   void didUpdateWidget(covariant PageImageLoader oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset index if URLs changed
-    if (oldWidget.urls.first != widget.urls.first) {
+    if (oldWidget.pageNum != widget.pageNum) {
       setState(() {
         _currentUrlIndex = 0;
+        _localFilePath = null;
+        _isDownloading = false;
       });
+      _initLocalCache();
+    }
+  }
+
+  Future<void> _initLocalCache() async {
+    if (kIsWeb) return; // Browser cache handles web
+
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final cacheDir = Directory('${appDir.path}/mushaf_cache');
+      if (!await cacheDir.exists()) {
+        await cacheDir.create(recursive: true);
+      }
+
+      final localFile = File('${cacheDir.path}/${widget.pageNum}.jpg');
+      if (await localFile.exists()) {
+        if (mounted) {
+          setState(() {
+            _localFilePath = localFile.path;
+          });
+        }
+      } else {
+        _downloadImage(localFile);
+      }
+    } catch (e) {
+      debugPrint('Error accessing local cache: $e');
+    }
+  }
+
+  Future<void> _downloadImage(File localFile) async {
+    if (_isDownloading) return;
+    if (_currentUrlIndex >= widget.urls.length) return;
+
+    if (mounted) {
+      setState(() {
+        _isDownloading = true;
+      });
+    }
+
+    try {
+      final response = await http.get(Uri.parse(widget.urls[_currentUrlIndex]));
+      if (response.statusCode == 200) {
+        await localFile.writeAsBytes(response.bodyBytes);
+        if (mounted) {
+          setState(() {
+            _localFilePath = localFile.path;
+            _isDownloading = false;
+          });
+        }
+      } else {
+        _moveToNextCdnAndRetry(localFile);
+      }
+    } catch (e) {
+      debugPrint('Error downloading page image: $e');
+      _moveToNextCdnAndRetry(localFile);
+    }
+  }
+
+  void _moveToNextCdnAndRetry(File localFile) {
+    if (mounted) {
+      setState(() {
+        _currentUrlIndex++;
+        _isDownloading = false;
+      });
+      if (_currentUrlIndex < widget.urls.length) {
+        _downloadImage(localFile);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // If local file is cached, load it instantly and completely offline!
+    if (!kIsWeb && _localFilePath != null) {
+      return Image.file(
+        File(_localFilePath!),
+        fit: BoxFit.contain,
+      );
+    }
+
     if (_currentUrlIndex >= widget.urls.length) {
       return const Center(
         child: Column(
@@ -435,7 +521,6 @@ class _PageImageLoaderState extends State<PageImageLoader> {
 
     String url = widget.urls[_currentUrlIndex];
     if (kIsWeb && !url.contains('githubusercontent.com') && !url.contains('jsdelivr.net')) {
-      // Use proxy.cors.sh to bypass CanvasKit CORS on web for non-CORS CDNs
       url = 'https://proxy.cors.sh/$url';
     }
 
@@ -455,6 +540,10 @@ class _PageImageLoaderState extends State<PageImageLoader> {
             setState(() {
               _currentUrlIndex++;
             });
+            // If on mobile/desktop, download local copy using next URL
+            if (!kIsWeb) {
+              _initLocalCache();
+            }
           }
         });
         return const Center(child: CupertinoActivityIndicator(radius: 16));
