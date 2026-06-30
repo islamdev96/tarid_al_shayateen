@@ -24,6 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late bool _azkarReminderEnabled;
   late TimeOfDay _azkarMorningTime;
   late TimeOfDay _azkarEveningTime;
+  int _activeTabIndex = 0;
+  final List<String> _tabNames = ['التشغيل والأذكار', 'الصلاة والموقع', 'الأصوات والنظام'];
 
   @override
   void initState() {
@@ -83,62 +85,99 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: GlassyBackground(
         child: SafeArea(
-          child: CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                floating: true,
-                backgroundColor: Colors.transparent,
-                title: const Text('الإعدادات'),
+          child: Column(
+            children: [
+              // Custom Header
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const Text(
+                      'الإعدادات العامة',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Cairo',
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const SizedBox(height: 8),
-                    _buildSectionHeader('جدولة تشغيل سورة البقرة', theme),
-                    const SizedBox(height: 8),
-                    _buildEnableToggle(theme),
-                    if (_draft.isEnabled) ...[
-                      const SizedBox(height: 16),
-                      _buildTimePicker(theme),
-                      const SizedBox(height: 16),
-                      _buildRepeatModeSelector(theme),
-                      const SizedBox(height: 16),
-                      if (_draft.repeatMode == RepeatMode.everyXDays) _buildIntervalSelector(theme),
-                      if (_draft.repeatMode == RepeatMode.weekDays) _buildWeekDaySelector(theme),
-                      const SizedBox(height: 24),
-                      _buildPreview(theme),
-                    ],
-                    const Divider(height: 40),
-                    _buildSectionHeader('تنبيهات الأذكار اليومية', theme),
-                    const SizedBox(height: 8),
-                    _buildAzkarReminderToggle(theme),
-                    if (_azkarReminderEnabled) ...[
-                      const SizedBox(height: 16),
-                      _buildAzkarMorningTimePicker(theme),
-                      const SizedBox(height: 16),
-                      _buildAzkarEveningTimePicker(theme),
-                    ],
-                    const Divider(height: 40),
-                    _buildSectionHeader('إعدادات الموقع ومواقيت الصلاة', theme),
-                    const SizedBox(height: 8),
-                    _buildLocationSettingsCard(theme),
-                    const SizedBox(height: 16),
-                    _buildPrePrayerReminderCard(theme),
-                    const SizedBox(height: 16),
-                    _buildFlipToMuteCard(theme),
-                    const SizedBox(height: 16),
-                    _buildAdhanPerPrayerCard(theme),
-                    const Divider(height: 40),
-                    _buildSectionHeader('تحسين العمل في الخلفية', theme),
-                    const SizedBox(height: 8),
-                    _buildBatteryOptimizationCard(theme),
-                    const SizedBox(height: 120), // Padding to avoid overlap with mini player
-                  ]),
+
+              // Sliding TabBar
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black26 : Colors.black12,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: List.generate(_tabNames.length, (index) {
+                    final isSelected = _activeTabIndex == index;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _activeTabIndex = index;
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ]
+                                : [],
+                          ),
+                          child: Center(
+                            child: Text(
+                              _tabNames[index],
+                              style: TextStyle(
+                                fontFamily: 'Cairo',
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected
+                                    ? theme.colorScheme.onPrimary
+                                    : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Tab Contents
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: _buildTabContent(theme),
+                  ),
                 ),
               ),
             ],
@@ -146,6 +185,66 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildTabContent(ThemeData theme) {
+    switch (_activeTabIndex) {
+      case 0:
+        return [
+          const SizedBox(height: 8),
+          _buildSectionHeader('جدولة تشغيل سورة البقرة', theme),
+          const SizedBox(height: 8),
+          _buildEnableToggle(theme),
+          if (_draft.isEnabled) ...[
+            const SizedBox(height: 16),
+            _buildTimePicker(theme),
+            const SizedBox(height: 16),
+            _buildRepeatModeSelector(theme),
+            const SizedBox(height: 16),
+            if (_draft.repeatMode == RepeatMode.everyXDays) _buildIntervalSelector(theme),
+            if (_draft.repeatMode == RepeatMode.weekDays) _buildWeekDaySelector(theme),
+            const SizedBox(height: 24),
+            _buildPreview(theme),
+          ],
+          const Divider(height: 40),
+          _buildSectionHeader('تنبيهات الأذكار اليومية', theme),
+          const SizedBox(height: 8),
+          _buildAzkarReminderToggle(theme),
+          if (_azkarReminderEnabled) ...[
+            const SizedBox(height: 16),
+            _buildAzkarMorningTimePicker(theme),
+            const SizedBox(height: 16),
+            _buildAzkarEveningTimePicker(theme),
+          ],
+          const SizedBox(height: 120),
+        ];
+      case 1:
+        return [
+          const SizedBox(height: 8),
+          _buildSectionHeader('إعدادات الموقع ومواقيت الصلاة', theme),
+          const SizedBox(height: 8),
+          _buildLocationSettingsCard(theme),
+          const SizedBox(height: 120),
+        ];
+      case 2:
+        return [
+          const SizedBox(height: 8),
+          _buildSectionHeader('أصوات الأذان والتنبيهات', theme),
+          const SizedBox(height: 8),
+          _buildPrePrayerReminderCard(theme),
+          const SizedBox(height: 16),
+          _buildFlipToMuteCard(theme),
+          const SizedBox(height: 16),
+          _buildAdhanPerPrayerCard(theme),
+          const Divider(height: 40),
+          _buildSectionHeader('تحسين العمل في الخلفية', theme),
+          const SizedBox(height: 8),
+          _buildBatteryOptimizationCard(theme),
+          const SizedBox(height: 120),
+        ];
+      default:
+        return [];
+    }
   }
 
   Widget _buildEnableToggle(ThemeData theme) {
@@ -968,7 +1067,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-
           if (offset > 0) ...[
             const SizedBox(height: 16),
             // Dropdown for alert type
@@ -1092,9 +1190,87 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          
+          // Unify all adhan sounds option
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'توحيد مؤذن جميع الصلوات',
+                      style: TextStyle(
+                        fontFamily: 'Cairo', 
+                        fontSize: 13, 
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                    Text(
+                      'تطبيق صوت مؤذن واحد على جميع أوقات الصلوات دفعة واحدة',
+                      style: TextStyle(
+                        fontFamily: 'Cairo', 
+                        fontSize: 10,
+                        color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.amber.withValues(alpha: 0.5)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    hint: const Text(
+                      'اختر لتوحيد الصوت',
+                      style: TextStyle(fontFamily: 'Cairo', fontSize: 11, color: Colors.amber, fontWeight: FontWeight.bold),
+                    ),
+                    style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontFamily: 'Cairo',
+                      fontSize: 12,
+                    ),
+                    dropdownColor: isDark ? const Color(0xFF0C1921) : Colors.white,
+                    onChanged: (String? newAdhanId) {
+                      if (newAdhanId != null) {
+                        for (final prayer in prayers) {
+                          appProvider.updatePrayerAdhanId(prayer['id']!, newAdhanId);
+                        }
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('تم توحيد صوت الأذان لجميع الصلوات بنجاح', style: TextStyle(fontFamily: 'Cairo')),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    },
+                    items: AdhanSound.defaultAdhans.map((AdhanSound adhan) {
+                      return DropdownMenuItem(
+                        value: adhan.id,
+                        child: Text(adhan.nameAr),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Divider(color: Colors.white24),
+          ),
+          
           Text(
-            'اختر صوت مؤذن مختلف لكل صلاة بشكل مستقل:',
+            'أو تخصيص مؤذن لكل صلاة بشكل مستقل:',
             style: TextStyle(
               color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               fontSize: 12,

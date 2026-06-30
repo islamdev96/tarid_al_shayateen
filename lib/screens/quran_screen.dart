@@ -99,7 +99,7 @@ class _QuranScreenState extends State<QuranScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'تصفح وقراءة المصحف الحقيقي (604 صفحة) مع التكبير وحفظ العلامات',
+                                  'تصفح وقراءة صفحات المصحف الشريف (604 صفحة) مع التكبير وحفظ العلامات',
                                   style: TextStyle(
                                     fontSize: 12,
                                     fontFamily: 'Cairo',

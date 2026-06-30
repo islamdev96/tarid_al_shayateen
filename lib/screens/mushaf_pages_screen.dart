@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../app_theme.dart';
 import '../models/surah.dart';
@@ -24,9 +27,9 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
   int? _bookmarkedPage;
 
   // Dual-CDN fallback lists
-  static const List<String> _cdns = [
-    'https://everyayah.com/data/images_800',
-    'https://android.quran.com/data/width_1024',
+  static final List<String> _cdns = [
+    'https://raw.githubusercontent.com/QuranHub/quran-pages-images/main/easyquran.com/hafs-tajweed',
+    'https://cdn.jsdelivr.net/gh/QuranHub/quran-pages-images/easyquran.com/hafs-tajweed',
   ];
 
   @override
@@ -89,8 +92,6 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
 
   // Fallback image builder that tries multiple CDNs
   Widget _buildPageImage(int pageNum) {
-    final formattedPage = pageNum.toString().padLeft(3, '0');
-    
     // Page 1 is right-aligned normally, let's keep it centered
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -99,8 +100,8 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
           maxScale: 4.0,
           child: PageImageLoader(
             urls: [
-              '${_cdns[0]}/$pageNum.png',
-              '${_cdns[1]}/page$formattedPage.png',
+              '${_cdns[0]}/$pageNum.jpg',
+              '${_cdns[1]}/$pageNum.jpg',
             ],
           ),
         );
@@ -258,6 +259,83 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
                     ),
                   ),
                 ),
+
+              // Floating Left Navigation Arrow (Next Page in Arabic RTL)
+              Positioned(
+                left: 10,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: AnimatedOpacity(
+                    opacity: _showControls ? 0.9 : 0.2, // dim when controls are hidden
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withValues(alpha: 0.7),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          )
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary, size: 22),
+                        padding: const EdgeInsets.only(left: 6), // center it visually
+                        onPressed: () {
+                          if (_currentPage < 604) {
+                            _pageController.animateToPage(
+                              _currentPage, // goes to index = currentPage (which is pageNum = currentPage + 1)
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Floating Right Navigation Arrow (Previous Page in Arabic RTL)
+              Positioned(
+                right: 10,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: AnimatedOpacity(
+                    opacity: _showControls ? 0.9 : 0.2,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface.withValues(alpha: 0.7),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          )
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.primary, size: 22),
+                        onPressed: () {
+                          if (_currentPage > 1) {
+                            _pageController.animateToPage(
+                              _currentPage - 2, // goes to index = currentPage - 2 (which is pageNum = currentPage - 1)
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -356,9 +434,9 @@ class _PageImageLoaderState extends State<PageImageLoader> {
     }
 
     String url = widget.urls[_currentUrlIndex];
-    if (kIsWeb) {
-      // Use corsproxy.io to bypass strict CanvasKit CORS on web for Quran CDNs
-      url = 'https://corsproxy.io/?${Uri.encodeComponent(url)}';
+    if (kIsWeb && !url.contains('githubusercontent.com') && !url.contains('jsdelivr.net')) {
+      // Use proxy.cors.sh to bypass CanvasKit CORS on web for non-CORS CDNs
+      url = 'https://proxy.cors.sh/$url';
     }
 
     return Image.network(

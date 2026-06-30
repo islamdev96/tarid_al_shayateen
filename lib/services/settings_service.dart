@@ -4,6 +4,14 @@ import '../models/schedule_settings.dart';
 
 /// Manages persisting and loading user settings via SharedPreferences.
 class SettingsService {
+  static final SettingsService _instance = SettingsService._internal();
+
+  factory SettingsService() {
+    return _instance;
+  }
+
+  SettingsService._internal();
+
   static const _keyPlaybackHour = 'playback_hour';
   static const _keyPlaybackMinute = 'playback_minute';
   static const _keyRepeatMode = 'repeat_mode';
