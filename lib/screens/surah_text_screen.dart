@@ -10,8 +10,9 @@ import '../widgets/glassy_background.dart';
 
 class SurahTextScreen extends StatefulWidget {
   final Surah surah;
+  final int? initialVerseNumber;
 
-  const SurahTextScreen({super.key, required this.surah});
+  const SurahTextScreen({super.key, required this.surah, this.initialVerseNumber});
 
   @override
   State<SurahTextScreen> createState() => _SurahTextScreenState();
@@ -20,12 +21,41 @@ class SurahTextScreen extends StatefulWidget {
 class _SurahTextScreenState extends State<SurahTextScreen> {
   double _fontSize = 20.0;
   Future<List<String>?>? _loadTextFuture;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    final provider = context.read<AppProvider>();
-    _loadTextFuture = provider.loadSurahText(widget.surah.number);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final provider = context.read<AppProvider>();
+        setState(() {
+          _loadTextFuture = provider.loadSurahText(widget.surah.number);
+        });
+      }
+    });
+
+    if (widget.initialVerseNumber != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (_scrollController.hasClients) {
+            double offset = (widget.initialVerseNumber! - 1) * 160.0;
+            if (offset < 0) offset = 0;
+            _scrollController.animateTo(
+              offset,
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -101,6 +131,7 @@ class _SurahTextScreenState extends State<SurahTextScreen> {
                         // Verses list
                         Expanded(
                           child: ListView.builder(
+                            controller: _scrollController,
                             padding: const EdgeInsets.only(left: 20, right: 20, bottom: 120),
                             itemCount: verses.length + 1, // +1 for Bismillah header
                             itemBuilder: (context, index) {
@@ -126,11 +157,21 @@ class _SurahTextScreenState extends State<SurahTextScreen> {
 
                               final verseIndex = index - 1;
                               final verseText = verses[verseIndex];
+                              final isHighlighted = widget.initialVerseNumber == (verseIndex + 1);
                               
                               return Padding(
                                 padding: const EdgeInsets.symmetric(vertical: 10),
                                 child: GlassCard(
                                   padding: const EdgeInsets.all(16),
+                                  border: Border.all(
+                                    color: isHighlighted 
+                                        ? const Color(0xFFFFD60A)
+                                        : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.25)),
+                                    width: isHighlighted ? 2.0 : 0.5,
+                                  ),
+                                  color: isHighlighted 
+                                      ? const Color(0xFFFFD60A).withValues(alpha: 0.12)
+                                      : null,
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.stretch,
                                     children: [

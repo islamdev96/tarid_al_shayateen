@@ -11,6 +11,7 @@ import '../widgets/glass_card.dart';
 import '../widgets/glassy_background.dart';
 import 'surah_text_screen.dart';
 import 'mushaf_pages_screen.dart';
+import 'written_quran_screen.dart';
 
 /// Screen allowing browsing, searching, and playing the 114 Surahs of the Holy Quran.
 class QuranScreen extends StatefulWidget {
@@ -110,6 +111,57 @@ class _QuranScreenState extends State<QuranScreen> {
                             ),
                           ),
                           Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.secondary, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Written Quran Card Button
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WrittenQuranScreen()),
+                      );
+                    },
+                    child: GlassCard(
+                      padding: const EdgeInsets.all(16),
+                      borderRadius: BorderRadius.circular(20),
+                      color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                      border: Border.all(color: theme.colorScheme.primary.withValues(alpha: 0.3)),
+                      child: Row(
+                        children: [
+                          Icon(CupertinoIcons.book, color: theme.colorScheme.primary, size: 28),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'القرآن الكريم المكتوب (نصاً)',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: 'Cairo',
+                                  ),
+                                ),
+                                Text(
+                                  'قراءة سور وآيات المصحف الشريف بالرسم العثماني مع ميزة البحث الذكي عن الآيات والكلمات',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'Cairo',
+                                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.primary, size: 18),
                         ],
                       ),
                     ),

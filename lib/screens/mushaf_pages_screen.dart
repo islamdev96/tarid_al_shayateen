@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../app_theme.dart';
 import '../models/surah.dart';
 import '../widgets/glassy_background.dart';
+import '../providers/mushaf_provider.dart';
+import '../widgets/quran_verse_widget.dart';
+import '../widgets/tafseer_bottom_sheet.dart';
 
-/// Interactive, full-page scanned Quran Mushaf viewer (pages 1 to 604)
-/// Features: PageView, InteractiveViewer (pinch-to-zoom), Bookmark (save/resume), Surah/Page Quick Jump.
 class MushafPagesScreen extends StatefulWidget {
   final int? initialPage;
 
@@ -22,22 +19,25 @@ class MushafPagesScreen extends StatefulWidget {
 
 class _MushafPagesScreenState extends State<MushafPagesScreen> {
   late PageController _pageController;
-  int _currentPage = 1; // 1-indexed (1 to 604)
   bool _showControls = true;
-  int? _bookmarkedPage;
-
-  // Dual-CDN fallback lists
-  static final List<String> _cdns = [
-    'https://raw.githubusercontent.com/QuranHub/quran-pages-images/main/easyquran.com/hafs-tajweed',
-    'https://cdn.jsdelivr.net/gh/QuranHub/quran-pages-images/easyquran.com/hafs-tajweed',
-  ];
 
   @override
   void initState() {
     super.initState();
-    _currentPage = widget.initialPage ?? 1;
-    _pageController = PageController(initialPage: _currentPage - 1);
-    _loadBookmark();
+    final initialPage = widget.initialPage ?? 1;
+    _pageController = PageController(initialPage: initialPage - 1);
+    
+    // Init provider state after frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<MushafProvider>();
+      if (widget.initialPage != null) {
+        provider.changePage(initialPage);
+      } else {
+        // changePage to provider.currentPage to fetch if needed
+        provider.changePage(provider.currentPage);
+        _pageController.jumpToPage(provider.currentPage - 1);
+      }
+    });
   }
 
   @override
@@ -46,42 +46,10 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
     super.dispose();
   }
 
-  Future<void> _loadBookmark() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _bookmarkedPage = prefs.getInt('mushaf_bookmark_page');
-    });
-  }
-
-  Future<void> _saveBookmark() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('mushaf_bookmark_page', _currentPage);
-    setState(() {
-      _bookmarkedPage = _currentPage;
-    });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم حفظ علامة الحفظ عند الصفحة $_currentPage 🔖', style: const TextStyle(fontFamily: 'Cairo')),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
-
-  void _jumpToPage(int page) {
-    if (page < 1 || page > 604) return;
-    _pageController.jumpToPage(page - 1);
-    setState(() {
-      _currentPage = page;
-    });
-  }
-
-  // Get Surah name containing current page
-  String _getCurrentSurahName() {
+  String _getCurrentSurahName(int page) {
     Surah current = Surah.allSurahs.first;
     for (final s in Surah.allSurahs) {
-      if (s.startPage <= _currentPage) {
+      if (s.startPage <= page) {
         current = s;
       } else {
         break;
@@ -90,262 +58,262 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
     return current.nameAr;
   }
 
-  // Fallback image builder that tries multiple CDNs
-  Widget _buildPageImage(int pageNum) {
-    // Page 1 is right-aligned normally, let's keep it centered
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return InteractiveViewer(
-          minScale: 1.0,
-          maxScale: 4.0,
-          child: PageImageLoader(
-            pageNum: pageNum,
-            urls: [
-              '${_cdns[0]}/$pageNum.jpg',
-              '${_cdns[1]}/$pageNum.jpg',
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final provider = context.watch<MushafProvider>();
+    final isDark = theme.brightness == Brightness.dark || provider.isDarkMode;
 
-    return Scaffold(
-      body: GlassyBackground(
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // Swipeable pages
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _showControls = !_showControls;
-                  });
-                },
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: 604,
-                  onPageChanged: (index) {
+    return Theme(
+      data: isDark ? AppTheme.darkTheme : AppTheme.lightTheme,
+      child: Scaffold(
+        backgroundColor: provider.isDarkMode ? AppTheme.deepBackground : theme.scaffoldBackgroundColor,
+        body: GlassyBackground(
+          child: SafeArea(
+            child: Stack(
+              children: [
+                // Swipeable pages
+                GestureDetector(
+                  onTap: () {
                     setState(() {
-                      _currentPage = index + 1;
+                      _showControls = !_showControls;
                     });
                   },
-                  itemBuilder: (context, index) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
-                        child: _buildPageImage(index + 1),
-                      ),
-                    );
-                  },
+                  child: PageView.builder(
+                    controller: _pageController,
+                    itemCount: 604,
+                    reverse: true, // RTL paging (Swipe left to go to next page)
+                    onPageChanged: (index) {
+                      provider.changePage(index + 1);
+                    },
+                    itemBuilder: (context, index) {
+                      return _buildPageContent(context, index + 1, provider);
+                    },
+                  ),
                 ),
-              ),
 
-              // Top Controls Header
-              if (_showControls)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    color: isDark ? Colors.black.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.8),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                // Top Controls Header
+                if (_showControls)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      color: isDark ? Colors.black.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.8),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'المصحف الشريف',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    fontFamily: 'Cairo',
+                                    color: isDark ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                                Text(
+                                  'سورة ${_getCurrentSurahName(provider.currentPage)} | صفحة ${provider.currentPage}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontFamily: 'Cairo',
+                                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          // Settings Button
+                          IconButton(
+                            icon: Icon(Icons.settings, color: theme.colorScheme.primary),
+                            onPressed: () => _showSettingsDialog(context, provider),
+                          ),
+
+                          // Bookmark icon
+                          IconButton(
+                            icon: Icon(
+                              provider.bookmarkedPage == provider.currentPage
+                                  ? Icons.bookmark_added_rounded
+                                  : Icons.bookmark_add_outlined,
+                              color: provider.bookmarkedPage == provider.currentPage ? Colors.amber : theme.colorScheme.primary,
+                            ),
+                            onPressed: () => provider.saveBookmark(),
+                          ),
+
+                          // List of Surahs quick jump
+                          IconButton(
+                            icon: Icon(Icons.list_alt_rounded, color: theme.colorScheme.primary),
+                            onPressed: () => _showSurahJumpDialog(context, provider),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                // Bottom Controls / Page Slider
+                if (_showControls)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      color: isDark ? Colors.black.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.9),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (provider.bookmarkedPage != null && provider.bookmarkedPage != provider.currentPage)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: TextButton.icon(
+                                onPressed: () {
+                                  _pageController.jumpToPage(provider.bookmarkedPage! - 1);
+                                  provider.changePage(provider.bookmarkedPage!);
+                                },
+                                icon: const Icon(Icons.bookmark, size: 16, color: Colors.amber),
+                                label: Text(
+                                  'الذهاب إلى العلامة المحفوظة (صفحة ${provider.bookmarkedPage})',
+                                  style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: Colors.amber),
+                                ),
+                              ),
+                            ),
+                          Row(
                             children: [
                               Text(
-                                'المصحف الشريف',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  fontFamily: 'Cairo',
-                                  color: theme.colorScheme.onSurface,
+                                '1',
+                                style: TextStyle(fontFamily: 'Cairo', color: isDark ? Colors.white : Colors.black87),
+                              ),
+                              Expanded(
+                                child: Slider(
+                                  min: 1,
+                                  max: 604,
+                                  value: provider.currentPage.toDouble(),
+                                  activeColor: theme.colorScheme.primary,
+                                  inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.2),
+                                  onChanged: (value) {
+                                    final page = value.round();
+                                    _pageController.jumpToPage(page - 1);
+                                    provider.changePage(page);
+                                  },
                                 ),
                               ),
                               Text(
-                                'سورة ${_getCurrentSurahName()} | صفحة $_currentPage',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontFamily: 'Cairo',
-                                  color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                                ),
+                                '604',
+                                style: TextStyle(fontFamily: 'Cairo', color: isDark ? Colors.white : Colors.black87),
                               ),
                             ],
                           ),
-                        ),
-                        
-                        // Bookmark icon
-                        IconButton(
-                          icon: Icon(
-                            _bookmarkedPage == _currentPage
-                                ? Icons.bookmark_added_rounded
-                                : Icons.bookmark_add_outlined,
-                            color: _bookmarkedPage == _currentPage ? Colors.amber : theme.colorScheme.primary,
-                          ),
-                          onPressed: _saveBookmark,
-                        ),
-
-                        // List of Surahs quick jump
-                        IconButton(
-                          icon: Icon(Icons.list_alt_rounded, color: theme.colorScheme.primary),
-                          onPressed: () => _showSurahJumpDialog(context),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-              // Bottom Controls / Page Slider
-              if (_showControls)
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    color: isDark ? Colors.black.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.9),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Resume bookmark button if exists
-                        if (_bookmarkedPage != null && _bookmarkedPage != _currentPage)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: TextButton.icon(
-                              onPressed: () => _jumpToPage(_bookmarkedPage!),
-                              icon: const Icon(Icons.bookmark, size: 16, color: Colors.amber),
-                              label: Text(
-                                'الذهاب إلى العلامة المحفوظة (صفحة $_bookmarkedPage)',
-                                style: const TextStyle(fontFamily: 'Cairo', fontSize: 13, color: Colors.amber),
-                              ),
-                            ),
-                          ),
-                        Row(
-                          children: [
-                            Text(
-                              '1',
-                              style: TextStyle(fontFamily: 'Cairo', color: theme.colorScheme.onSurface),
-                            ),
-                            Expanded(
-                              child: Slider(
-                                min: 1,
-                                max: 604,
-                                value: _currentPage.toDouble(),
-                                activeColor: theme.colorScheme.primary,
-                                inactiveColor: theme.colorScheme.primary.withValues(alpha: 0.2),
-                                onChanged: (value) {
-                                  _jumpToPage(value.round());
-                                },
-                              ),
-                            ),
-                            Text(
-                              '604',
-                              style: TextStyle(fontFamily: 'Cairo', color: theme.colorScheme.onSurface),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-              // Floating Left Navigation Arrow (Next Page in Arabic RTL)
-              Positioned(
-                left: 10,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: AnimatedOpacity(
-                    opacity: _showControls ? 0.9 : 0.2, // dim when controls are hidden
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(alpha: 0.7),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          )
                         ],
                       ),
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back_ios_rounded, color: theme.colorScheme.primary, size: 22),
-                        padding: const EdgeInsets.only(left: 6), // center it visually
-                        onPressed: () {
-                          if (_currentPage < 604) {
-                            _pageController.animateToPage(
-                              _currentPage, // goes to index = currentPage (which is pageNum = currentPage + 1)
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                        },
-                      ),
                     ),
                   ),
-                ),
-              ),
-
-              // Floating Right Navigation Arrow (Previous Page in Arabic RTL)
-              Positioned(
-                right: 10,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: AnimatedOpacity(
-                    opacity: _showControls ? 0.9 : 0.2,
-                    duration: const Duration(milliseconds: 200),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(alpha: 0.7),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 8,
-                            spreadRadius: 1,
-                          )
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_forward_ios_rounded, color: theme.colorScheme.primary, size: 22),
-                        onPressed: () {
-                          if (_currentPage > 1) {
-                            _pageController.animateToPage(
-                              _currentPage - 2, // goes to index = currentPage - 2 (which is pageNum = currentPage - 1)
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  // Quick jump Surah chooser dialog
-  void _showSurahJumpDialog(BuildContext context) {
+  Widget _buildPageContent(BuildContext context, int pageNum, MushafProvider provider) {
+    if (provider.currentPage != pageNum || provider.isLoadingPage) {
+      return const Center(child: CupertinoActivityIndicator(radius: 16));
+    }
+
+    if (provider.currentVerses.isEmpty) {
+      return const Center(
+        child: Text(
+          'خطأ في تحميل الصفحة',
+          style: TextStyle(fontFamily: 'Cairo'),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.only(top: 80, bottom: 120, left: 16, right: 16),
+      child: Column(
+        children: provider.currentVerses.map((verse) {
+          final isSelected = provider.selectedVerseKey == verse.verseKey;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: QuranVerseWidget(
+              verse: verse,
+              isSelected: isSelected,
+              isPlaying: provider.playingVerseKey == verse.verseKey,
+              fontSizeMultiplier: provider.fontSizeMultiplier,
+              onTap: () {
+                provider.selectVerse(verse.verseKey);
+                TafseerBottomSheet.show(context, verse, () {
+                  if (provider.playingVerseKey == verse.verseKey) {
+                    provider.stopVerse();
+                  } else {
+                    provider.playVerse(verse.verseKey);
+                  }
+                });
+              },
+              onLongPress: () {
+                provider.selectVerse(verse.verseKey);
+              },
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  void _showSettingsDialog(BuildContext context, MushafProvider provider) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('إعدادات القراءة', style: TextStyle(fontFamily: 'Cairo', fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Dark Mode Toggle
+              SwitchListTile(
+                title: const Text('الوضع الداكن للقراءة', style: TextStyle(fontFamily: 'Cairo')),
+                value: provider.isDarkMode,
+                onChanged: (val) {
+                  provider.toggleDarkMode(val);
+                  Navigator.pop(ctx);
+                },
+              ),
+              const Divider(),
+              // Font Size Slider
+              const Text('حجم الخط', style: TextStyle(fontFamily: 'Cairo')),
+              Slider(
+                min: 0.8,
+                max: 2.0,
+                value: provider.fontSizeMultiplier,
+                onChanged: (val) {
+                  provider.updateFontSize(val);
+                },
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('إغلاق', style: TextStyle(fontFamily: 'Cairo')),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSurahJumpDialog(BuildContext context, MushafProvider provider) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -377,7 +345,8 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
                         style: const TextStyle(fontFamily: 'Cairo', fontSize: 12),
                       ),
                       onTap: () {
-                        _jumpToPage(surah.startPage);
+                        _pageController.jumpToPage(surah.startPage - 1);
+                        provider.changePage(surah.startPage);
                         Navigator.pop(context);
                       },
                     );
@@ -387,166 +356,6 @@ class _MushafPagesScreenState extends State<MushafPagesScreen> {
             ],
           ),
         );
-      },
-    );
-  }
-}
-
-/// Helper image widget that manages fallback URLs cleanly
-class PageImageLoader extends StatefulWidget {
-  final List<String> urls;
-  final int pageNum;
-
-  const PageImageLoader({super.key, required this.urls, required this.pageNum});
-
-  @override
-  State<PageImageLoader> createState() => _PageImageLoaderState();
-}
-
-class _PageImageLoaderState extends State<PageImageLoader> {
-  int _currentUrlIndex = 0;
-  String? _localFilePath;
-  bool _isDownloading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initLocalCache();
-  }
-
-  @override
-  void didUpdateWidget(covariant PageImageLoader oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.pageNum != widget.pageNum) {
-      setState(() {
-        _currentUrlIndex = 0;
-        _localFilePath = null;
-        _isDownloading = false;
-      });
-      _initLocalCache();
-    }
-  }
-
-  Future<void> _initLocalCache() async {
-    if (kIsWeb) return; // Browser cache handles web
-
-    try {
-      final appDir = await getApplicationDocumentsDirectory();
-      final cacheDir = Directory('${appDir.path}/mushaf_cache');
-      if (!await cacheDir.exists()) {
-        await cacheDir.create(recursive: true);
-      }
-
-      final localFile = File('${cacheDir.path}/${widget.pageNum}.jpg');
-      if (await localFile.exists()) {
-        if (mounted) {
-          setState(() {
-            _localFilePath = localFile.path;
-          });
-        }
-      } else {
-        _downloadImage(localFile);
-      }
-    } catch (e) {
-      debugPrint('Error accessing local cache: $e');
-    }
-  }
-
-  Future<void> _downloadImage(File localFile) async {
-    if (_isDownloading) return;
-    if (_currentUrlIndex >= widget.urls.length) return;
-
-    if (mounted) {
-      setState(() {
-        _isDownloading = true;
-      });
-    }
-
-    try {
-      final response = await http.get(Uri.parse(widget.urls[_currentUrlIndex]));
-      if (response.statusCode == 200) {
-        await localFile.writeAsBytes(response.bodyBytes);
-        if (mounted) {
-          setState(() {
-            _localFilePath = localFile.path;
-            _isDownloading = false;
-          });
-        }
-      } else {
-        _moveToNextCdnAndRetry(localFile);
-      }
-    } catch (e) {
-      debugPrint('Error downloading page image: $e');
-      _moveToNextCdnAndRetry(localFile);
-    }
-  }
-
-  void _moveToNextCdnAndRetry(File localFile) {
-    if (mounted) {
-      setState(() {
-        _currentUrlIndex++;
-        _isDownloading = false;
-      });
-      if (_currentUrlIndex < widget.urls.length) {
-        _downloadImage(localFile);
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // If local file is cached, load it instantly and completely offline!
-    if (!kIsWeb && _localFilePath != null) {
-      return Image.file(
-        File(_localFilePath!),
-        fit: BoxFit.contain,
-      );
-    }
-
-    if (_currentUrlIndex >= widget.urls.length) {
-      return const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.broken_image_rounded, color: AppTheme.errorRed, size: 48),
-            SizedBox(height: 8),
-            Text(
-              'خطأ في تحميل الصفحة - تحقق من الاتصال بالإنترنت',
-              style: TextStyle(fontFamily: 'Cairo', fontSize: 13),
-            ),
-          ],
-        ),
-      );
-    }
-
-    String url = widget.urls[_currentUrlIndex];
-    if (kIsWeb && !url.contains('githubusercontent.com') && !url.contains('jsdelivr.net')) {
-      url = 'https://proxy.cors.sh/$url';
-    }
-
-    return Image.network(
-      url,
-      fit: BoxFit.contain,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return const Center(
-          child: CupertinoActivityIndicator(radius: 16),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        // Fallback to next URL
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              _currentUrlIndex++;
-            });
-            // If on mobile/desktop, download local copy using next URL
-            if (!kIsWeb) {
-              _initLocalCache();
-            }
-          }
-        });
-        return const Center(child: CupertinoActivityIndicator(radius: 16));
       },
     );
   }
