@@ -7,7 +7,7 @@ class SettingsProvider extends ChangeNotifier {
   final SettingsService _settingsService = SettingsService();
 
   ScheduleSettings _settings = const ScheduleSettings();
-  bool _isDarkMode = false;
+  bool _isDarkMode = true;
 
   // Azkar reminder variables
   bool _isAzkarReminderEnabled = true;

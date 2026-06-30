@@ -109,7 +109,7 @@ class SettingsService {
   }
 
   /// Get current theme mode (defaults to true for dark mode).
-  bool get isDarkMode => _prefs.getBool(_keyIsDarkMode) ?? false;
+  bool get isDarkMode => _prefs.getBool(_keyIsDarkMode) ?? true;
 
   /// Save theme mode preference.
   Future<void> setDarkMode(bool val) async {

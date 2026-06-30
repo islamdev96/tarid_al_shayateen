@@ -178,7 +178,18 @@ class AppProvider extends ChangeNotifier {
   Future<void> playSurah(Surah surah, Reciter reciter) => _audioPlayback.playSurah(surah, reciter);
   Future<void> playRadio(String url, String name) => _audioPlayback.playRadio(url, name);
   Future<void> stopRadio() => _audioPlayback.stopRadio();
-  Future<void> togglePlayPause() => _audioPlayback.togglePlayPause();
+  Future<void> togglePlayPause() async {
+    final playingSurah = currentPlayingSurah;
+    final currentReciterId = currentPlayingReciter?.id;
+    final selectedReciterId = settings.selectedReciterId;
+
+    if (!isPlaying && playingSurah != null && currentReciterId != selectedReciterId) {
+      final newReciter = Reciter.findById(selectedReciterId);
+      await playSurah(playingSurah, newReciter);
+    } else {
+      await _audioPlayback.togglePlayPause();
+    }
+  }
   Future<void> seekTo(Duration position) => _audioPlayback.seekTo(position);
   Future<void> setVolume(double volume) => _audioPlayback.setVolume(volume);
   Future<void> stopPlayback() => _audioPlayback.stopPlayback();
@@ -207,19 +218,15 @@ class AppProvider extends ChangeNotifier {
       );
 
   Future<void> selectReciter(String reciterId) async {
-    final wasPlaying = isPlaying;
     final playingSurah = currentPlayingSurah;
 
     await _schedule.updateSettings(settings.copyWith(selectedReciterId: reciterId), selectedCityId: _selectedCity.id);
 
-    // Switch reciter instantly if currently playing:
-    if (wasPlaying) {
-      final newReciter = Reciter.findById(reciterId);
-      if (playingSurah != null) {
-        await playSurah(playingSurah, newReciter);
-      } else if (hasActiveAudio && activeAudioTitle.contains('البقرة')) {
-        await playNow();
-      }
+    final newReciter = Reciter.findById(reciterId);
+    if (playingSurah != null) {
+      await playSurah(playingSurah, newReciter);
+    } else if (hasActiveAudio && activeAudioTitle.contains('البقرة')) {
+      await playNow();
     }
   }
 
