@@ -87,9 +87,9 @@ class QuranApiService {
     }
   }
 
-  /// Get Audio URL for a specific verse (Reciter 7: Mishari Al-Afasy)
+  /// Get Audio URL for a specific verse (Reciter 6: Mahmoud Khalil Al-Husary)
   Future<String?> getVerseAudioUrl(String verseKey) async {
-    final url = Uri.parse('$_baseUrl/recitations/7/by_ayah/$verseKey');
+    final url = Uri.parse('$_baseUrl/recitations/6/by_ayah/$verseKey');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -100,7 +100,7 @@ class QuranApiService {
           if (audioUrl.startsWith('//')) {
             audioUrl = 'https:$audioUrl';
           } else if (!audioUrl.startsWith('http')) {
-            audioUrl = 'https://audio.quran.com/$audioUrl';
+            audioUrl = 'https://verses.quran.com/$audioUrl';
           }
           return audioUrl;
         }

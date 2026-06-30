@@ -69,145 +69,138 @@ class _TafseerBottomSheetState extends State<TafseerBottomSheet> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      minChildSize: 0.3,
-      maxChildSize: 0.9,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? AppTheme.deepBackground : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 10,
-                spreadRadius: 2,
-              )
-            ],
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.65,
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.deepBackground : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10,
+            spreadRadius: 2,
+          )
+        ],
+      ),
+      child: Column(
+        children: [
+          // Drag Handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 40,
+              height: 5,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white30 : Colors.black26,
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           ),
-          child: Column(
-            children: [
-              // Drag Handle
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 8),
-                  width: 40,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white30 : Colors.black26,
-                    borderRadius: BorderRadius.circular(10),
+
+          // Action Buttons Row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildActionButton(
+                  context,
+                  icon: CupertinoIcons.play_circle_fill,
+                  label: 'استماع',
+                  color: theme.colorScheme.primary,
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.onPlayAudio();
+                  },
+                ),
+                _buildActionButton(
+                  context,
+                  icon: CupertinoIcons.share,
+                  label: 'مشاركة',
+                  color: Colors.blue,
+                  onTap: _shareVerse,
+                ),
+                _buildActionButton(
+                  context,
+                  icon: CupertinoIcons.doc_on_clipboard,
+                  label: 'نسخ',
+                  color: Colors.orange,
+                  onTap: () {
+                     Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 24),
+
+          // Tafseer Content
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              children: [
+                Text(
+                  'الآية ${widget.verse.verseKey}',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 14,
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
                   ),
+                  textAlign: TextAlign.center,
                 ),
-              ),
-
-              // Action Buttons Row
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildActionButton(
-                      context,
-                      icon: CupertinoIcons.play_circle_fill,
-                      label: 'استماع',
-                      color: theme.colorScheme.primary,
-                      onTap: () {
-                        Navigator.pop(context);
-                        widget.onPlayAudio();
-                      },
-                    ),
-                    _buildActionButton(
-                      context,
-                      icon: CupertinoIcons.share,
-                      label: 'مشاركة',
-                      color: Colors.blue,
-                      onTap: _shareVerse,
-                    ),
-                    _buildActionButton(
-                      context,
-                      icon: CupertinoIcons.doc_on_clipboard,
-                      label: 'نسخ',
-                      color: Colors.orange,
-                      onTap: () {
-                         // TODO: Clipboard copy
-                         Navigator.pop(context);
-                      },
-                    ),
-                  ],
+                const SizedBox(height: 12),
+                Text(
+                  widget.verse.textUthmani,
+                  style: const TextStyle(
+                    fontFamily: 'Amiri',
+                    fontSize: 22,
+                    height: 1.8,
+                  ),
+                  textAlign: TextAlign.center,
+                  textDirection: TextDirection.rtl,
                 ),
-              ),
-              const Divider(height: 24),
-
-              // Tafseer Content
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  children: [
-                    Text(
-                      'الآية ${widget.verse.verseKey}',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 14,
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                const SizedBox(height: 24),
+                const Text(
+                  'التفسير الميسر',
+                  style: TextStyle(
+                    fontFamily: 'Cairo',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.right,
+                ),
+                const SizedBox(height: 12),
+                if (_isLoading)
+                  const Center(child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CupertinoActivityIndicator(radius: 16),
+                  ))
+                else if (_error != null)
+                  Center(
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: AppTheme.errorRed, fontFamily: 'Cairo'),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.verse.textUthmani,
-                      style: const TextStyle(
-                        fontFamily: 'Amiri',
-                        fontSize: 22,
-                        height: 1.8,
-                      ),
-                      textAlign: TextAlign.center,
-                      textDirection: TextDirection.rtl,
+                  )
+                else
+                  Text(
+                    _tafseerData?.text ?? '',
+                    style: const TextStyle(
+                      fontFamily: 'Cairo',
+                      fontSize: 16,
+                      height: 1.6,
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'التفسير الميسر',
-                      style: TextStyle(
-                        fontFamily: 'Cairo',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_isLoading)
-                      const Center(child: Padding(
-                        padding: EdgeInsets.all(32.0),
-                        child: CupertinoActivityIndicator(radius: 16),
-                      ))
-                    else if (_error != null)
-                      Center(
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(color: AppTheme.errorRed, fontFamily: 'Cairo'),
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    else
-                      Text(
-                        _tafseerData?.text ?? '',
-                        style: const TextStyle(
-                          fontFamily: 'Cairo',
-                          fontSize: 16,
-                          height: 1.6,
-                        ),
-                        textAlign: TextAlign.justify,
-                        textDirection: TextDirection.rtl,
-                      ),
-                    const SizedBox(height: 32),
-                  ],
-                ),
-              ),
-            ],
+                    textAlign: TextAlign.justify,
+                    textDirection: TextDirection.rtl,
+                  ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

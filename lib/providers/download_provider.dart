@@ -23,14 +23,18 @@ class DownloadProvider extends ChangeNotifier {
   String get downloadingReciterName => ''; // Maintained for backward compatibility
 
   Future<void> autoDownloadOffline() async {
+    if (kIsWeb) return;
     final offlineReciter = Reciter.defaultReciters.first; // Al-Hussary
-    final surahBaqarah = Surah.findByNumber(2);
-    if (!await isSurahCached(surahBaqarah.number, offlineReciter.id)) {
-      try {
-        await downloadSurah(surahBaqarah, offlineReciter);
-      } catch (e) {
-        _errorMessage = 'فشل تحميل القارئ الافتراضي - تحقق من الإنترنت';
-        notifyListeners();
+    
+    // Download all 114 surahs sequentially in the background
+    for (int i = 1; i <= 114; i++) {
+      final surah = Surah.findByNumber(i);
+      if (!await isSurahCached(surah.number, offlineReciter.id)) {
+        try {
+          await downloadSurah(surah, offlineReciter);
+        } catch (e) {
+          debugPrint('Failed to auto-download surah $i: $e');
+        }
       }
     }
   }
